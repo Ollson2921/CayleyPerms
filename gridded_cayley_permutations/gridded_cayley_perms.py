@@ -9,23 +9,27 @@ class GriddedCayleyPerm:
     """A Cayley permutation as a gridding."""
 
     def __init__(
-        self, pattern: CayleyPermutation, positions: Tuple[Tuple[int, int]]
+        self,
+        pattern: CayleyPermutation,
+        positions: Tuple[Tuple[int, int]],
+        validate=False,
     ) -> None:
         self.pattern = pattern
         self.positions = tuple(tuple(cell) for cell in positions)
 
-        for i in range(len(self.positions)):
-            if self.positions[i][0] < 0 or self.positions[i][1] < 0:
-                raise ValueError("Positions must be positive values.")
+        if validate:
+            for i in range(len(self.positions)):
+                if self.positions[i][0] < 0 or self.positions[i][1] < 0:
+                    raise ValueError("Positions must be positive values.")
 
-        if len(self.positions) != len(self.pattern):
-            if len(self.positions) == 1:
-                self.positions = self.positions * len(self.pattern)
-            else:
-                raise ValueError(
-                    "Number of positions must be equal to number of points in Cayley permutation."
-                )
-        assert not self.contradictory()
+            if len(self.positions) != len(self.pattern):
+                if len(self.positions) == 1:
+                    self.positions = self.positions * len(self.pattern)
+                else:
+                    raise ValueError(
+                        "Number of positions must be equal to number of points in Cayley permutation."
+                    )
+            assert not self.contradictory()
 
     def contradictory(self) -> bool:
         """Checks if the points of the gridding
@@ -299,6 +303,34 @@ class GriddedCayleyPerm:
             CayleyPermutation.standardise(new_pattern), new_positions
         )
 
+    def shifts(self, direction: int, index: int) -> Iterator["GriddedCayleyPerm"]:
+        """Returns all ways to shift points in a Cayley permutation between two rows or columns"""
+        if direction == 0:  # Column Shift
+            indices = sorted(
+                self.indices_in_col(index) + self.indices_in_col(index + 1)
+            )
+            cutoff = indices[-1] + 1
+            for p in indices + [cutoff]:
+                new_positions = list(self.positions)
+                new_positions[indices[0] : cutoff] = [
+                    (index + int(q >= p), self.positions[q][1]) for q in indices
+                ]
+                yield GriddedCayleyPerm(self.pattern, new_positions)
+        if direction == 1:  # Row Shift
+            values = list(
+                set(self.values_in_row(index) + self.values_in_row(index + 1))
+            )
+            cutoff = values[-1] + 1
+            pointer = {value: list() for value in values}
+            for i in self.indices_in_row(index) + self.indices_in_row(index + 1):
+                pointer[self.pattern[i]].append(i)
+            for p in values + [cutoff]:
+                new_positions = list(self.positions)
+                for q in values:
+                    for i in pointer[q]:
+                        new_positions[i] = (self.positions[i][0], index + int(q >= p))
+                yield GriddedCayleyPerm(self.pattern, new_positions)
+
     def to_jsonable(self) -> dict:
         """Returns a jsonable dictionary of the gridded Cayley permutation."""
         return {"pattern": self.pattern.to_jsonable(), "positions": self.positions}
@@ -317,9 +349,9 @@ class GriddedCayleyPerm:
         return f"GriddedCayleyPerm({repr(self.pattern)}, {self.positions})"
 
     def __str__(self) -> str:
-        # if len(self) == 0:
-        #     return "\u03B5"
-        return f"{self.pattern}: ({','.join(str(cell) for cell in self.positions)})"
+        if len(self) == 0:
+            return "empty"
+        return f"{self.pattern}: {','.join(str(cell) for cell in self.positions)}"
 
     def __lt__(self, other: "GriddedCayleyPerm") -> bool:
         return (self.pattern, self.positions) < (other.pattern, other.positions)

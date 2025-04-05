@@ -46,7 +46,7 @@ class MinimalGriddedCayleyPerm:
 
     def minimal_gridded_cperms(
         self,
-    ) -> Tuple[GriddedCayleyPerm, ...]:  # don't change this, it's a lie
+    ) -> Tuple[GriddedCayleyPerm, ...]:
         """Returns the minimal gridded cperms for the minimal gridded cperm."""
         if not self.requirements:
             yield GriddedCayleyPerm(CayleyPermutation(tuple()), tuple())
@@ -70,10 +70,8 @@ class MinimalGriddedCayleyPerm:
     def extend_by_one_point(self, qpacket: QueuePacket) -> Iterator[QueuePacket]:
         """Extends the minimal gridded cperm by one point."""
         for cell, is_localised in self.cells_to_try(qpacket):
-            # print(cell, is_localised)
             mindex = qpacket.mindices.get(cell, 0)
             for new_gcp, index in self.insert_point(qpacket.gcp, cell, mindex):
-                # print(new_gcp, index)
                 if self.satisfies_obstructions(new_gcp):
                     new_mindices = {
                         c: i if i <= index else i + 1
@@ -154,9 +152,7 @@ class MinimalGriddedCayleyPerm:
     ) -> Iterator[Tuple[GriddedCayleyPerm, int]]:
         """Inserts a point into the gridded cperm at the index."""
         mindex, maxdex, minval, maxval = gcp.bounding_box_of_cell(cell)
-        # print(mindex, maxdex, minval, maxval)
         mindex = max(mindex, minimum_index)
-        # print(mindex)
         for index in range(maxdex, mindex - 1, -1):
             for val in range(minval, maxval + 1):
                 for new_gcp in gcp.insert_specific_point(cell, index, val):

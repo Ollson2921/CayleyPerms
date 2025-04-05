@@ -16,8 +16,8 @@ class RowColMap:
     """
 
     def __init__(self, col_map: Dict[int, int], row_map: Dict[int, int]):
-        self.row_map = row_map
-        self.col_map = col_map
+        self.row_map = dict(sorted(row_map.items(), key=lambda item: item[1]))
+        self.col_map = dict(sorted(col_map.items(), key=lambda item: item[1]))
 
     def map_gridded_cperm(self, gcp: GriddedCayleyPerm) -> GriddedCayleyPerm:
         """
@@ -49,7 +49,7 @@ class RowColMap:
         self, gcp: GriddedCayleyPerm
     ) -> Iterable[GriddedCayleyPerm]:
         """
-        Return the preimages of a gridded Cayley permutation with repect to the map.
+        Return the preimages of a gridded Cayley permutation with respect to the map.
         """
         for cols, rows in product(self.product_of_cols(gcp), self.product_of_rows(gcp)):
             new_positions = tuple(zip(cols, rows))
@@ -97,6 +97,29 @@ class RowColMap:
             for result in self.partition(n - i, k - 1):
                 yield [i] + result
 
+    def expand_at_index(self, number_of_cols, number_of_rows, col_index, row_index):
+        """Adds number_of_cols new columns to the at col_index and
+        Adds number_of_rows new rows to the map at row_index
+            Assumes we've modified the parameter and the tiling in the same way"""
+        new_col_map, new_row_map = dict(), dict()
+        """This bit moves the existing mappings"""
+        for item in self.col_map.items():
+            adjust = int(item[0] >= col_index) * number_of_cols
+            new_col_map[item[0] + adjust] = item[1] + adjust
+        for item in self.row_map.items():
+            adjust = int(item[0] >= row_index) * number_of_rows
+            new_row_map[item[0] + adjust] = item[1] + adjust
+        """This bit adds the new dictionary items"""
+        original_col, original_row = (
+            self.col_map[col_index],
+            self.row_map[row_index],
+        )
+        for i in range(number_of_cols):
+            new_col_map[col_index + i] = original_col + i
+        for i in range(number_of_rows):
+            new_row_map[row_index + i] = original_row + i
+        return RowColMap(new_col_map, new_row_map)
+
     def preimages_of_row_of_gcp(
         self, row: int, gcp: GriddedCayleyPerm
     ) -> Iterable[int]:
@@ -113,6 +136,13 @@ class RowColMap:
         for key, value in self.row_map.items():
             if value == row:
                 keys.append(key)
+        return keys
+
+    def preimages_of_rows(self, rows):
+        keys = []
+        for item in self.row_map.items():
+            if item[1] in rows:
+                keys.append(item[0])
         return keys
 
     def preimages_of_col_of_gcp(
@@ -150,6 +180,43 @@ class RowColMap:
                 keys.append(key)
         return keys
 
+    def preimage_map(self):
+        return {i: self.preimages_of_col(i) for i in set(self.col_map.values())}, {
+            i: self.preimages_of_row(i) for i in set(self.row_map.values())
+        }
+
+    def subset_of_map(self, col_values, row_values):
+        """restricts row/col map to only the col_values and row_values of the preimage"""
+        new_col_map, new_row_map = dict(), dict()
+        for index in col_values:
+            new_col_map[index] = self.col_map[index]
+        for index in row_values:
+            new_row_map[index] = self.row_map[index]
+        return RowColMap(new_col_map, new_row_map)
+
+    def standardise_map(self):
+        keys, values = list(set(self.col_map.keys())), list(set(self.col_map.values()))
+        key_map, value_map = {key: keys.index(key) for key in keys}, {
+            value: values.index(value) for value in values
+        }
+        new_col_map = {key_map[key]: value_map[self.col_map[key]] for key in keys}
+        keys, values = list(set(self.row_map.keys())), list(set(self.row_map.values()))
+        key_map, value_map = {key: keys.index(key) for key in keys}, {
+            value: values.index(value) for value in values
+        }
+        new_row_map = {key_map[key]: value_map[self.row_map[key]] for key in keys}
+        return RowColMap(new_col_map, new_row_map)
+
+    def standardised_subset(self, col_values, row_values):
+        return self.subset_of_map(col_values, row_values).standardise_map()
+
+    def preimages_of_cols(self, cols):
+        keys = []
+        for item in self.col_map.items():
+            if item[1] in cols:
+                keys.append(item[0])
+        return keys
+
     def preimage_of_obstructions(
         self, obstructions: Iterable[GriddedCayleyPerm]
     ) -> Iterable[GriddedCayleyPerm]:
@@ -171,6 +238,20 @@ class RowColMap:
         return self.preimage_of_obstructions(
             tiling.obstructions
         ), self.preimage_of_requirements(tiling.requirements)
+
+    def preimage_of_cell(self, cell: Tuple[int, int]) -> Tuple[int, int]:
+        """Return the preimage of the cell."""
+        all_cells = []
+        for col in self.preimages_of_col(cell[0]):
+            for row in self.preimages_of_row(cell[1]):
+                all_cells.append((col, row))
+        return all_cells
+
+    def preimage_of_cells(
+        self, cells: Iterable[Tuple[int, int]]
+    ) -> List[Tuple[int, int]]:
+        """Return the preimage of the cells."""
+        return list(chain.from_iterable(self.preimage_of_cell(cell) for cell in cells))
 
     def __str__(self) -> str:
         return f"RowColMap({self.col_map}, {self.row_map})"

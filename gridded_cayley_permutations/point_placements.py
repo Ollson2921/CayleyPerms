@@ -77,10 +77,10 @@ class PointPlacement:
         self.tiling = tiling
 
     def point_obstructions_and_requirements(
-        self, cell: Tuple[int, int], direction: int
+        self, cell: Tuple[int, int]
     ) -> Tuple[OBSTRUCTIONS, REQUIREMENTS]:
         cell = self.placed_cell(cell)
-        x, y = self.new_dimensions()
+        x, y = self.new_dimensions(cell)
         col_obs = [
             GriddedCayleyPerm(CayleyPermutation([0]), [(cell[0], i)])
             for i in range(y)
@@ -136,9 +136,8 @@ class PointPlacement:
                     obstructions.append(stretched_gcp)
         return obstructions
 
-    def farther(
-        self, cell1: Tuple[int, int], cell2: Tuple[int, int], direction: int
-    ) -> bool:
+    @staticmethod
+    def farther(cell1: Tuple[int, int], cell2: Tuple[int, int], direction: int) -> bool:
         """Return True if cell1 is farther in the given direction than cell2."""
         if direction == Right:
             return cell1[0] > cell2[0]
@@ -159,7 +158,7 @@ class PointPlacement:
         indices: Tuple[int, ...],
         direction: int,
     ) -> Tuple[Tiling, ...]:
-        if direction not in self.DIRECTIONS:
+        if direction not in self.DIRECTIONS or direction != 6:
             raise ValueError(f"Direction {direction} is not a valid direction.")
         cells = []
         for idx, gcp in zip(indices, requirement_list):
@@ -176,21 +175,34 @@ class PointPlacement:
         indices: Tuple[int, ...],
         direction: int,
         cell: Tuple[int, int],
-    ) -> Tuple[Tiling, ...]:
+    ) -> Tiling:
         multiplex_map = self.multiplex_map(cell)
         multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
-        point_obs, point_reqs = self.point_obstructions_and_requirements(
-            cell, direction
-        )
+        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
         forced_obs = self.forced_obstructions(
             cell, requirement_list, indices, direction
         )
         obstructions = multiplex_obs + point_obs + forced_obs
         requirements = multiplex_reqs + point_reqs
-        return Tiling(obstructions, requirements, self.new_dimensions())
+        return Tiling(obstructions, requirements, self.new_dimensions(cell))
 
-    def new_dimensions(self):
-        return (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2)
+    def new_dimensions(self, cell=(-1, -1)):
+        return (
+            self.tiling.dimensions[0] + 2,
+            self.tiling.dimensions[1] + 2,
+        )
+
+    def directionless_point_placement(self, cell: Tuple[int, int]) -> Tiling:
+        multiplex_map = self.multiplex_map(cell)
+        multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
+        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
+        obstructions = multiplex_obs + point_obs
+        requirements = multiplex_reqs + point_reqs
+        return Tiling(
+            obstructions,
+            requirements,
+            self.new_dimensions(cell),
+        )
 
 
 class PartialPointPlacements(PointPlacement):

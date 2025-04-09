@@ -158,7 +158,7 @@ class PointPlacement:
         indices: tuple[int, ...],
         direction: int,
     ) -> tuple[Tiling, ...]:
-        if direction not in self.DIRECTIONS or direction != 6:
+        if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction {direction} is not a valid direction.")
         cells = []
         for idx, gcp in zip(indices, requirement_list):

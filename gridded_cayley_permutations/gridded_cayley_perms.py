@@ -185,6 +185,15 @@ class GriddedCayleyPerm:
                 values.append(value)
         return values
 
+    def contains_index(self, direction: int, index: int) -> bool:
+        """Returns True if the gridded Cayley permutation contains a point in the row/cols at index or index+1.
+        (if direction = 0 then checks cols, else rows)."""
+        indices = [index, index + 1]
+        for cell in self.positions:
+            if cell[direction] in indices:
+                return True
+        return False
+
     def bounding_box_of_cell(self, cell: tuple[int, int]) -> tuple[int, int, int, int]:
         """Returns the minimum index, maximum index, minimum value and maximum value
         that can be inserted into the cell."""
@@ -300,9 +309,10 @@ class GriddedCayleyPerm:
         return [self.sub_gridded_cayley_perm(cells) for cells in factors]
 
     def sub_gridded_cayley_perm(
-        self, cells: list[tuple[int, int]]
+        self, cells: Iterable[tuple[int, int]]
     ) -> "GriddedCayleyPerm":
         """Returns the sub gridded Cayley permutation of the cells."""
+        cells = set(cells)
         new_positions = []
         new_pattern = []
         for idx, cell in enumerate(self.positions):

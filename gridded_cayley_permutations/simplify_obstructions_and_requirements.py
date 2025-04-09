@@ -1,4 +1,4 @@
-from typing import Iterable, List, Tuple, Set
+from typing import Iterable
 from gridded_cayley_permutations import GriddedCayleyPerm
 from itertools import product
 from math import factorial
@@ -111,10 +111,10 @@ class SimplifyObstructionsAndRequirements:
                 cells.difference_update(factor.find_active_cells())
         return ob.sub_gridded_cayley_perm(cells)
 
-    def point_rows(self) -> Set[int]:
+    def point_rows(self) -> set[int]:
         """Returns the point rows of the tiling."""
         point_rows = set()
-        counter_dict = defaultdict(int)
+        counter_dict: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:
             if ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0])):
                 if ob.positions[0][1] == ob.positions[1][1]:
@@ -125,7 +125,7 @@ class SimplifyObstructionsAndRequirements:
                 point_rows.add(row)
         return point_rows
 
-    def cells_in_row(self, row: int) -> Set[Tuple[int, int]]:
+    def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""
         cells = set()
         for cell in self.active_cells():
@@ -133,7 +133,7 @@ class SimplifyObstructionsAndRequirements:
                 cells.add(cell)
         return cells
 
-    def active_cells(self) -> Set[Tuple[int, int]]:
+    def active_cells(self) -> set[tuple[int, int]]:
         """Returns the set of active cells in the tiling.
         (Cells are active if they do not contain a point obstruction.)"""
         active_cells = set(
@@ -145,7 +145,7 @@ class SimplifyObstructionsAndRequirements:
         return active_cells
 
     def implied_by_requirement(
-        self, gcp: GriddedCayleyPerm, req_list: List[GriddedCayleyPerm]
+        self, gcp: GriddedCayleyPerm, req_list: Iterable[GriddedCayleyPerm]
     ) -> bool:
         """Check whether a gridded Cayley permutation is implied by a requirement."""
         return all(req.contains_gridded_cperm(gcp) for req in req_list)

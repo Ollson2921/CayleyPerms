@@ -1,8 +1,6 @@
 """This module contains the class Av which
 generates Cayley permutations avoiding a given basis."""
 
-from typing import List, Dict, Tuple, Set, FrozenSet
-
 from .cayley import CayleyPermutation
 
 
@@ -11,13 +9,13 @@ class Av:
     Generates Cayley permutations avoiding the input.
     """
 
-    def __init__(self, basis: List[CayleyPermutation]):
+    def __init__(self, basis: list[CayleyPermutation]):
         """Cache is a list of dictionaries. The nth dictionary contains the Cayley
         permutations of size n which avoid the basis and a tuple of lists.
         The  first list is the indices where a new maximum can be inserted
         and the second is the indices where the same maximum can be inserted."""
         self.basis = basis
-        self.cache: List[Dict[CayleyPermutation, Tuple[List[int], List[int]]]] = [
+        self.cache: list[dict[CayleyPermutation, tuple[list[int], list[int]]]] = [
             {CayleyPermutation([]): ([0], [])}
         ]
 
@@ -37,7 +35,7 @@ class Av:
         """
         return not cperm.contains(self.basis, require_last)
 
-    def generate_cperms(self, size: int) -> List[CayleyPermutation]:
+    def generate_cperms(self, size: int) -> list[CayleyPermutation]:
         """Generate Cayley permutations of size 'size' which
         avoid the basis by checking avoidance at each step.
 
@@ -52,7 +50,7 @@ class Av:
             return [CayleyPermutation([])]
         cperms = [CayleyPermutation([1])]
         count = 1
-        next_cperms: List[CayleyPermutation] = []
+        next_cperms: list[CayleyPermutation] = []
         while count < size:
             for cperm in cperms:
                 for next_cperm in cperm.add_maximum():
@@ -63,7 +61,7 @@ class Av:
             next_cperms = []
         return cperms
 
-    def counter(self, ran: int = 7) -> List[int]:
+    def counter(self, ran: int = 7) -> list[int]:
         """
         Returns a list of the number of cperms for each size in range 'ran'
         starting at size 0 (the empty Cayley permutation).
@@ -103,7 +101,7 @@ class Av:
     #     max_basis_value = max(maximums)
     #     for nplusone in range(len(self.cache), size + 1):
     #         n = nplusone - 1
-    #         new_level: Dict[CayleyPermutation, Tuple[List[int], List[int]]] = {}
+    #         new_level: dict[CayleyPermutation, tuple[list[int], list[int]]] = {}
     #         for cperm, valid_ins in self.cache[n].items():
     #             new_max, same_max = valid_ins
     #             if len(cperm.cperm) == 0:
@@ -125,7 +123,7 @@ class Av:
 
     # def new_max_valid_insertions(
     #     self, cperm: CayleyPermutation, max_basis_value: int
-    # ) -> FrozenSet[int]:
+    # ) -> frozenset[int]:
     #     """Returns a list of indices where a new maximum can be inserted into cperm."""
     #     res = None
     #     if len(cperm) == 0:
@@ -148,7 +146,7 @@ class Av:
 
     # def same_max_valid_insertions(
     #     self, cperm: CayleyPermutation, max_basis_value: int
-    # ) -> FrozenSet[int]:
+    # ) -> frozenset[int]:
     #     """Returns a list of indices where the same maximum can be inserted into cperm."""
     #     res = None
     #     if len(cperm) == 0:
@@ -194,7 +192,7 @@ class CanonicalAv(Av):
             and cperm.is_canonical()
         )
 
-    # def generate_cperms(self, size: int) -> List[CayleyPermutation]:
+    # def generate_cperms(self, size: int) -> list[CayleyPermutation]:
     #     """Generates canonical Cayley permutations of size 'size' avoiding the basis.
 
     #     Examples:
@@ -214,17 +212,17 @@ class CanonicalAv(Av):
     #             perms.append(perm)
     #     return perms
 
-    def get_canonical_basis(self) -> List[CayleyPermutation]:
+    def get_canonical_basis(self) -> list[CayleyPermutation]:
         """Turns a basis into canonical form using as_canonical() from the CayleyPermutation class.
 
         Example:
         >>> print(CanonicalAv([CayleyPermutation([1, 0])]).get_canonical_basis())
         [010]
         """
-        basis: Set[CayleyPermutation] = set()
+        basis: set[CayleyPermutation] = set()
         for cperm in self.basis:
             basis.update(cperm.as_canonical())
-        res: List[CayleyPermutation] = []
+        res: list[CayleyPermutation] = []
         for cperm in sorted(basis, key=len):
             if not cperm.contains(res):
                 res.append(cperm)
@@ -232,7 +230,7 @@ class CanonicalAv(Av):
 
     def new_max_valid_insertions(
         self, cperm: CayleyPermutation, max_basis_value: int
-    ) -> FrozenSet[int]:
+    ) -> frozenset[int]:
         res = None
         if len(cperm) <= max_basis_value:
             acceptable_indices = []

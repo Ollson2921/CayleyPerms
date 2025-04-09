@@ -1,4 +1,4 @@
-from typing import Tuple, Iterator, Dict, List
+from typing import Tuple, Iterator
 from heapq import heapify, heappop, heappush
 from itertools import product
 from functools import cache
@@ -16,8 +16,8 @@ class QueuePacket:
         self,
         gcp: GriddedCayleyPerm,
         gcps: Gcptuple,
-        last_cell: Tuple[int, int],
-        mindices: Dict[Tuple[int, int], int],
+        last_cell: tuple[int, int],
+        mindices: dict[tuple[int, int], int],
         still_localising: bool,
     ) -> None:
         self.gcp = gcp
@@ -34,8 +34,8 @@ class MinimalGriddedCayleyPerm:
     def __init__(self, obstructions: Gcptuple, requirements: Requirements) -> None:
         self.obstructions = obstructions
         self.requirements = requirements
-        self.queue: List[QueuePacket] = []
-        self.yielded_so_far: List[GriddedCayleyPerm] = []
+        self.queue: list[QueuePacket] = []
+        self.yielded_so_far: list[GriddedCayleyPerm] = []
 
     def initialise_queue(self) -> None:
         """Initialises the queue with the minimal gridded cperm."""
@@ -46,7 +46,7 @@ class MinimalGriddedCayleyPerm:
 
     def minimal_gridded_cperms(
         self,
-    ) -> Tuple[GriddedCayleyPerm, ...]:
+    ) -> Iterator[GriddedCayleyPerm]:
         """Returns the minimal gridded cperms for the minimal gridded cperm."""
         if not self.requirements:
             yield GriddedCayleyPerm(CayleyPermutation(tuple()), tuple())
@@ -85,10 +85,10 @@ class MinimalGriddedCayleyPerm:
 
     def cells_to_try(
         self, qpacket: QueuePacket
-    ) -> Iterator[Tuple[Tuple[int, int], bool]]:
+    ) -> Iterator[tuple[tuple[int, int], bool]]:
         """Returns the cells to try for the next point."""
         last_cell = qpacket.last_cell
-        cells = set()
+        cells: set[tuple[int, int]] = set()
         for g, req_list in zip(qpacket.gcps, self.requirements):
             if qpacket.gcp.avoids(req_list):
                 cells.update(g.positions)
@@ -111,10 +111,10 @@ class MinimalGriddedCayleyPerm:
 
     def _try_yield_cell(
         self,
-        cells: List[Tuple[int, int]],
-        last_cell: Tuple[int, int],
+        cells: set[tuple[int, int]],
+        last_cell: tuple[int, int],
         gcp: GriddedCayleyPerm,
-    ) -> Iterator[Tuple[Tuple[int, int], bool]]:
+    ) -> Iterator[tuple[tuple[int, int], bool]]:
         for cell in cells:
             if cell == last_cell:
                 yield (cell, False)
@@ -124,7 +124,7 @@ class MinimalGriddedCayleyPerm:
                     yield (cell, False)
 
     @cache
-    def requirements_up_to_cell(self, cell: Tuple[int, int]) -> Requirements:
+    def requirements_up_to_cell(self, cell: tuple[int, int]) -> Requirements:
         """Returns the requirements up to the cell."""
         return tuple(
             tuple(
@@ -134,22 +134,22 @@ class MinimalGriddedCayleyPerm:
             for req_list in self.requirements
         )
 
-    def get_localised_pats(self, gcps: Gcptuple, cell: Tuple[int, int]) -> Gcptuple:
+    def get_localised_pats(self, gcps: Gcptuple, cell: tuple[int, int]) -> Gcptuple:
         """Returns the localised patterns for the cell."""
         return tuple(gcp.sub_gridded_cayley_perm([cell]) for gcp in gcps)
 
     @cache
-    def get_max_cell_count(self, gcps: Gcptuple) -> Dict[Tuple[int, int], int]:
+    def get_max_cell_count(self, gcps: Gcptuple) -> dict[tuple[int, int], int]:
         """Returns the maximum cell count for each cell."""
-        max_cell_count = defaultdict(int)
+        max_cell_count: dict[tuple[int, int], int] = defaultdict(int)
         for gcp in gcps:
             for cell in gcp.positions:
                 max_cell_count[cell] += 1
         return max_cell_count
 
     def insert_point(
-        self, gcp: GriddedCayleyPerm, cell: Tuple[int, int], minimum_index: int
-    ) -> Iterator[Tuple[GriddedCayleyPerm, int]]:
+        self, gcp: GriddedCayleyPerm, cell: tuple[int, int], minimum_index: int
+    ) -> Iterator[tuple[GriddedCayleyPerm, int]]:
         """Inserts a point into the gridded cperm at the index."""
         mindex, maxdex, minval, maxval = gcp.bounding_box_of_cell(cell)
         mindex = max(mindex, minimum_index)

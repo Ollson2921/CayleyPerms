@@ -1,4 +1,4 @@
-from typing import Iterable, Iterator, Tuple
+from typing import Iterable, Iterator
 from collections import defaultdict
 from copy import copy
 from itertools import product
@@ -25,7 +25,7 @@ class Tiling(CombinatorialClass):
         self,
         obstructions: Iterable[GriddedCayleyPerm],
         requirements: Iterable[Iterable[GriddedCayleyPerm]],
-        dimensions: Tuple[int, int],
+        dimensions: tuple[int, int],
         simplify=True,
     ) -> None:
         self.obstructions = tuple(obstructions)
@@ -92,7 +92,7 @@ class Tiling(CombinatorialClass):
                 active_cells.discard(ob.positions[0])
         return active_cells
 
-    def positive_cells(self):
+    def positive_cells(self) -> set[tuple[int, int]]:
         """Returns a set of cells that are positive in the tiling.
         (Cells are positive if they contain a point requirement.)"""
         positive_cells = set()
@@ -157,11 +157,11 @@ class Tiling(CombinatorialClass):
             row_map[ind] = counter
             counter += 1
         rc_map = RowColMap(col_map, row_map)
-        new_obstructions = [
+        new_obstructions = tuple(
             ob
             for ob in self.obstructions
             if not (ob.positions[0][1] in rows or ob.positions[0][0] in cols)
-        ]
+        )
 
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
 
@@ -205,7 +205,7 @@ class Tiling(CombinatorialClass):
         empty_cols, _ = self.find_empty_rows_and_columns()
         return self.delete_columns(empty_cols)
 
-    def sub_tiling(self, cells: Iterable[Tuple[int, int]], simplify=True) -> "Tiling":
+    def sub_tiling(self, cells: Iterable[tuple[int, int]], simplify=True) -> "Tiling":
         """
         Returns a sub-tiling of the tiling at the given cells.
         """
@@ -467,14 +467,6 @@ class Tiling(CombinatorialClass):
         return f"Tiling({repr(self.obstructions)}, {repr(self.requirements)}, {repr(self.dimensions)})"
 
     def __str__(self) -> str:
-        grid, key_string, crossing_string, requirements_string = self.find_string()
-        return grid + key_string + crossing_string + requirements_string
-
-    def reduced_str(self) -> str:
-        grid, key_string, _, _ = self.find_string()
-        return grid + key_string
-
-    def find_string(self) -> str:
         """TODO: fix for empty tiling."""
         if self.dimensions == (0, 0):
             return "+---+\n| \u03b5 |\n+---+\n"
@@ -493,8 +485,8 @@ class Tiling(CombinatorialClass):
                 continue
             else:
                 crossing_string += str(ob) + "\n"
-        basis_key = {}
-        cell_key = {}
+        basis_key: dict[tuple[CayleyPermutation, ...], int] = {}
+        cell_key: dict[tuple[int, int], str] = {}
         for cell, basis in cell_basis.items():
             if tuple(basis) not in basis_key:
                 if all(
@@ -515,7 +507,7 @@ class Tiling(CombinatorialClass):
                     continue
                 else:
                     basis_key[tuple(basis)] = len(basis_key)
-            cell_key[cell] = basis_key[tuple(basis)]
+            cell_key[cell] = str(basis_key[tuple(basis)])
 
         requirements_string = ""
         for i, req_list in enumerate(self.requirements):
@@ -530,9 +522,7 @@ class Tiling(CombinatorialClass):
         fill_rows = [copy(fill_row) for _ in range(m)]
         for cell, key in cell_key.items():
             i, j = cell
-            fill_rows[j] = (
-                fill_rows[j][: 2 + 4 * i] + str(key) + fill_rows[j][3 + 4 * i :]
-            )
+            fill_rows[j] = fill_rows[j][: 2 + 4 * i] + key + fill_rows[j][3 + 4 * i :]
 
         for pr in point_rows:
             fill_rows[pr] = fill_rows[pr][:-1] + "*\n"
@@ -540,11 +530,11 @@ class Tiling(CombinatorialClass):
         grid = edge_row + edge_row.join(reversed(fill_rows)) + edge_row
 
         key_string = "Key: \n"
-        for basis, key in basis_key.items():
-            basis_string = f"Av({','.join(str(p) for p in basis)})"
-            key_string += f"{key}: {basis_string} \n"
+        for patts, label in basis_key.items():
+            basis_string = f"Av({','.join(str(p) for p in patts)})"
+            key_string += f"{label}: {basis_string} \n"
 
-        return grid, key_string, crossing_string, requirements_string
+        return grid + key_string + crossing_string + requirements_string
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tiling):

@@ -1,5 +1,4 @@
 from itertools import combinations
-from typing import Dict, Tuple
 from cayley_permutations import CayleyPermutation
 from .row_col_map import RowColMap
 from .tilings import Tiling
@@ -30,14 +29,14 @@ class MultiplexMap(RowColMap):
         where the preimage does not place points in the empty cells.
         """
 
-    def __init__(self, cell: Tuple[int, int], dimensions: Tuple[int, int]):
+    def __init__(self, cell: tuple[int, int], dimensions: tuple[int, int]):
         """Cell is the cell that is expanded to a three by three grid
         and dimensions are the dimenstions of the grid before it was expanded."""
         self.cell = cell
         self.dimensions = dimensions
-        super().__init__(self.col_map(), self.row_map())
+        super().__init__(self._col_map(), self._row_map())
 
-    def row_map(self) -> Dict[int, int]:
+    def _row_map(self) -> dict[int, int]:
         """Return the row map."""
         row_width = self.dimensions[1] + 2
         row_map_dict = dict()
@@ -50,7 +49,7 @@ class MultiplexMap(RowColMap):
                 row_map_dict[i] = i - 2
         return row_map_dict
 
-    def col_map(self) -> Dict[int, int]:
+    def _col_map(self) -> dict[int, int]:
         """Return the col map."""
         col_width = self.dimensions[0] + 2
         col_map_dict = {}
@@ -65,7 +64,7 @@ class MultiplexMap(RowColMap):
 
 
 class PartialMultiplexMap(MultiplexMap):
-    def row_map(self) -> Dict[int, int]:
+    def _row_map(self) -> dict[int, int]:
         """Return the row map."""
         return {i: i for i in range(self.dimensions[1])}
 
@@ -77,8 +76,8 @@ class PointPlacement:
         self.tiling = tiling
 
     def point_obstructions_and_requirements(
-        self, cell: Tuple[int, int]
-    ) -> Tuple[OBSTRUCTIONS, REQUIREMENTS]:
+        self, cell: tuple[int, int]
+    ) -> tuple[OBSTRUCTIONS, REQUIREMENTS]:
         cell = self.placed_cell(cell)
         x, y = self.new_dimensions(cell)
         col_obs = [
@@ -86,7 +85,7 @@ class PointPlacement:
             for i in range(y)
             if i != cell[1]
         ]
-        row_obs = []
+        row_obs: list[GriddedCayleyPerm] = []
         row = cell[1]
         for col in range(x):
             row_obs.append(
@@ -103,28 +102,28 @@ class PointPlacement:
                 GriddedCayleyPerm(CayleyPermutation([1, 0]), [(col1, row), (col2, row)])
             )
 
-        return [
-            [
+        return (
+            (
                 GriddedCayleyPerm(CayleyPermutation((0, 1)), [cell, cell]),
                 GriddedCayleyPerm(CayleyPermutation((0, 0)), [cell, cell]),
                 GriddedCayleyPerm(CayleyPermutation((1, 0)), [cell, cell]),
-            ]
-            + col_obs
-            + row_obs,
-            [[GriddedCayleyPerm(CayleyPermutation([0]), [cell])]],
-        ]
+            )
+            + tuple(col_obs)
+            + tuple(row_obs),
+            ((GriddedCayleyPerm(CayleyPermutation([0]), [cell]),),),
+        )
 
-    def placed_cell(self, cell: Tuple[int, int]) -> Tuple[int, int]:
+    def placed_cell(self, cell: tuple[int, int]) -> tuple[int, int]:
         return (cell[0] + 1, cell[1] + 1)
 
-    def multiplex_map(self, cell: Tuple[int, int]) -> MultiplexMap:
+    def multiplex_map(self, cell: tuple[int, int]) -> MultiplexMap:
         return MultiplexMap(cell, self.tiling.dimensions)
 
     def forced_obstructions(
         self,
-        cell: Tuple[int, int],
-        requirement_list: Tuple[GriddedCayleyPerm, ...],
-        indices: Tuple[int, ...],
+        cell: tuple[int, int],
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
         direction: int,
     ) -> OBSTRUCTIONS:
         multiplex_map = self.multiplex_map(cell)
@@ -134,10 +133,10 @@ class PointPlacement:
             for stretched_gcp in multiplex_map.preimage_of_gridded_cperm(gcp):
                 if self.farther(stretched_gcp.positions[idx], cell, direction):
                     obstructions.append(stretched_gcp)
-        return obstructions
+        return tuple(obstructions)
 
     @staticmethod
-    def farther(cell1: Tuple[int, int], cell2: Tuple[int, int], direction: int) -> bool:
+    def farther(cell1: tuple[int, int], cell2: tuple[int, int], direction: int) -> bool:
         """Return True if cell1 is farther in the given direction than cell2."""
         if direction == Right:
             return cell1[0] > cell2[0]
@@ -151,13 +150,14 @@ class PointPlacement:
             return cell1[1] < cell2[1] or (cell1[1] == cell2[1] and cell1[0] < cell2[0])
         if direction == Right_bot:
             return cell1[1] < cell2[1] or (cell1[1] == cell2[1] and cell1[0] > cell2[0])
+        raise ValueError(f"Direction {direction} is not valid.")
 
     def point_placement(
         self,
-        requirement_list: Tuple[GriddedCayleyPerm, ...],
-        indices: Tuple[int, ...],
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
         direction: int,
-    ) -> Tuple[Tiling, ...]:
+    ) -> tuple[Tiling, ...]:
         if direction not in self.DIRECTIONS or direction != 6:
             raise ValueError(f"Direction {direction} is not a valid direction.")
         cells = []
@@ -171,10 +171,10 @@ class PointPlacement:
 
     def point_placement_in_cell(
         self,
-        requirement_list: Tuple[GriddedCayleyPerm, ...],
-        indices: Tuple[int, ...],
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
         direction: int,
-        cell: Tuple[int, int],
+        cell: tuple[int, int],
     ) -> Tiling:
         multiplex_map = self.multiplex_map(cell)
         multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
@@ -192,7 +192,7 @@ class PointPlacement:
             self.tiling.dimensions[1] + 2,
         )
 
-    def directionless_point_placement(self, cell: Tuple[int, int]) -> Tiling:
+    def directionless_point_placement(self, cell: tuple[int, int]) -> Tiling:
         multiplex_map = self.multiplex_map(cell)
         multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
         point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
@@ -209,31 +209,29 @@ class PartialPointPlacements(PointPlacement):
     DIRECTIONS = [Left, Right]
 
     def point_obstructions_and_requirements(
-        self, cell: Tuple[int], direction: int
-    ) -> Tuple[
-        Tuple[GriddedCayleyPerm, ...] | Tuple[Tuple[GriddedCayleyPerm, ...], ...]
-    ]:
+        self, cell: tuple[int, int]
+    ) -> tuple[OBSTRUCTIONS, REQUIREMENTS]:
         cell = self.placed_cell(cell)
         _, y = self.new_dimensions()
-        col_obs = [
+        col_obs = tuple(
             GriddedCayleyPerm(CayleyPermutation([0]), [(cell[0], i)])
             for i in range(y)
             if i != cell[1]
-        ]
-        return [
-            [
+        )
+        return (
+            (
                 GriddedCayleyPerm(CayleyPermutation((0, 1)), [cell, cell]),
                 GriddedCayleyPerm(CayleyPermutation((0, 0)), [cell, cell]),
                 GriddedCayleyPerm(CayleyPermutation((1, 0)), [cell, cell]),
-            ]
+            )
             + col_obs,
-            [[GriddedCayleyPerm(CayleyPermutation([0]), [cell])]],
-        ]
+            ((GriddedCayleyPerm(CayleyPermutation([0]), [cell]),),),
+        )
 
-    def placed_cell(self, cell: Tuple[int]) -> Tuple[int]:
+    def placed_cell(self, cell: tuple[int, int]) -> tuple[int, int]:
         return (cell[0] + 1, cell[1])
 
-    def multiplex_map(self, cell: Tuple[int]) -> MultiplexMap:
+    def multiplex_map(self, cell: tuple[int, int]) -> MultiplexMap:
         return PartialMultiplexMap(cell, self.tiling.dimensions)
 
     def new_dimensions(self):

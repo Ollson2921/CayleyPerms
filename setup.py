@@ -10,5 +10,5 @@ setup(
         "cayley_permutations",
         "gridded_cayley_permutations",
     ],
-    # install_requires=["typing"],  # external packages as dependencies
+    install_requires=["comb_spec_searcher"],  # external packages as dependencies
 )

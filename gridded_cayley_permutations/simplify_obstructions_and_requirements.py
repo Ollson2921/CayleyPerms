@@ -16,9 +16,9 @@ def binomial(x, y):
 class SimplifyObstructionsAndRequirements:
     def __init__(
         self,
-        obstructions: Iterable[GriddedCayleyPerm],
-        requirements: Iterable[Iterable[GriddedCayleyPerm]],
-        dimensions: Tuple[int, int],
+        obstructions: tuple[GriddedCayleyPerm, ...],
+        requirements: tuple[tuple[GriddedCayleyPerm, ...], ...],
+        dimensions: tuple[int, int],
     ):
         self.obstructions = obstructions
         self.requirements = requirements

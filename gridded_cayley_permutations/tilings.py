@@ -30,7 +30,7 @@ class Tiling(CombinatorialClass):
     ) -> None:
         self.obstructions = tuple(obstructions)
         self.requirements = tuple(tuple(req) for req in requirements)
-        self.dimensions = tuple(dimensions)
+        self.dimensions = (dimensions[0], dimensions[1])
 
         algorithm = SimplifyObstructionsAndRequirements(
             self.obstructions, self.requirements, self.dimensions
@@ -124,28 +124,14 @@ class Tiling(CombinatorialClass):
         Deletes columns at indices specified
         from the tiling and returns the new tiling.
         """
-        col_map = {}
-        counter = 0
-        for ind in range(self.dimensions[0]):
-            if ind in cols:
-                continue
-            col_map[ind] = counter
-            counter += 1
+        return self.delete_rows_and_columns(cols, [])
 
-        row_map = {i: i for i in range(self.dimensions[1])}
-        rc_map = RowColMap(col_map, row_map)
-        new_obstructions = [
-            ob for ob in self.obstructions if not (ob.positions[0][0] in cols)
-        ]
-
-        new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
-
-        new_requirements = rc_map.map_requirements(self.requirements)
-        new_dimensions = (
-            self.dimensions[0] - len(cols),
-            self.dimensions[1],
-        )
-        return Tiling(new_obstructions, new_requirements, new_dimensions)
+    def delete_rows(self, rows: Iterable[int]) -> "Tiling":
+        """
+        Deletes rows at indices specified
+        from the tiling and returns the new tiling.
+        """
+        return self.delete_rows_and_columns([], rows)
 
     def delete_rows_and_columns(
         self, cols: Iterable[int], rows: Iterable[int]
@@ -154,6 +140,7 @@ class Tiling(CombinatorialClass):
         Deletes rows and columns at indices specified
         from the tiling and returns the new tiling.
         """
+        rows, cols = set(rows), set(cols)
         col_map = {}
         counter = 0
         for ind in range(self.dimensions[0]):
@@ -334,7 +321,7 @@ class Tiling(CombinatorialClass):
         else:
             return self.delete_rows_and_columns([], [index])
 
-    def is_fuseable(self, direction: int, index: int, allow_requirements=False) -> bool:
+    def is_fusable(self, direction: int, index: int, allow_requirements=False) -> bool:
         """Checks if the columns/rows are fuseable, if so returns the
         obstructions and requirements else returns None."""
         assert direction == 0 or direction == 1

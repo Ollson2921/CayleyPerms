@@ -188,8 +188,11 @@ class Av:
 class CanonicalAv(Av):
     """Generates canonical Cayley permutations avoiding the basis."""
 
-    def in_class(self, cperm: CayleyPermutation) -> bool:
-        return not cperm.contains(self.basis) and cperm.is_canonical()
+    def in_class(self, cperm: CayleyPermutation, require_last: int = 0) -> bool:
+        return (
+            not cperm.contains(self.basis, require_last=require_last)
+            and cperm.is_canonical()
+        )
 
     # def generate_cperms(self, size: int) -> List[CayleyPermutation]:
     #     """Generates canonical Cayley permutations of size 'size' avoiding the basis.

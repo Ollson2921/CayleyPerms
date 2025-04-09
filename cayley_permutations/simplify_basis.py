@@ -21,7 +21,7 @@ def minimise(patts: Iterable[CayleyPermutation]) -> tuple[CayleyPermutation, ...
     patts = sorted(patts, key=len)
     if not patts:
         return tuple()
-    simplified_basis = []
+    simplified_basis: list[CayleyPermutation] = []
     for cperm in patts:
         if cperm.avoids(simplified_basis):
             simplified_basis.append(cperm)

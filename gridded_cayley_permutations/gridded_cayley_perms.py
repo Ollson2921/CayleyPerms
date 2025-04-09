@@ -1,6 +1,6 @@
 """Gridded Cayley permutations."""
 
-from typing import Iterator, List, Tuple, Iterable, Set
+from typing import Iterator, Iterable
 from itertools import combinations
 from cayley_permutations import CayleyPermutation
 
@@ -11,11 +11,13 @@ class GriddedCayleyPerm:
     def __init__(
         self,
         pattern: CayleyPermutation,
-        positions: Tuple[Tuple[int, int]],
+        positions: Iterable[tuple[int, int]],
         validate=False,
     ) -> None:
         self.pattern = pattern
-        self.positions = tuple(tuple(cell) for cell in positions)
+        self.positions: tuple[tuple[int, int], ...] = tuple(
+            (x, y) for x, y in positions
+        )
 
         if validate:
             for i in range(len(self.positions)):
@@ -85,7 +87,7 @@ class GriddedCayleyPerm:
 
     def indices_where_contains(
         self, gcperm: "GriddedCayleyPerm"
-    ) -> List[Tuple[int, ...]]:
+    ) -> list[tuple[int, ...]]:
         """Returns a list of the indices of the gridded Cayley permutation
         that contains another gridded Cayley permutation."""
         good_indices = []
@@ -98,7 +100,7 @@ class GriddedCayleyPerm:
         return good_indices
 
     def insert_specific_point(
-        self, cell: Tuple[int, int], index: int, value: int
+        self, cell: tuple[int, int], index: int, value: int
     ) -> Iterator["GriddedCayleyPerm"]:
         """Inserts a point into the gridded Cayley permutation at the index."""
         new_positions = self.positions[:index] + (cell,) + self.positions[index:]
@@ -114,7 +116,7 @@ class GriddedCayleyPerm:
         yield GriddedCayleyPerm(new_pattern, new_positions)
 
     def insertion_different_value(
-        self, value: int, cell: Tuple[int, int]
+        self, value: int, cell: tuple[int, int]
     ) -> "GriddedCayleyPerm":
         """Inserts value to the end of the Cayley permutation
         then increases any values that were greater than or equal to it by one
@@ -125,7 +127,7 @@ class GriddedCayleyPerm:
         return GriddedCayleyPerm(CayleyPermutation(new_pattern), new_positions)
 
     def insertion_same_value(
-        self, value: int, cell: Tuple[int, int]
+        self, value: int, cell: tuple[int, int]
     ) -> "GriddedCayleyPerm":
         """Inserts value to the end of the Cayley permutation as a repeat
         and adds cell to the positions."""
@@ -134,7 +136,7 @@ class GriddedCayleyPerm:
         new_pattern = CayleyPermutation(self.pattern.cperm + (value,))
         return GriddedCayleyPerm(new_pattern, new_positions)
 
-    def min_max_values_in_row(self, row_index: int) -> Tuple[int, int]:
+    def min_max_values_in_row(self, row_index: int) -> tuple[int, int]:
         """Returns the minimum and maximum values of elements in the row."""
         cells_in_row_or_below = []
         for cell in self.positions:
@@ -151,7 +153,15 @@ class GriddedCayleyPerm:
             return (min_value, min_value)
         return (min(cperm) - 1, max(cperm))
 
-    def values_in_row(self, row: int) -> List[int]:
+    def indices_in_row(self, row: int) -> list[int]:
+        """Returns all indices in the row."""
+        indices = []
+        for idx, cell in enumerate(self.positions):
+            if cell[1] == row:
+                indices.append(idx)
+        return indices
+
+    def values_in_row(self, row: int) -> list[int]:
         """Returns all values in the row."""
         values = []
         for value, cell in zip(self.pattern, self.positions):
@@ -159,15 +169,15 @@ class GriddedCayleyPerm:
                 values.append(value)
         return values
 
-    def indices_in_col(self, col: int) -> List[int]:
-        """Returns the indices of the gridded Cayley permutation that are in the column."""
+    def indices_in_col(self, col: int) -> list[int]:
+        """Returns all indices in the column."""
         indices = []
         for idx, cell in enumerate(self.positions):
             if cell[0] == col:
                 indices.append(idx)
         return indices
 
-    def values_in_col(self, col: int) -> List[int]:
+    def values_in_col(self, col: int) -> list[int]:
         """Returns all values in the column."""
         values = []
         for value, cell in zip(self.pattern, self.positions):
@@ -175,7 +185,7 @@ class GriddedCayleyPerm:
                 values.append(value)
         return values
 
-    def bounding_box_of_cell(self, cell: Tuple[int, int]) -> Tuple[int, int, int, int]:
+    def bounding_box_of_cell(self, cell: tuple[int, int]) -> tuple[int, int, int, int]:
         """Returns the minimum index, maximum index, minimum value and maximum value
         that can be inserted into the cell."""
         row_vals = self.values_in_row(cell[1])
@@ -208,7 +218,7 @@ class GriddedCayleyPerm:
                 maxdex = 0
         return (mindex, maxdex, min_row_val, max_row_val)
 
-    def indices_in_cells(self, cells: List[Tuple[int, int]]) -> List[int]:
+    def indices_in_cells(self, cells: list[tuple[int, int]]) -> list[int]:
         """Returns the indices of the gridded Cayley permutation that are in the cells."""
         indices = []
         current_max_index = -1
@@ -220,8 +230,8 @@ class GriddedCayleyPerm:
         return indices
 
     def next_insertions(
-        self, dimensions: Tuple[int, int]
-    ) -> Iterator[Tuple[int, int, Tuple[int, int], bool]]:
+        self, dimensions: tuple[int, int]
+    ) -> Iterator[tuple[int, tuple[int, int]]]:
         """inserting the next index"""
         n, m = dimensions
         if not self.positions:
@@ -252,7 +262,7 @@ class GriddedCayleyPerm:
                 return False
         return True
 
-    def find_active_cells(self) -> Set[Tuple[int, int]]:
+    def find_active_cells(self) -> set[tuple[int, int]]:
         """Returns a set of cell that contain a value."""
         active_cells = set()
         for cell in self.positions:
@@ -290,7 +300,7 @@ class GriddedCayleyPerm:
         return [self.sub_gridded_cayley_perm(cells) for cells in factors]
 
     def sub_gridded_cayley_perm(
-        self, cells: List[Tuple[int, int]]
+        self, cells: list[tuple[int, int]]
     ) -> "GriddedCayleyPerm":
         """Returns the sub gridded Cayley permutation of the cells."""
         new_positions = []
@@ -321,7 +331,7 @@ class GriddedCayleyPerm:
                 set(self.values_in_row(index) + self.values_in_row(index + 1))
             )
             cutoff = values[-1] + 1
-            pointer = {value: list() for value in values}
+            pointer: dict[int, list[int]] = {value: list() for value in values}
             for i in self.indices_in_row(index) + self.indices_in_row(index + 1):
                 pointer[self.pattern[i]].append(i)
             for p in values + [cutoff]:

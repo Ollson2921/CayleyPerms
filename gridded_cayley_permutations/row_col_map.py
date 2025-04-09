@@ -31,7 +31,7 @@ class RowColMap:
 
     def map_gridded_cperms(
         self, gcps: Iterable[GriddedCayleyPerm]
-    ) -> Iterable[GriddedCayleyPerm]:
+    ) -> List[GriddedCayleyPerm]:
         """
         Map a gridded Cayley permutation according to the column and row maps.
         """

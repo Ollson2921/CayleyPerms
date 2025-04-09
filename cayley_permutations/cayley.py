@@ -335,9 +335,9 @@ class CayleyPermutation:
             )
         return any(True for _ in pattern.occurrences_in(self))
 
-    def avoids(self, pattern: Iterable["CayleyPermutation"]) -> bool:
+    def avoids(self, patterns: Iterable["CayleyPermutation"]) -> bool:
         """Returns true if the Cayley permutation avoids any of the patterns."""
-        return not self.contains(pattern)
+        return not self.contains(patterns)
 
     def avoids_pattern(self, pattern: "CayleyPermutation") -> bool:
         """Returns true if the Cayley permutation avoids the pattern."""

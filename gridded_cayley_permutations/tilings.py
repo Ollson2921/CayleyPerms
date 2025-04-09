@@ -1,16 +1,18 @@
-from typing import Iterable, Iterator
 from collections import defaultdict
 from copy import copy
+from functools import cached_property
 from itertools import product
 from math import factorial
+from typing import Iterable, Iterator
+
 from comb_spec_searcher import CombinatorialClass
-from functools import cached_property
 
 from cayley_permutations import CayleyPermutation
-from .row_col_map import RowColMap
+
 from .gridded_cayley_perms import GriddedCayleyPerm
-from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
+from .row_col_map import RowColMap
+from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 
 
 def binomial(x, y):
@@ -230,7 +232,8 @@ class Tiling(CombinatorialClass):
 
         return Tiling(obstructions, requirements, self.dimensions, simplify=simplify)
 
-    ### Requirement insertion methods ###
+    # Requirement insertion methods
+
     def remove_requirements(self, reqs: Iterable[GriddedCayleyPerm]) -> "Tiling":
         """
         Returns a new tiling with the given requirements removed. (requirements, not req lists)
@@ -311,7 +314,8 @@ class Tiling(CombinatorialClass):
         )
         return self.add_obstructions(req_list).is_empty()
 
-    ## Fusion methods
+    # Fusion methods
+
     def fuse(self, direction: int, index: int) -> "Tiling":
         """If direction = 0 then tries to fuse together the columns
         at the given indices, else if direction = 1 then tries to fuse the rows.
@@ -347,10 +351,15 @@ class Tiling(CombinatorialClass):
                 ob_list.remove(shift)
         return True
 
-    ## Construction methods
+    # Construction methods
+
     @staticmethod
     def from_vincular(cperm: CayleyPermutation, adjacencies: Iterable[int]):
-        """Both cperm and adjacencies must be 0 based. Creates a tiling from a vincular pattern. Adjacencies is a list of positions where i in adjacencencies means positions i and i+1 must be adjacent"""
+        """
+        Both cperm and adjacencies must be 0 based. Creates a tiling from a
+        vincular pattern. Adjacencies is a list of positions where i in
+        adjacencies means positions i and i+1 must be adjacent.
+        """
         dimensions = (len(cperm), max(cperm) + 1)
         all_obs, all_reqs = [], []
         perm_cells = [(2 * k + 1, 2 * cperm[k] + 1) for k in range(dimensions[0])]
@@ -390,7 +399,7 @@ class Tiling(CombinatorialClass):
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
         return Tiling(all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1))
 
-    ### CSS methods
+    # CSS methods
 
     def to_jsonable(self) -> dict:
         res = {
@@ -464,7 +473,10 @@ class Tiling(CombinatorialClass):
         return Tiling(self.obstructions, self.requirements, self.dimensions)
 
     def __repr__(self) -> str:
-        return f"Tiling({repr(self.obstructions)}, {repr(self.requirements)}, {repr(self.dimensions)})"
+        return (
+            f"Tiling({repr(self.obstructions)}, {repr(self.requirements)},"
+            + f"{repr(self.dimensions)})"
+        )
 
     def __str__(self) -> str:
         """TODO: fix for empty tiling."""

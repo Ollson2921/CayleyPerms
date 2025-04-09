@@ -82,7 +82,7 @@ class Av:
     #     self, size: int
     # ) -> dict[CayleyPermutation, tuple[list[int], list[int]]]:
     #     """
-    #     TODO: not working
+    #     # not working
     #     Returns a list of Cayley permutations of size 'size' which avoids the basis.
 
     #     Examples:
@@ -231,6 +231,7 @@ class CanonicalAv(Av):
     def new_max_valid_insertions(
         self, cperm: CayleyPermutation, max_basis_value: int
     ) -> frozenset[int]:
+        """Returns a list of indices where a new maximum can be inserted into cperm."""
         res = None
         if len(cperm) <= max_basis_value:
             acceptable_indices = []

@@ -1,10 +1,10 @@
 from itertools import combinations
-from cayley_permutations import CayleyPermutation
-from .row_col_map import RowColMap
-from .tilings import Tiling
-from .gridded_cayley_perms import GriddedCayleyPerm
-from .row_col_map import OBSTRUCTIONS, REQUIREMENTS
 
+from cayley_permutations import CayleyPermutation
+
+from .gridded_cayley_perms import GriddedCayleyPerm
+from .row_col_map import OBSTRUCTIONS, REQUIREMENTS, RowColMap
+from .tilings import Tiling
 
 Right = 0
 Right_top = 1

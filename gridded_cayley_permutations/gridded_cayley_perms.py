@@ -1,7 +1,8 @@
 """Gridded Cayley permutations."""
 
-from typing import Iterator, Iterable
 from itertools import combinations
+from typing import Iterable, Iterator
+
 from cayley_permutations import CayleyPermutation
 
 
@@ -18,6 +19,7 @@ class GriddedCayleyPerm:
         self.positions: tuple[tuple[int, int], ...] = tuple(
             (x, y) for x, y in positions
         )
+        assert len(self.pattern) == len(self.positions)
 
         if validate:
             for i in range(len(self.positions)):
@@ -29,7 +31,8 @@ class GriddedCayleyPerm:
                     self.positions = self.positions * len(self.pattern)
                 else:
                     raise ValueError(
-                        "Number of positions must be equal to number of points in Cayley permutation."
+                        "Number of positions must be equal to number of "
+                        "points in Cayley permutation."
                     )
             assert not self.contradictory()
 
@@ -186,8 +189,10 @@ class GriddedCayleyPerm:
         return values
 
     def contains_index(self, direction: int, index: int) -> bool:
-        """Returns True if the gridded Cayley permutation contains a point in the row/cols at index or index+1.
-        (if direction = 0 then checks cols, else rows)."""
+        """
+        Returns True if the gridded Cayley permutation contains a point in the
+        row/cols at index or index+1. (if direction = 0 then checks cols, else rows).
+        """
         indices = [index, index + 1]
         for cell in self.positions:
             if cell[direction] in indices:

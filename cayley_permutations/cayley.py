@@ -3,7 +3,7 @@
 from collections import deque
 from functools import cached_property
 from itertools import combinations
-from typing import Iterable, Iterator
+from typing import Any, Iterable, Iterator, Optional
 
 
 class CayleyPermutation:
@@ -17,6 +17,8 @@ class CayleyPermutation:
     >>> print(CayleyPermutation([1, 0, 2, 1]))
     1021
     """
+
+    # pylint: disable=too-many-public-methods
 
     def __init__(self, cperm: Iterable[int], debug: bool = False):
         """
@@ -53,6 +55,9 @@ class CayleyPermutation:
 
     @classmethod
     def from_one_based(cls, cperm: Iterable[int]) -> "CayleyPermutation":
+        """
+        Return a Cayley permutation from a one based iterable.
+        """
         return CayleyPermutation(tuple(x - 1 for x in cperm))
 
     def sub_cperms(self) -> set["CayleyPermutation"]:
@@ -69,7 +74,9 @@ class CayleyPermutation:
         return sub_cperms
 
     def remove_one_point(self) -> set["CayleyPermutation"]:
-        """Returns all sub-Cayley permutations that are the Cayley permutation with one point removed."""
+        """
+        Returns all sub-Cayley permutations that are the Cayley permutation with one point removed.
+        """
         sub_cperms: set[CayleyPermutation] = set()
         if len(self) == 0:
             return sub_cperms
@@ -86,8 +93,10 @@ class CayleyPermutation:
         return True
 
     def interval(self, idx1: int, idx2: int) -> list[int]:
-        """Returns the smallest interval in the Cayley permutation
-        that contains the indices idx1 and idx2."""
+        """
+        Returns the smallest interval in the Cayley permutation
+        that contains the indices idx1 and idx2.
+        """
         indices_in_interval = list(range(idx1, idx2 + 1))
         new_indices_in_interval = self.add_to_interval(indices_in_interval)
         while new_indices_in_interval != list(
@@ -109,7 +118,7 @@ class CayleyPermutation:
         min_val = min(subcperm)
         values_in_interval = list(range(min_val, max_val + 1))
         for idx, val in enumerate(self.cperm):
-            if not idx in indices_in_interval:
+            if idx not in indices_in_interval:
                 if val in values_in_interval:
                     indices_in_interval.append(idx)
                     values_in_interval.append(val)
@@ -145,8 +154,8 @@ class CayleyPermutation:
         """
         block_decomposition = self.block_decomposition()
         cperm = []
-        for i in range(len(block_decomposition)):
-            cperm.append(self.cperm[block_decomposition[i][0]])
+        for block in block_decomposition:
+            cperm.append(self.cperm[block[0]])
         return CayleyPermutation.standardise(cperm)
 
     @classmethod
@@ -174,8 +183,7 @@ class CayleyPermutation:
             for idx in indices:
                 new_block = [x + current_max + 1 for x in blocks[idx]]
                 blocks_and_indices.append((new_block, idx))
-            if current_max < max(new_block):
-                current_max = max(new_block)
+            current_max = max(current_max, *new_block)
         cperm = []
         for i in range(len(blocks_and_indices)):
             cperm.extend(sorted(blocks_and_indices, key=lambda x: x[1])[i][0])
@@ -184,13 +192,18 @@ class CayleyPermutation:
     def simple_decomposition(
         self,
     ) -> tuple["CayleyPermutation", tuple["CayleyPermutation", ...]]:
-        """For a Cayley permutation, returns the tuple of the simple Cayley permutation it
-        was inflated from and it's block decomposition.
+        """
+        For a Cayley permutation, returns the tuple of the simple Cayley permutation
+        it was inflated from and it's block decomposition.
 
         Example:
         >>> cperm = CayleyPermutation([0, 1, 2, 1, 0])
-        >>> cperm.simple_decomposition()
-        (CayleyPermutation((0, 1, 0)), (CayleyPermutation((0,)), CayleyPermutation((0, 1, 0)), CayleyPermutation((0,))))
+        >>> for p in cperm.simple_decomposition():
+        ...     print(p)
+        010
+        0
+        010
+        0
         """
         blocks = self.block_decomposition()
         simple_cperm = self.standardisation_of_block()
@@ -279,19 +292,9 @@ class CayleyPermutation:
         index = self.cperm.index(val)
         perms = []
         for i in range(len(self.cperm) + 1):
-            perms.append(
-                CayleyPermutation(
-                    [x for x in self.cperm[:i]]
-                    + [val + 1]
-                    + [x for x in self.cperm[i:]]
-                )
-            )
+            perms.append(CayleyPermutation(self.cperm[:i] + [val + 1] + self.cperm[i:]))
         for i in range(index + 1):
-            perms.append(
-                CayleyPermutation(
-                    [x for x in self.cperm[:i]] + [val] + [x for x in self.cperm[i:]]
-                )
-            )
+            perms.append(CayleyPermutation(self.cperm[:i] + (val,) + self.cperm[i:]))
         return perms
 
     def contains(
@@ -405,7 +408,7 @@ class CayleyPermutation:
     def index_rightmost_max(self) -> int:
         """Returns the index of the rightmost maximum."""
         if len(self) == 0:
-            # TODO: WHY?
+            # why?
             return 1
         max_val = max(self)
         for idx, val in reversed(list(enumerate(self))):
@@ -414,7 +417,10 @@ class CayleyPermutation:
         raise ValueError("No maximum found.")
 
     def occurrences_in(
-        self, cperm: "CayleyPermutation", *args, **kwargs
+        self,
+        cperm: "CayleyPermutation",
+        self_colours: Optional[Iterable[Any]] = None,
+        patt_colours: Optional[Iterable[Any]] = None,
     ) -> Iterator[tuple[int, ...]]:
         """Find all indices of occurrences of self in patt. If the
         optional colours are provided, in an occurrences the colours of
@@ -437,7 +443,10 @@ class CayleyPermutation:
         [(1, 3), (2, 4)]
 
         """
-        self_colours, patt_colours = (None, None) if len(args) < 2 else args
+        if self_colours is not None:
+            assert patt_colours is not None
+            self_colours = tuple(self_colours)
+            patt_colours = tuple(patt_colours)
         if len(self) == 0:
             yield tuple()
             return
@@ -504,6 +513,9 @@ class CayleyPermutation:
 
     @cached_property
     def number_of_values(self):
+        """
+        Return the number of unique values in the Cayley permutation.
+        """
         return max(self)
 
     @cached_property
@@ -679,7 +691,10 @@ class CayleyPermutation:
         return True
 
     def check_is_strict(self) -> bool:
-        """Returns true if the Cayley permutation is strictly increasing, strictly decreasing, or constant."""
+        """
+        Returns true if the Cayley permutation is strictly increasing,
+        strictly decreasing, or constant.
+        """
         if self.is_increasing():
             return True
         if self.is_decreasing():
@@ -848,15 +863,9 @@ class CayleyPermutation:
 
         if len(self) == 0:
             return "+---+\n|   |\n+---+\n"
-        n = len(self.cperm)
-        m = max(self.cperm)
-        empty_cell = "   "
-        point = "\u25cf"
         normal_row = "---"
-        crossing_lines = "+ "
-        normal_column = "| "
         point_rows = []
-        for i in range(m + 1):
+        for i in range(self.number_of_values + 1):
             new_row = normal_row
             for j in self.cperm:
                 if j == i:
@@ -868,12 +877,11 @@ class CayleyPermutation:
                         new_row += "🟣" + normal_row
                     elif j in bottom_right:
                         new_row += "🟢" + normal_row
-                    # new_row += point + normal_row
                 else:
-                    new_row += crossing_lines + normal_row
+                    new_row += "+ " + normal_row
             new_row += "\n"
             point_rows.append(new_row)
-        empty_row = normal_column.join(empty_cell for _ in range(n + 1)) + "\n"
+        empty_row = "| ".join("   " for _ in range(len(self.cperm) + 1)) + "\n"
         grid = empty_row + empty_row.join(reversed(point_rows)) + empty_row
         return grid
 

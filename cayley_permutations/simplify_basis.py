@@ -1,8 +1,9 @@
 """Simplifies a string of Cayley permutations intended to be used as a basis and returns a set."""
 
-from .cayley import CayleyPermutation
-from typing import Iterable
 import re
+from typing import Iterable
+
+from .cayley import CayleyPermutation
 
 
 def string_to_perms(patts: str) -> tuple[CayleyPermutation, ...]:

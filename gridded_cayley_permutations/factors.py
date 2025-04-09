@@ -1,6 +1,8 @@
 from itertools import chain, combinations
+
 from cayley_permutations import CayleyPermutation
 from gridded_cayley_permutations import GriddedCayleyPerm
+
 from .tilings import Tiling
 
 

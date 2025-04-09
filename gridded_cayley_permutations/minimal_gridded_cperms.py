@@ -1,11 +1,11 @@
-from typing import Tuple, Iterator
+from collections import defaultdict
+from functools import cache
 from heapq import heapify, heappop, heappush
 from itertools import product
-from functools import cache
-from collections import defaultdict
+from typing import Iterator, Tuple
 
-from gridded_cayley_permutations import GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
+from gridded_cayley_permutations import GriddedCayleyPerm
 
 Gcptuple = Tuple[GriddedCayleyPerm, ...]
 Requirements = Tuple[Gcptuple, ...]

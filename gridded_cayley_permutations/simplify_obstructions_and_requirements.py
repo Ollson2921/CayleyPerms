@@ -1,9 +1,10 @@
-from typing import Iterable
-from gridded_cayley_permutations import GriddedCayleyPerm
+from collections import defaultdict
 from itertools import product
 from math import factorial
-from collections import defaultdict
+from typing import Iterable
+
 from cayley_permutations import CayleyPermutation
+from gridded_cayley_permutations import GriddedCayleyPerm
 
 
 def binomial(x, y):
@@ -102,8 +103,11 @@ class SimplifyObstructionsAndRequirements:
     def remove_factors_from_obstruction(
         self, ob: GriddedCayleyPerm
     ) -> GriddedCayleyPerm:
-        """Removes factors from a single obstruction:
-        Splits an obstruction into its factors and removes the factors that are implied by the requirements.
+        """
+        Removes factors from a single obstruction:
+
+        Splits an obstruction into its factors and removes the factors that are
+        implied by the requirements.
         """
         cells = ob.find_active_cells()
         for factor in ob.find_factors(self.point_rows()):

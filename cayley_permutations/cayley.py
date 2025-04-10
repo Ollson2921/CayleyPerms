@@ -292,7 +292,9 @@ class CayleyPermutation:
         index = self.cperm.index(val)
         perms = []
         for i in range(len(self.cperm) + 1):
-            perms.append(CayleyPermutation(self.cperm[:i] + [val + 1] + self.cperm[i:]))
+            perms.append(
+                CayleyPermutation(self.cperm[:i] + (val + 1,) + self.cperm[i:])
+            )
         for i in range(index + 1):
             perms.append(CayleyPermutation(self.cperm[:i] + (val,) + self.cperm[i:]))
         return perms
@@ -470,9 +472,12 @@ class CayleyPermutation:
             # lci = left ceiling index
             # lbp = lower bound pre-computation
             # ubp = upper bound pre-computation
-            left_floor_idx, left_ceil_idx, lower_bound_points, upper_bound_points = (
-                pattern_details[k]
-            )
+            (
+                left_floor_idx,
+                left_ceil_idx,
+                lower_bound_points,
+                upper_bound_points,
+            ) = pattern_details[k]
             if left_floor_idx == -1:
                 # no left index so element of occurrence must be at least self[k]
                 lower_bound = lower_bound_points
@@ -499,7 +504,10 @@ class CayleyPermutation:
                     # can't form an occurrence as not enough points
                     return
                 element = cperm[i]
-                if self_colours is None or patt_colours[i] == self_colours[k]:
+                if (
+                    self_colours is None
+                    or patt_colours[i] == self_colours[k]  # type: ignore[index]
+                ):
                     if lower_bound <= element <= upper_bound:
                         occurrence_indices[k] = i
                         if elements_needed == 1:

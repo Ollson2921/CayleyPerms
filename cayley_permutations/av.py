@@ -180,7 +180,7 @@ class Av:
         return False
 
     def __str__(self) -> str:
-        return f"Av({ ','.join(str(x) for x in self.basis)})"
+        return f"Av({','.join(str(x) for x in self.basis)})"
 
 
 class CanonicalAv(Av):

@@ -7,10 +7,13 @@ which must be contained.
 from collections import defaultdict
 from itertools import product
 from math import factorial
-from typing import Iterable
+from typing import Iterable, TYPE_CHECKING
 
 from cayley_permutations import CayleyPermutation
-from gridded_cayley_permutations import GriddedCayleyPerm
+
+if TYPE_CHECKING:
+    # pylint: disable=all
+    from gridded_cayley_permutations import GriddedCayleyPerm
 
 
 def binomial(x: int, y: int) -> int:
@@ -28,8 +31,8 @@ class SimplifyObstructionsAndRequirements:
 
     def __init__(
         self,
-        obstructions: tuple[GriddedCayleyPerm, ...],
-        requirements: tuple[tuple[GriddedCayleyPerm, ...], ...],
+        obstructions: tuple["GriddedCayleyPerm", ...],
+        requirements: tuple[tuple["GriddedCayleyPerm", ...], ...],
         dimensions: tuple[int, int],
     ):
         self.obstructions = obstructions
@@ -38,8 +41,8 @@ class SimplifyObstructionsAndRequirements:
         self.sort_obstructions()
 
     def remove_redundant_gridded_cperms(
-        self, gridded_cperms: Iterable[GriddedCayleyPerm]
-    ) -> tuple[GriddedCayleyPerm, ...]:
+        self, gridded_cperms: Iterable["GriddedCayleyPerm"]
+    ) -> tuple["GriddedCayleyPerm", ...]:
         """Remove gcps that are implied by other gcps."""
         redundant_gcps = set()
         new_gridded_cperms = list(gridded_cperms)
@@ -111,8 +114,8 @@ class SimplifyObstructionsAndRequirements:
         )
 
     def remove_factors_from_obstruction(
-        self, ob: GriddedCayleyPerm
-    ) -> GriddedCayleyPerm:
+        self, ob: "GriddedCayleyPerm"
+    ) -> "GriddedCayleyPerm":
         """
         Removes factors from a single obstruction:
 
@@ -159,12 +162,12 @@ class SimplifyObstructionsAndRequirements:
         return active_cells
 
     def implied_by_requirement(
-        self, gcp: GriddedCayleyPerm, req_list: Iterable[GriddedCayleyPerm]
+        self, gcp: "GriddedCayleyPerm", req_list: Iterable["GriddedCayleyPerm"]
     ) -> bool:
         """Check whether a gridded Cayley permutation is implied by a requirement."""
         return all(req.contains_gridded_cperm(gcp) for req in req_list)
 
-    def implied_by_requirements(self, gcp: GriddedCayleyPerm) -> bool:
+    def implied_by_requirements(self, gcp: "GriddedCayleyPerm") -> bool:
         """Check whether a gridded Cayley permutation is implied by the requirements."""
         return any(
             self.implied_by_requirement(gcp, req_list) for req_list in self.requirements

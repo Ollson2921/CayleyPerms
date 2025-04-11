@@ -13,6 +13,7 @@ from functools import cached_property
 from gridded_cayley_permutations import GriddedCayleyPerm
 
 if TYPE_CHECKING:
+    # pylint: disable=all
     from .tilings import Tiling
 
 OBSTRUCTIONS = Tuple[GriddedCayleyPerm, ...]

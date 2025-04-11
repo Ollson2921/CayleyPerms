@@ -5,13 +5,14 @@ from collections import defaultdict
 from functools import lru_cache
 from heapq import heapify, heappop, heappush
 from itertools import product
-from typing import Iterator, Tuple
+from typing import Iterator, tuple, TYPE_CHECKING
 
-from cayley_permutations import CayleyPermutation
-from gridded_cayley_permutations import GriddedCayleyPerm
+if TYPE_CHECKING:
+    # pylint: disable=all
+    from gridded_cayley_permutations import GriddedCayleyPerm
 
-Gcptuple = Tuple[GriddedCayleyPerm, ...]
-Requirements = Tuple[Gcptuple, ...]
+Gcptuple = tuple["GriddedCayleyPerm", ...]
+Requirements = tuple[Gcptuple, ...]
 
 
 class QueuePacket:
@@ -35,7 +36,7 @@ class QueuePacket:
 
     def __init__(
         self,
-        gcp: GriddedCayleyPerm,
+        gcp: "GriddedCayleyPerm",
         gcps: Gcptuple,
         last_cell: tuple[int, int],
         mindices: dict[tuple[int, int], int],
@@ -61,8 +62,11 @@ class MinimalGriddedCayleyPerm:
     def __init__(self, obstructions: Gcptuple, requirements: Requirements) -> None:
         self.obstructions = obstructions
         self.requirements = requirements
+        assert (
+            self.requirements
+        ), "if no requirements, then minimal just empty gridded cayley perm"
         self.queue: list[QueuePacket] = []
-        self.yielded_so_far: list[GriddedCayleyPerm] = []
+        self.yielded_so_far: list["GriddedCayleyPerm"] = []
 
     def initialise_queue(self) -> None:
         """Initialises the queue with the minimal gridded cperm."""
@@ -73,11 +77,8 @@ class MinimalGriddedCayleyPerm:
 
     def minimal_gridded_cperms(
         self,
-    ) -> Iterator[GriddedCayleyPerm]:
+    ) -> Iterator["GriddedCayleyPerm"]:
         """Returns the minimal gridded cperms for the minimal gridded cperm."""
-        if not self.requirements:
-            yield GriddedCayleyPerm(CayleyPermutation(tuple()), tuple())
-            return
         if len(self.requirements) == 1:
             yield from self.requirements[0]
             return
@@ -88,7 +89,7 @@ class MinimalGriddedCayleyPerm:
             for new_qpacket in self.extend_by_one_point(qpacket):
                 heappush(self.queue, new_qpacket)
 
-    def try_yield(self, gcp: GriddedCayleyPerm) -> Iterator[GriddedCayleyPerm]:
+    def try_yield(self, gcp: "GriddedCayleyPerm") -> Iterator["GriddedCayleyPerm"]:
         """Yield if the gridded cperm is minimal and satisfies the requirements."""
         if self.satisfies_requirements(gcp):
             if gcp.avoids(self.yielded_so_far):
@@ -141,7 +142,7 @@ class MinimalGriddedCayleyPerm:
         self,
         cells: set[tuple[int, int]],
         last_cell: tuple[int, int],
-        gcp: GriddedCayleyPerm,
+        gcp: "GriddedCayleyPerm",
     ) -> Iterator[tuple[tuple[int, int], bool]]:
         for cell in cells:
             if cell == last_cell:
@@ -176,8 +177,8 @@ class MinimalGriddedCayleyPerm:
         return max_cell_count
 
     def insert_point(
-        self, gcp: GriddedCayleyPerm, cell: tuple[int, int], minimum_index: int
-    ) -> Iterator[tuple[GriddedCayleyPerm, int]]:
+        self, gcp: "GriddedCayleyPerm", cell: tuple[int, int], minimum_index: int
+    ) -> Iterator[tuple["GriddedCayleyPerm", int]]:
         """Inserts a point into the gridded cperm at the index."""
         mindex, maxdex, minval, maxval = gcp.bounding_box_of_cell(cell)
         mindex = max(mindex, minimum_index)
@@ -187,10 +188,10 @@ class MinimalGriddedCayleyPerm:
                     if self.satisfies_obstructions(new_gcp):
                         yield new_gcp, index
 
-    def satisfies_requirements(self, gcp: GriddedCayleyPerm) -> bool:
+    def satisfies_requirements(self, gcp: "GriddedCayleyPerm") -> bool:
         """Checks if the gridded cperm satisfies the requirements."""
         return all(gcp.contains(req) for req in self.requirements)
 
-    def satisfies_obstructions(self, gcp: GriddedCayleyPerm) -> bool:
+    def satisfies_obstructions(self, gcp: "GriddedCayleyPerm") -> bool:
         """Checks if the gridded cperm satisfies the obstructions."""
         return gcp.avoids(self.obstructions)

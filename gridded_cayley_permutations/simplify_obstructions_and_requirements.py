@@ -1,3 +1,9 @@
+"""
+This module contains the SimplifyObstructionsAndRequirements class, which is used to
+remove redundant obstructions and requirements and also reduce obstructions by removing factors
+which must be contained.
+"""
+
 from collections import defaultdict
 from itertools import product
 from math import factorial
@@ -7,7 +13,8 @@ from cayley_permutations import CayleyPermutation
 from gridded_cayley_permutations import GriddedCayleyPerm
 
 
-def binomial(x, y):
+def binomial(x: int, y: int) -> int:
+    """Returns the binomial coefficient x choose y."""
     try:
         return factorial(x) // factorial(y) // factorial(x - y)
     except ValueError:
@@ -15,6 +22,10 @@ def binomial(x, y):
 
 
 class SimplifyObstructionsAndRequirements:
+    """
+    This class contains method for reducing and removing redundant obstructions and requirements.
+    """
+
     def __init__(
         self,
         obstructions: tuple[GriddedCayleyPerm, ...],
@@ -28,7 +39,7 @@ class SimplifyObstructionsAndRequirements:
 
     def remove_redundant_gridded_cperms(
         self, gridded_cperms: Iterable[GriddedCayleyPerm]
-    ):
+    ) -> tuple[GriddedCayleyPerm, ...]:
         """Remove gcps that are implied by other gcps."""
         redundant_gcps = set()
         new_gridded_cperms = list(gridded_cperms)
@@ -40,11 +51,11 @@ class SimplifyObstructionsAndRequirements:
             new_gridded_cperms.remove(gcps)
         return tuple(new_gridded_cperms)
 
-    def remove_redundant_obstructions(self):
+    def remove_redundant_obstructions(self) -> None:
         """Remove obstructions that are implied by other obstructions."""
         self.obstructions = self.remove_redundant_gridded_cperms(self.obstructions)
 
-    def remove_redundant_requirements(self):
+    def remove_redundant_requirements(self) -> None:
         """Remove requirements that are implied by other requirements in the same list."""
         self.requirements = tuple(
             self.remove_redundant_gridded_cperms(
@@ -53,22 +64,20 @@ class SimplifyObstructionsAndRequirements:
             for req_list in self.requirements
         )
 
-    def remove_redundant_lists_requirements(self):
+    def remove_redundant_lists_requirements(self) -> None:
         """Remove requirements lists that are implied by other requirements lists."""
         indices = []
-        for i in range(len(self.requirements)):
-            for j in range(len(self.requirements)):
+        for i, req_list_1 in enumerate(self.requirements):
+            for j, req_list_2 in enumerate(self.requirements):
                 if i != j and j not in indices:
-                    req_list_1 = self.requirements[i]
-                    req_list_2 = self.requirements[j]
                     if any(req.contains(req_list_2) for req in req_list_1):
                         indices.append(i)
         self.requirements = tuple(
             req for i, req in enumerate(self.requirements) if i not in indices
         )
 
-    def simplify(self):
-        """Simplify the obstructions and requirements."""
+    def simplify(self) -> None:
+        """Simplify the obstructions and requirements using all methods until there is no change."""
         curr_obs = None
         curr_reqs = None
         while curr_obs != self.obstructions or curr_reqs != self.requirements:
@@ -78,23 +87,24 @@ class SimplifyObstructionsAndRequirements:
             self.sort_requirements()
             self.sort_obstructions()
 
-    def simplify_once(self):
+    def simplify_once(self) -> None:
+        """Do one pass of all the different simplify methods."""
         self.remove_redundant_obstructions()
         self.remove_redundant_requirements()
         self.remove_redundant_lists_requirements()
         self.remove_factors_from_obstructions()
 
-    def sort_requirements(self):
+    def sort_requirements(self) -> None:
         """Orders the requirements and removes duplicates."""
         self.requirements = tuple(
             sorted(set(tuple(sorted(set(req_list))) for req_list in self.requirements))
         )
 
-    def sort_obstructions(self):
+    def sort_obstructions(self) -> None:
         """Orders the obstructions and removes duplicates."""
         self.obstructions = tuple(sorted(set(self.obstructions)))
 
-    def remove_factors_from_obstructions(self):
+    def remove_factors_from_obstructions(self) -> None:
         """Removes factors from all of the obstructions."""
         self.obstructions = tuple(
             self.remove_factors_from_obstruction(ob) for ob in self.obstructions

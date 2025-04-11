@@ -9,6 +9,7 @@ from cayley_permutations import CayleyPermutation
 class GriddedCayleyPerm:
     """A Cayley permutation as a gridding."""
 
+    # pylint: disable=too-many-public-methods
     def __init__(
         self,
         pattern: CayleyPermutation,
@@ -22,8 +23,8 @@ class GriddedCayleyPerm:
         assert len(self.pattern) == len(self.positions)
 
         if validate:
-            for i in range(len(self.positions)):
-                if self.positions[i][0] < 0 or self.positions[i][1] < 0:
+            for cell in self.positions:
+                if cell[0] < 0 or cell[1] < 0:
                     raise ValueError("Positions must be positive values.")
 
             if len(self.positions) != len(self.pattern):
@@ -216,16 +217,10 @@ class GriddedCayleyPerm:
                 maxdex = 0
         return (mindex, maxdex, min_row_val, max_row_val)
 
-    def indices_in_cells(self, cells: list[tuple[int, int]]) -> list[int]:
+    def indices_in_cells(self, cells: Iterable[tuple[int, int]]) -> tuple[int, ...]:
         """Returns the indices of the gridded Cayley permutation that are in the cells."""
-        indices = []
-        current_max_index = -1
-        for j in range(len(cells)):
-            for i in range(current_max_index + 1, len(self.positions)):
-                if self.positions[i] == cells[j]:
-                    indices.append(i)
-                    current_max_index = indices[-1]
-        return indices
+        cells = set(cells)
+        return tuple(idx for idx, cell in enumerate(self.positions) if cell in cells)
 
     def next_insertions(
         self, dimensions: tuple[int, int]
@@ -255,6 +250,7 @@ class GriddedCayleyPerm:
         raise ValueError("Value not in GriddedCayleyPerm.")
 
     def is_local(self):
+        """Return True if only one cell in the positions."""
         for cell in self.positions:
             if cell != self.positions[0]:
                 return False
@@ -330,7 +326,7 @@ class GriddedCayleyPerm:
                 set(self.values_in_row(index) + self.values_in_row(index + 1))
             )
             cutoff = values[-1] + 1
-            pointer: dict[int, list[int]] = {value: list() for value in values}
+            pointer: dict[int, list[int]] = {value: [] for value in values}
             for i in self.indices_in_row(index) + self.indices_in_row(index + 1):
                 pointer[self.pattern[i]].append(i)
             for p in values + [cutoff]:

@@ -1,5 +1,8 @@
+"""This module contains the MinimalGriddedCayleyPerm class, which is used to find
+the minimal gridded cayley permutations in a tiling."""
+
 from collections import defaultdict
-from functools import cache
+from functools import lru_cache
 from heapq import heapify, heappop, heappush
 from itertools import product
 from typing import Iterator, Tuple
@@ -12,6 +15,24 @@ Requirements = Tuple[Gcptuple, ...]
 
 
 class QueuePacket:
+    """A work packet for the queue in the minimal gridded cperm algorithm.
+
+    gcp: the gridded cperm so far
+    gcps: the requirement that we aim to satisfy
+    last_cell: the cell that the last point was inserted into
+    mindices: the minimum indices for each cell to ensure per column
+              that we insert left to right
+    still_localising: whether we are still localising, i.e
+                      inserting in cells to ensure that local
+                      reqs are satisfied
+    """
+
+    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-positional-arguments
+    # pylint: disable=too-few-public-methods
+
+    # This should realy be a named tuple, but I want to override the __lt__ method
+
     def __init__(
         self,
         gcp: GriddedCayleyPerm,
@@ -20,6 +41,7 @@ class QueuePacket:
         mindices: dict[tuple[int, int], int],
         still_localising: bool,
     ) -> None:
+
         self.gcp = gcp
         self.gcps = gcps
         self.last_cell = last_cell
@@ -31,6 +53,11 @@ class QueuePacket:
 
 
 class MinimalGriddedCayleyPerm:
+    """
+    This class contains methods for finding the minimal gridded cayley permutations that avoid
+    the obstructions and contain the requirements.
+    """
+
     def __init__(self, obstructions: Gcptuple, requirements: Requirements) -> None:
         self.obstructions = obstructions
         self.requirements = requirements
@@ -62,6 +89,7 @@ class MinimalGriddedCayleyPerm:
                 heappush(self.queue, new_qpacket)
 
     def try_yield(self, gcp: GriddedCayleyPerm) -> Iterator[GriddedCayleyPerm]:
+        """Yield if the gridded cperm is minimal and satisfies the requirements."""
         if self.satisfies_requirements(gcp):
             if gcp.avoids(self.yielded_so_far):
                 self.yielded_so_far.append(gcp)
@@ -123,7 +151,7 @@ class MinimalGriddedCayleyPerm:
                 if all(gcp.contains(req) for req in to_the_left_requirements):
                     yield (cell, False)
 
-    @cache
+    @lru_cache(maxsize=100)
     def requirements_up_to_cell(self, cell: tuple[int, int]) -> Requirements:
         """Returns the requirements up to the cell."""
         return tuple(
@@ -138,7 +166,7 @@ class MinimalGriddedCayleyPerm:
         """Returns the localised patterns for the cell."""
         return tuple(gcp.sub_gridded_cayley_perm([cell]) for gcp in gcps)
 
-    @cache
+    @lru_cache(maxsize=100)
     def get_max_cell_count(self, gcps: Gcptuple) -> dict[tuple[int, int], int]:
         """Returns the maximum cell count for each cell."""
         max_cell_count: dict[tuple[int, int], int] = defaultdict(int)

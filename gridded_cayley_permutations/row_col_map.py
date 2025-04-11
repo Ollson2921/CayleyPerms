@@ -7,7 +7,7 @@ It is assumed that the pre-image of any row or column is an interval.
 """
 
 from itertools import chain, product
-from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Tuple
+from typing import TYPE_CHECKING, Iterable, Iterator, Tuple
 from functools import cached_property
 
 from gridded_cayley_permutations import GriddedCayleyPerm

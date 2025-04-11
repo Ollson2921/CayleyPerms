@@ -7,7 +7,7 @@ It is assumed that the pre-image of any row or column is an interval.
 """
 
 from itertools import chain, product
-from typing import TYPE_CHECKING, Iterable, Iterator, Tuple
+from typing import TYPE_CHECKING, Iterable, Iterator, Optional, Tuple
 from functools import cached_property
 
 from gridded_cayley_permutations import GriddedCayleyPerm
@@ -93,7 +93,7 @@ class RowColMap:
         indices = {}
         for row in codomain:
             indices[row] = [idx for idx, val in enumerate(positions) if val == row]
-        working_list = [None] * len(positions)
+        working_list = [-1] * len(positions)
         for row_values_at_indices in product(*preimages_of_gcp):
             for row, values_at_row in zip(codomain, row_values_at_indices):
                 for idx, val in zip(indices[row], values_at_row):
@@ -167,7 +167,7 @@ class RowColMap:
 
     def _preimages_of_row_of_gcp(
         self, row: int, gcp: GriddedCayleyPerm
-    ) -> Iterator[int]:
+    ) -> Iterator[tuple[int, ...]]:
         """Yields tuples of preimages of the values in the row."""
         values_in_row = gcp.values_in_row(row)
         pre_image_values = self.preimages_of_row(row)
@@ -175,7 +175,7 @@ class RowColMap:
 
     def _preimages_of_col_of_gcp(
         self, col: int, gcp: GriddedCayleyPerm
-    ) -> Iterator[int]:
+    ) -> Iterator[tuple[int, ...]]:
         """Yields tuples of preimages of the values in the column."""
         indices_in_col = gcp.indices_in_col(col)
         pre_image_values = self.preimages_of_col(col)
@@ -192,7 +192,7 @@ class RowColMap:
         size = len(pre_image_values)
         values_ordered = sorted(set(values_in_col))
         for partition in self._partition(number_of_values, size):
-            preimage = [None] * len(values_in_col)
+            preimage = [-1] * len(values_in_col)
             seen_so_far = 0
             for idx, part in enumerate(partition):
                 new_col = pre_image_values[idx]

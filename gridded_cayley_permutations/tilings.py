@@ -193,8 +193,8 @@ class Tiling(CombinatorialClass):
         a list of the indices of empty columns."""
         if self.dimensions == (0, 0):
             return tuple(), tuple()
-        col_count = defaultdict(int)
-        row_count = defaultdict(int)
+        col_count: dict[int, int] = defaultdict(int)
+        row_count: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:
             if len(ob) == 1:
                 col_count[ob.positions[0][0]] += 1
@@ -290,7 +290,7 @@ class Tiling(CombinatorialClass):
     def point_rows(self) -> set[int]:
         """Returns the set of rows which only contain points of the same value."""
         point_rows = set()
-        counter_dict = defaultdict(int)
+        counter_dict: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:
             if ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0])):
                 if ob.positions[0][1] == ob.positions[1][1]:
@@ -339,9 +339,9 @@ class Tiling(CombinatorialClass):
         """Checks if the columns/rows are fuseable, if so returns the
         obstructions and requirements else returns None."""
         assert direction in (0, 1)
-        ob_list = [
+        ob_list = tuple(
             ob for ob in self.obstructions if ob.contains_index(direction, index)
-        ]
+        )
         if not self.check_shifts(direction, index, ob_list):
             return False
         for reqs in self.requirements:
@@ -361,7 +361,7 @@ class Tiling(CombinatorialClass):
             for shift in ob.shifts(direction, index):
                 if shift not in ob_list:
                     return False
-                ob_list.remove(shift)
+                ob_list = ob_list[1:]
         return True
 
     # Construction methods

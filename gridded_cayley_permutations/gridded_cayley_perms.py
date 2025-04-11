@@ -156,37 +156,21 @@ class GriddedCayleyPerm:
             return (min_value, min_value)
         return (min(cperm) - 1, max(cperm))
 
-    def indices_in_row(self, row: int) -> list[int]:
+    def indices_in_row(self, row: int) -> tuple[int, ...]:
         """Returns all indices in the row."""
-        indices = []
-        for idx, cell in enumerate(self.positions):
-            if cell[1] == row:
-                indices.append(idx)
-        return indices
+        return tuple(idx for idx, cell in enumerate(self.positions) if cell[1] == row)
 
-    def values_in_row(self, row: int) -> list[int]:
+    def values_in_row(self, row: int) -> tuple[int, ...]:
         """Returns all values in the row."""
-        values = []
-        for value, cell in zip(self.pattern, self.positions):
-            if cell[1] == row:
-                values.append(value)
-        return values
+        return tuple(self.pattern.cperm[i] for i in self.indices_in_row(row))
 
-    def indices_in_col(self, col: int) -> list[int]:
+    def indices_in_col(self, col: int) -> tuple[int, ...]:
         """Returns all indices in the column."""
-        indices = []
-        for idx, cell in enumerate(self.positions):
-            if cell[0] == col:
-                indices.append(idx)
-        return indices
+        return tuple(idx for idx, cell in enumerate(self.positions) if cell[0] == col)
 
-    def values_in_col(self, col: int) -> list[int]:
+    def values_in_col(self, col: int) -> tuple[int, ...]:
         """Returns all values in the column."""
-        values = []
-        for value, cell in zip(self.pattern, self.positions):
-            if cell[0] == col:
-                values.append(value)
-        return values
+        return tuple(self.pattern.cperm[i] for i in self.indices_in_col(col))
 
     def contains_index(self, direction: int, index: int) -> bool:
         """

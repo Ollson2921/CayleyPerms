@@ -1,17 +1,33 @@
+"""
+This module contains the Factors class, which contains methods for finding the factors of a tiling.
+"""
+
 from itertools import chain, combinations
+
 from cayley_permutations import CayleyPermutation
 from gridded_cayley_permutations import GriddedCayleyPerm
+
 from .tilings import Tiling
 
 
 class Factors:
+    """
+    This class contains methods for finding the factors of a tiling.
+
+    A factor is a subtiling determined by cells.
+
+    Two cells are in the same factor if
+    - they are in the same row or column (excluding point row) or
+    - there is an obstruction or requirement that connects them.
+    """
+
     def __init__(self, tiling: Tiling) -> None:
         self.tiling = tiling
         self.cells = list(sorted(self.tiling.active_cells))
         self.cells_dict = {cell: cell for cell in self.cells}
         self.point_rows = self.tiling.point_rows()
 
-    def combine_cells_in_row_or_col(self):
+    def combine_cells_in_row_or_col(self) -> None:
         """Combines cells that are in the same column or row unless in a point row."""
         cells = self.cells
         for cell, cell2 in combinations(cells, 2):
@@ -20,7 +36,7 @@ class Factors:
             ):
                 self.combine_cells(cell, cell2)
 
-    def combine_cells(self, cell, cell2):
+    def combine_cells(self, cell, cell2) -> None:
         """Combines two cells in the dictionary cells_dict."""
         cells_dict = self.cells_dict
         if cells_dict[cell] != cells_dict[cell2]:
@@ -29,7 +45,7 @@ class Factors:
                 if val == to_change:
                     cells_dict[key] = cells_dict[cell]
 
-    def combine_cells_in_obs_and_reqs(self):
+    def combine_cells_in_obs_and_reqs(self) -> None:
         """Combine cells with respect to obstructions and requirements.
 
         TODO: make function for the copied code (from find_factors in gridded_cayley_permutations.)
@@ -46,14 +62,19 @@ class Factors:
         ):
             self.combine_cells(cell, cell2)
 
-    def point_row_ob(self, ob: GriddedCayleyPerm):
+    def point_row_ob(self, ob: GriddedCayleyPerm) -> bool:
+        """
+        Return true if the obstruction is a size 2 obstruction
+        fully contained in a point row of the tiling.
+        """
         return (
             ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0]))
             and ob.positions[0][1] == ob.positions[1][1]
             and ob.positions[0][1] in self.point_rows
         )
 
-    def find_factors(self):
+    def find_factors(self) -> tuple[Tiling, ...]:
+        """Return the factors of the tiling."""
         self.combine_cells_in_row_or_col()
         self.combine_cells_in_obs_and_reqs()
         factors = []
@@ -70,11 +91,17 @@ class Factors:
 
 
 class ShuffleFactors(Factors):
-    def combine_cells_in_row_or_col(self):
-        """Don't combine them!"""
-        pass
+    """
+    Return the interleaving factors, which drops the condition
+    of cells being in the same row or column.
 
-    def combine_cells_in_obs_and_reqs(self):
+    This is structurally sound, but no longer counted by Cartesian products.
+    """
+
+    def combine_cells_in_row_or_col(self) -> None:
+        """Don't combine them!"""
+
+    def combine_cells_in_obs_and_reqs(self) -> None:
         for gcp in self.tiling.obstructions:
             if gcp.pattern != CayleyPermutation([0, 0]):
                 for cell, cell2 in combinations((gcp.find_active_cells()), 2):

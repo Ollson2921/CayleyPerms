@@ -1,19 +1,29 @@
-from typing import Iterable, Iterator, Tuple
+"""
+The Tiling class, that inherits from CombinatorialClass.
+
+A tiling represents the set of gridded Cayley permutations with cells coming up to a given
+dimension, that avoid a set of obstructions and contain a set of requirements.
+"""
+
 from collections import defaultdict
 from copy import copy
+from functools import cached_property
 from itertools import product
 from math import factorial
+from typing import Iterable, Iterator
+
 from comb_spec_searcher import CombinatorialClass
-from functools import cached_property
 
 from cayley_permutations import CayleyPermutation
-from .row_col_map import RowColMap
+
 from .gridded_cayley_perms import GriddedCayleyPerm
-from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
+from .row_col_map import RowColMap
+from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 
 
-def binomial(x, y):
+def binomial(x: int, y: int) -> int:
+    """Return the binomial coefficient x choose y."""
     try:
         return factorial(x) // factorial(y) // factorial(x - y)
     except ValueError:
@@ -21,16 +31,20 @@ def binomial(x, y):
 
 
 class Tiling(CombinatorialClass):
+    """A tiling represents the set of gridded Cayley permutations with cells coming up to a given
+    dimension, that avoid a set of obstructions and contain a set of requirements."""
+
+    # pylint: disable=too-many-public-methods
     def __init__(
         self,
         obstructions: Iterable[GriddedCayleyPerm],
         requirements: Iterable[Iterable[GriddedCayleyPerm]],
-        dimensions: Tuple[int, int],
+        dimensions: tuple[int, int],
         simplify=True,
     ) -> None:
         self.obstructions = tuple(obstructions)
         self.requirements = tuple(tuple(req) for req in requirements)
-        self.dimensions = tuple(dimensions)
+        self.dimensions = (dimensions[0], dimensions[1])
 
         algorithm = SimplifyObstructionsAndRequirements(
             self.obstructions, self.requirements, self.dimensions
@@ -81,7 +95,7 @@ class Tiling(CombinatorialClass):
         return True
 
     @cached_property
-    def active_cells(self):
+    def active_cells(self) -> set[tuple[int, int]]:
         """Returns the set of active cells in the tiling.
         (Cells are active if they do not contain a point obstruction.)"""
         active_cells = set(
@@ -92,7 +106,7 @@ class Tiling(CombinatorialClass):
                 active_cells.discard(ob.positions[0])
         return active_cells
 
-    def positive_cells(self):
+    def positive_cells(self) -> set[tuple[int, int]]:
         """Returns a set of cells that are positive in the tiling.
         (Cells are positive if they contain a point requirement.)"""
         positive_cells = set()
@@ -103,9 +117,9 @@ class Tiling(CombinatorialClass):
             positive_cells.update(current)
         return positive_cells
 
-    def point_cells(self):
+    def point_cells(self) -> set[tuple[int, int]]:
         """Returns the set of cells that can only contain a point."""
-        # TODO: do better
+        # can this be made more efficient?
         point_cells = set()
         for cell in self.positive_cells():
             if (
@@ -124,28 +138,14 @@ class Tiling(CombinatorialClass):
         Deletes columns at indices specified
         from the tiling and returns the new tiling.
         """
-        col_map = {}
-        counter = 0
-        for ind in range(self.dimensions[0]):
-            if ind in cols:
-                continue
-            col_map[ind] = counter
-            counter += 1
+        return self.delete_rows_and_columns(cols, [])
 
-        row_map = {i: i for i in range(self.dimensions[1])}
-        rc_map = RowColMap(col_map, row_map)
-        new_obstructions = [
-            ob for ob in self.obstructions if not (ob.positions[0][0] in cols)
-        ]
-
-        new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
-
-        new_requirements = rc_map.map_requirements(self.requirements)
-        new_dimensions = (
-            self.dimensions[0] - len(cols),
-            self.dimensions[1],
-        )
-        return Tiling(new_obstructions, new_requirements, new_dimensions)
+    def delete_rows(self, rows: Iterable[int]) -> "Tiling":
+        """
+        Deletes rows at indices specified
+        from the tiling and returns the new tiling.
+        """
+        return self.delete_rows_and_columns([], rows)
 
     def delete_rows_and_columns(
         self, cols: Iterable[int], rows: Iterable[int]
@@ -154,6 +154,7 @@ class Tiling(CombinatorialClass):
         Deletes rows and columns at indices specified
         from the tiling and returns the new tiling.
         """
+        rows, cols = set(rows), set(cols)
         col_map = {}
         counter = 0
         for ind in range(self.dimensions[0]):
@@ -170,11 +171,11 @@ class Tiling(CombinatorialClass):
             row_map[ind] = counter
             counter += 1
         rc_map = RowColMap(col_map, row_map)
-        new_obstructions = [
+        new_obstructions = tuple(
             ob
             for ob in self.obstructions
             if not (ob.positions[0][1] in rows or ob.positions[0][0] in cols)
-        ]
+        )
 
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
 
@@ -187,38 +188,36 @@ class Tiling(CombinatorialClass):
             new_obstructions, new_requirements, new_dimensions, simplify=False
         )
 
-    def find_empty_rows_and_columns(self):
+    def find_empty_rows_and_columns(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """Returns a list of the indices of empty rows and
         a list of the indices of empty columns."""
         if self.dimensions == (0, 0):
-            return [], []
-        col_count = defaultdict(int)
-        row_count = defaultdict(int)
+            return tuple(), tuple()
+        col_count: dict[int, int] = defaultdict(int)
+        row_count: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:
             if len(ob) == 1:
                 col_count[ob.positions[0][0]] += 1
                 row_count[ob.positions[0][1]] += 1
-        empty_cols = []
-        for col, count in col_count.items():
-            if count == self.dimensions[1]:
-                empty_cols.append(col)
-        empty_rows = []
-        for row, count in row_count.items():
-            if count == self.dimensions[0]:
-                empty_rows.append(row)
+        empty_cols = tuple(
+            col for col, count in col_count.items() if count == self.dimensions[1]
+        )
+        empty_rows = tuple(
+            row for row, count in row_count.items() if count == self.dimensions[0]
+        )
         return empty_cols, empty_rows
 
-    def remove_empty_rows_and_columns(self):
+    def remove_empty_rows_and_columns(self) -> "Tiling":
         """Deletes any rows and columns in the gridding that are empty"""
         empty_cols, empty_rows = self.find_empty_rows_and_columns()
         return self.delete_rows_and_columns(empty_cols, empty_rows)
 
-    def remove_empty_columns(self):
+    def remove_empty_columns(self) -> "Tiling":
         """Deletes any columns in the gridding that are empty"""
         empty_cols, _ = self.find_empty_rows_and_columns()
         return self.delete_columns(empty_cols)
 
-    def sub_tiling(self, cells: Iterable[Tuple[int, int]], simplify=True) -> "Tiling":
+    def sub_tiling(self, cells: Iterable[tuple[int, int]], simplify=True) -> "Tiling":
         """
         Returns a sub-tiling of the tiling at the given cells.
         """
@@ -243,7 +242,8 @@ class Tiling(CombinatorialClass):
 
         return Tiling(obstructions, requirements, self.dimensions, simplify=simplify)
 
-    ### Requirement insertion methods ###
+    # Requirement insertion methods
+
     def remove_requirements(self, reqs: Iterable[GriddedCayleyPerm]) -> "Tiling":
         """
         Returns a new tiling with the given requirements removed. (requirements, not req lists)
@@ -287,10 +287,10 @@ class Tiling(CombinatorialClass):
         """
         return self.add_requirements([requirement_list])
 
-    def point_rows(self):
+    def point_rows(self) -> set[int]:
         """Returns the set of rows which only contain points of the same value."""
         point_rows = set()
-        counter_dict = defaultdict(int)
+        counter_dict: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:
             if ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0])):
                 if ob.positions[0][1] == ob.positions[1][1]:
@@ -301,7 +301,7 @@ class Tiling(CombinatorialClass):
                 point_rows.add(row)
         return point_rows
 
-    def cells_in_row(self, row: int):
+    def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""
         cells = set()
         for cell in self.active_cells:
@@ -309,7 +309,7 @@ class Tiling(CombinatorialClass):
                 cells.add(cell)
         return cells
 
-    def cells_in_col(self, col: int):
+    def cells_in_col(self, col: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given column."""
         cells = set()
         for cell in self.active_cells:
@@ -317,53 +317,62 @@ class Tiling(CombinatorialClass):
                 cells.add(cell)
         return cells
 
-    def col_is_positive(self, col: int):
+    def col_is_positive(self, col: int) -> bool:
+        """Return true if the column must contain at least one point."""
         req_list = tuple(
             GriddedCayleyPerm(CayleyPermutation([0]), [cell])
             for cell in self.cells_in_col(col)
         )
         return self.add_obstructions(req_list).is_empty()
 
-    ## Fusion methods
+    # Fusion methods
+
     def fuse(self, direction: int, index: int) -> "Tiling":
         """If direction = 0 then tries to fuse together the columns
         at the given indices, else if direction = 1 then tries to fuse the rows.
         If successful returns the new tiling, else returns None."""
         if direction == 0:
             return self.delete_rows_and_columns([index], [])
-        else:
-            return self.delete_rows_and_columns([], [index])
+        return self.delete_rows_and_columns([], [index])
 
-    def is_fuseable(self, direction: int, index: int, allow_requirements=False) -> bool:
+    def is_fusable(self, direction: int, index: int, allow_requirements=False) -> bool:
         """Checks if the columns/rows are fuseable, if so returns the
         obstructions and requirements else returns None."""
-        assert direction == 0 or direction == 1
-        ob_list = [
+        assert direction in (0, 1)
+        ob_list = tuple(
             ob for ob in self.obstructions if ob.contains_index(direction, index)
-        ]
+        )
         if not self.check_shifts(direction, index, ob_list):
             return False
         for reqs in self.requirements:
-            if any([req.contains_index(direction, index) for req in reqs]):
+            if any(req.contains_index(direction, index) for req in reqs):
                 if not allow_requirements:
                     return False
                 if not self.check_shifts(direction, index, reqs):
                     return False
         return True
 
-    def check_shifts(self, direction: int, index: int, ob_list) -> bool:
+    def check_shifts(
+        self, direction: int, index: int, ob_list: tuple[GriddedCayleyPerm, ...]
+    ) -> bool:
+        """CB: what is this doing?"""
         while len(ob_list) > 0:
             ob = ob_list[0]
             for shift in ob.shifts(direction, index):
                 if shift not in ob_list:
                     return False
-                ob_list.remove(shift)
+                ob_list = ob_list[1:]
         return True
 
-    ## Construction methods
+    # Construction methods
+
     @staticmethod
-    def from_vincular(cperm: CayleyPermutation, adjacencies: Iterable[int]):
-        """Both cperm and adjacencies must be 0 based. Creates a tiling from a vincular pattern. Adjacencies is a list of positions where i in adjacencencies means positions i and i+1 must be adjacent"""
+    def from_vincular(cperm: CayleyPermutation, adjacencies: Iterable[int]) -> "Tiling":
+        """
+        Both cperm and adjacencies must be 0 based. Creates a tiling from a
+        vincular pattern. Adjacencies is a list of positions where i in
+        adjacencies means positions i and i+1 must be adjacent.
+        """
         dimensions = (len(cperm), max(cperm) + 1)
         all_obs, all_reqs = [], []
         perm_cells = [(2 * k + 1, 2 * cperm[k] + 1) for k in range(dimensions[0])]
@@ -403,7 +412,7 @@ class Tiling(CombinatorialClass):
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
         return Tiling(all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1))
 
-    ### CSS methods
+    # CSS methods
 
     def to_jsonable(self) -> dict:
         res = {
@@ -418,7 +427,7 @@ class Tiling(CombinatorialClass):
         return res
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: dict) -> "Tiling":
         return Tiling(
             [GriddedCayleyPerm.from_dict(ob) for ob in d["obstructions"]],
             [
@@ -428,26 +437,30 @@ class Tiling(CombinatorialClass):
             d["dimensions"],
         )
 
-    def maximum_length_of_minimum_gridded_cayley_perm(self):
+    def maximum_length_of_minimal_gridded_cayley_perm(self) -> int:
+        """Return an upper bound on the length of a minimal gridded Cayley permutation."""
         return sum(max(len(gcp) for gcp in req_list) for req_list in self.requirements)
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return any(len(ob) == 0 for ob in self.obstructions) or self._is_empty()
 
-    def _is_empty(self):
+    def _is_empty(self) -> bool:
         for _ in self.minimal_gridded_cperms():
             return False
         return True
 
     def minimal_gridded_cperms(self) -> Iterator[GriddedCayleyPerm]:
         """Returns an iterator of minimal gridded Cayley permutations."""
-        yield from MinimalGriddedCayleyPerm(
-            self.obstructions, self.requirements
-        ).minimal_gridded_cperms()
+        if self.requirements:
+            yield from MinimalGriddedCayleyPerm(
+                self.obstructions, self.requirements
+            ).minimal_gridded_cperms()
+        else:
+            yield GriddedCayleyPerm(CayleyPermutation([]), [])
 
-    def is_atom(self):
+    def is_atom(self) -> bool:
         return self.dimensions == (0, 0) or (
-            # TODO: do better
+            # is there a better way to do this?
             self.dimensions == (1, 1)
             and (0, 0) in self.positive_cells()
             and GriddedCayleyPerm(CayleyPermutation([0, 1]), [(0, 0), (0, 0)])
@@ -471,24 +484,23 @@ class Tiling(CombinatorialClass):
 
     @classmethod
     def empty_tiling(cls) -> "Tiling":
+        """Return the tiling that is the empty set."""
         return Tiling([GriddedCayleyPerm(CayleyPermutation([]), [])], [], (0, 0))
 
-    def copy(self):
+    def copy(self) -> "Tiling":
+        """Return a copy of the tiling."""
         return Tiling(self.obstructions, self.requirements, self.dimensions)
 
     def __repr__(self) -> str:
-        return f"Tiling({repr(self.obstructions)}, {repr(self.requirements)}, {repr(self.dimensions)})"
+        return (
+            f"Tiling({repr(self.obstructions)}, {repr(self.requirements)},"
+            + f"{repr(self.dimensions)})"
+        )
 
     def __str__(self) -> str:
-        grid, key_string, crossing_string, requirements_string = self.find_string()
-        return grid + key_string + crossing_string + requirements_string
-
-    def reduced_str(self) -> str:
-        grid, key_string, _, _ = self.find_string()
-        return grid + key_string
-
-    def find_string(self) -> str:
-        """TODO: fix for empty tiling."""
+        # what should empty tiling be?
+        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-locals
         if self.dimensions == (0, 0):
             return "+---+\n| \u03b5 |\n+---+\n"
         crossing_string = "Crossing obstructions: \n"
@@ -506,8 +518,8 @@ class Tiling(CombinatorialClass):
                 continue
             else:
                 crossing_string += str(ob) + "\n"
-        basis_key = {}
-        cell_key = {}
+        basis_key: dict[tuple[CayleyPermutation, ...], int] = {}
+        cell_key: dict[tuple[int, int], str] = {}
         for cell, basis in cell_basis.items():
             if tuple(basis) not in basis_key:
                 if all(
@@ -526,9 +538,8 @@ class Tiling(CombinatorialClass):
                 if CayleyPermutation([0]) in basis:
                     cell_key[cell] = "#"
                     continue
-                else:
-                    basis_key[tuple(basis)] = len(basis_key)
-            cell_key[cell] = basis_key[tuple(basis)]
+                basis_key[tuple(basis)] = len(basis_key)
+            cell_key[cell] = str(basis_key[tuple(basis)])
 
         requirements_string = ""
         for i, req_list in enumerate(self.requirements):
@@ -543,9 +554,7 @@ class Tiling(CombinatorialClass):
         fill_rows = [copy(fill_row) for _ in range(m)]
         for cell, key in cell_key.items():
             i, j = cell
-            fill_rows[j] = (
-                fill_rows[j][: 2 + 4 * i] + str(key) + fill_rows[j][3 + 4 * i :]
-            )
+            fill_rows[j] = fill_rows[j][: 2 + 4 * i] + key + fill_rows[j][3 + 4 * i :]
 
         for pr in point_rows:
             fill_rows[pr] = fill_rows[pr][:-1] + "*\n"
@@ -553,11 +562,11 @@ class Tiling(CombinatorialClass):
         grid = edge_row + edge_row.join(reversed(fill_rows)) + edge_row
 
         key_string = "Key: \n"
-        for basis, key in basis_key.items():
-            basis_string = f"Av({','.join(str(p) for p in basis)})"
-            key_string += f"{key}: {basis_string} \n"
+        for patts, label in basis_key.items():
+            basis_string = f"Av({','.join(str(p) for p in patts)})"
+            key_string += f"{label}: {basis_string} \n"
 
-        return grid, key_string, crossing_string, requirements_string
+        return grid + key_string + crossing_string + requirements_string
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tiling):

@@ -1,8 +1,19 @@
-from typing import Dict, Iterable, List, Tuple, Iterator, TYPE_CHECKING
-from itertools import product, chain
+"""
+The RowColMap class is used to map gridded Cayley permutations.
+
+It provides methods for mapping and generating preimages of gridded Cayley permutations.
+
+It is assumed that the pre-image of any row or column is an interval.
+"""
+
+from itertools import chain, product
+from typing import TYPE_CHECKING, Iterable, Iterator, Tuple
+from functools import cached_property
+
 from gridded_cayley_permutations import GriddedCayleyPerm
 
 if TYPE_CHECKING:
+    # pylint: disable=all
     from .tilings import Tiling
 
 OBSTRUCTIONS = Tuple[GriddedCayleyPerm, ...]
@@ -15,7 +26,7 @@ class RowColMap:
     If a > b then every pre-image of a is to the greater than every pre-image of b.
     """
 
-    def __init__(self, col_map: Dict[int, int], row_map: Dict[int, int]):
+    def __init__(self, col_map: dict[int, int], row_map: dict[int, int]):
         self.row_map = dict(sorted(row_map.items(), key=lambda item: item[1]))
         self.col_map = dict(sorted(col_map.items(), key=lambda item: item[1]))
 
@@ -29,87 +40,103 @@ class RowColMap:
             new_positions.append((new_cell))
         return GriddedCayleyPerm(gcp.pattern, new_positions)
 
-    def map_gridded_cperms(
-        self, gcps: Iterable[GriddedCayleyPerm]
-    ) -> Iterable[GriddedCayleyPerm]:
+    def map_gridded_cperms(self, gcps: Iterable[GriddedCayleyPerm]) -> OBSTRUCTIONS:
         """
         Map a gridded Cayley permutation according to the column and row maps.
         """
-        return list(self.map_gridded_cperm(gcp) for gcp in gcps)
+        return tuple(self.map_gridded_cperm(gcp) for gcp in gcps)
 
     def map_requirements(
         self, requirements: Iterable[Iterable[GriddedCayleyPerm]]
-    ) -> Iterable[Iterable[GriddedCayleyPerm]]:
+    ) -> REQUIREMENTS:
         """
         Map a list of requirements according to the column and row maps.
         """
-        return list(self.map_gridded_cperms(req) for req in requirements)
+        return tuple(self.map_gridded_cperms(req) for req in requirements)
 
     def preimage_of_gridded_cperm(
         self, gcp: GriddedCayleyPerm
-    ) -> Iterable[GriddedCayleyPerm]:
+    ) -> Iterator[GriddedCayleyPerm]:
         """
         Return the preimages of a gridded Cayley permutation with respect to the map.
         """
-        for cols, rows in product(self.product_of_cols(gcp), self.product_of_rows(gcp)):
+        for cols, rows in product(
+            self._product_of_cols(gcp), self._product_of_rows(gcp)
+        ):
             new_positions = tuple(zip(cols, rows))
             yield GriddedCayleyPerm(gcp.pattern, new_positions)
 
-    def product_of_rows(self, gcp: GriddedCayleyPerm) -> Iterator[Tuple[int, ...]]:
-        row_pos = [cell[1] for cell in gcp.positions]
+    def _product_of_rows(self, gcp: GriddedCayleyPerm) -> Iterator[tuple[int, ...]]:
+        """Yields all possible combinations of preimages of the rows of gcp."""
+        row_pos = tuple(cell[1] for cell in gcp.positions)
         preimages_of_gcp = (
-            self.preimages_of_row_of_gcp(row, gcp) for row in self.row_codomain()
+            self._preimages_of_row_of_gcp(row, gcp) for row in self.row_codomain
         )
-        codomain = self.row_codomain()
-        yield from self.product_of_row_or_columns(row_pos, preimages_of_gcp, codomain)
+        codomain = self.row_codomain
+        yield from self._product_of_row_or_columns(row_pos, preimages_of_gcp, codomain)
 
-    def product_of_cols(self, gcp: GriddedCayleyPerm) -> Iterator[Tuple[int, ...]]:
-        col_pos = [cell[0] for cell in gcp.positions]
+    def _product_of_cols(self, gcp: GriddedCayleyPerm) -> Iterator[tuple[int, ...]]:
+        """Yields all possible combinations of preimages of the columns of gcp."""
+        col_pos = tuple(cell[0] for cell in gcp.positions)
         preimages_of_gcp = (
-            self.preimages_of_col_of_gcp(col, gcp) for col in self.col_codomain()
+            self._preimages_of_col_of_gcp(col, gcp) for col in self.col_codomain
         )
-        codomain = self.col_codomain()
-        yield from self.product_of_row_or_columns(col_pos, preimages_of_gcp, codomain)
+        codomain = self.col_codomain
+        yield from self._product_of_row_or_columns(col_pos, preimages_of_gcp, codomain)
 
-    def product_of_row_or_columns(self, positions, preimages_of_gcp, codomain):
+    def _product_of_row_or_columns(
+        self,
+        positions: tuple[int, ...],
+        preimages_of_gcp: Iterable[Iterable[tuple[int, ...]]],
+        codomain: tuple[int, ...],
+    ) -> Iterator[tuple[int, ...]]:
         indices = {}
         for row in codomain:
             indices[row] = [idx for idx, val in enumerate(positions) if val == row]
-        working_list = [None] * len(positions)
+        working_list = [-1] * len(positions)
         for row_values_at_indices in product(*preimages_of_gcp):
             for row, values_at_row in zip(codomain, row_values_at_indices):
                 for idx, val in zip(indices[row], values_at_row):
                     working_list[idx] = val
             yield tuple(working_list)
 
-    def row_codomain(self):
-        return sorted(set(self.row_map.values()))
+    @cached_property
+    def row_codomain(self) -> tuple[int, ...]:
+        """Return the codomain of the row map."""
+        return tuple(sorted(set(self.row_map.values())))
 
-    def col_codomain(self):
-        return sorted(set(self.col_map.values()))
+    @cached_property
+    def col_codomain(self) -> tuple[int, ...]:
+        """Return the codomain of the column map."""
+        return tuple(sorted(set(self.col_map.values())))
 
-    def partition(self, n, k):
-        """Partition n into k parts"""
+    @staticmethod
+    def _partition(n: int, k: int) -> Iterator[list[int]]:
+        """Partition n into k parts
+
+        NOTE: this is slow, be smarter"""
         if k == 1:
             yield [n]
             return
         for i in range(n + 1):
-            for result in self.partition(n - i, k - 1):
+            for result in RowColMap._partition(n - i, k - 1):
                 yield [i] + result
 
-    def expand_at_index(self, number_of_cols, number_of_rows, col_index, row_index):
+    def expand_at_index(
+        self, number_of_cols: int, number_of_rows: int, col_index: int, row_index: int
+    ) -> "RowColMap":
         """Adds number_of_cols new columns to the at col_index and
         Adds number_of_rows new rows to the map at row_index
             Assumes we've modified the parameter and the tiling in the same way"""
-        new_col_map, new_row_map = dict(), dict()
-        """This bit moves the existing mappings"""
+        new_col_map, new_row_map = {}, {}
+        # This bit moves the existing mappings
         for item in self.col_map.items():
             adjust = int(item[0] >= col_index) * number_of_cols
             new_col_map[item[0] + adjust] = item[1] + adjust
         for item in self.row_map.items():
             adjust = int(item[0] >= row_index) * number_of_rows
             new_row_map[item[0] + adjust] = item[1] + adjust
-        """This bit adds the new dictionary items"""
+        # This bit adds the new dictionary items
         original_col, original_row = (
             self.col_map[col_index],
             self.row_map[row_index],
@@ -120,48 +147,52 @@ class RowColMap:
             new_row_map[row_index + i] = original_row + i
         return RowColMap(new_col_map, new_row_map)
 
-    def preimages_of_row_of_gcp(
+    def preimages_of_row(self, row: int) -> tuple[int, ...]:
+        """Return the preimages of all values in the row."""
+        return tuple(key for key, value in self.row_map.items() if value == row)
+
+    def preimages_of_rows(self, rows: Iterable[int]) -> tuple[int, ...]:
+        """Return the preimages of all values in the rows."""
+        rows = set(rows)
+        return tuple(key for key, value in self.row_map.items() if value in rows)
+
+    def preimages_of_col(self, col: int) -> tuple[int, ...]:
+        """Return the preimages of all values in the column."""
+        return tuple(key for key, value in self.col_map.items() if value == col)
+
+    def preimages_of_cols(self, cols: Iterable[int]) -> tuple[int, ...]:
+        """Return the preimages of all values in the columns."""
+        cols = set(cols)
+        return tuple(key for key, value in self.col_map.items() if value in cols)
+
+    def _preimages_of_row_of_gcp(
         self, row: int, gcp: GriddedCayleyPerm
-    ) -> Iterable[int]:
-        """Finds all the preimages of the subcayley permutation of gcp in the row.
-        Yields tuples of preimages of the values in the row.
-        """
+    ) -> Iterator[tuple[int, ...]]:
+        """Yields tuples of preimages of the values in the row."""
         values_in_row = gcp.values_in_row(row)
         pre_image_values = self.preimages_of_row(row)
-        yield from self._preimages_of_gcp(values_in_row, pre_image_values)
+        yield from self._preimages_of_values(values_in_row, pre_image_values)
 
-    def preimages_of_row(self, row: int) -> List[int]:
-        """Return the preimages of all values in the row."""
-        keys = []
-        for key, value in self.row_map.items():
-            if value == row:
-                keys.append(key)
-        return keys
-
-    def preimages_of_rows(self, rows):
-        keys = []
-        for item in self.row_map.items():
-            if item[1] in rows:
-                keys.append(item[0])
-        return keys
-
-    def preimages_of_col_of_gcp(
+    def _preimages_of_col_of_gcp(
         self, col: int, gcp: GriddedCayleyPerm
-    ) -> Iterable[int]:
-        """Return the preimages of the subcayley permutation of gcp in the column."""
+    ) -> Iterator[tuple[int, ...]]:
+        """Yields tuples of preimages of the values in the column."""
         indices_in_col = gcp.indices_in_col(col)
         pre_image_values = self.preimages_of_col(col)
-        yield from self._preimages_of_gcp(indices_in_col, pre_image_values)
+        yield from self._preimages_of_values(indices_in_col, pre_image_values)
 
-    def _preimages_of_gcp(self, values_in_col, pre_image_values):
+    def _preimages_of_values(
+        self, values_in_col: tuple[int, ...], pre_image_values: tuple[int, ...]
+    ) -> Iterator[tuple[int, ...]]:
+        """Yields tuples of preimages of the given values."""
         if not values_in_col:
             yield tuple()
             return
         number_of_values = max(values_in_col) - min(values_in_col) + 1
         size = len(pre_image_values)
         values_ordered = sorted(set(values_in_col))
-        for partition in self.partition(number_of_values, size):
-            preimage = [None] * len(values_in_col)
+        for partition in self._partition(number_of_values, size):
+            preimage = [-1] * len(values_in_col)
             seen_so_far = 0
             for idx, part in enumerate(partition):
                 new_col = pre_image_values[idx]
@@ -172,29 +203,33 @@ class RowColMap:
                         preimage[idx] = new_col
             yield tuple(preimage)
 
-    def preimages_of_col(self, col: int) -> List[int]:
-        """Return the preimages of all values in the column."""
-        keys = []
-        for key, value in self.col_map.items():
-            if value == col:
-                keys.append(key)
-        return keys
-
-    def preimage_map(self):
+    def preimage_map(
+        self,
+    ) -> tuple[dict[int, tuple[int, ...]], dict[int, tuple[int, ...]]]:
+        """Return the preimage map of the row and column maps."""
         return {i: self.preimages_of_col(i) for i in set(self.col_map.values())}, {
             i: self.preimages_of_row(i) for i in set(self.row_map.values())
         }
 
-    def subset_of_map(self, col_values, row_values):
-        """restricts row/col map to only the col_values and row_values of the preimage"""
-        new_col_map, new_row_map = dict(), dict()
+    def restriction(
+        self, col_values: Iterable[int], row_values: Iterable[int]
+    ) -> "RowColMap":
+        """
+        The restriction of the row col map to only the col_values
+        and the row_values of the preimage.
+        """
+        new_col_map, new_row_map = {}, {}
         for index in col_values:
             new_col_map[index] = self.col_map[index]
         for index in row_values:
             new_row_map[index] = self.row_map[index]
         return RowColMap(new_col_map, new_row_map)
 
-    def standardise_map(self):
+    def standardise_map(self) -> "RowColMap":
+        """
+        Return the row col map with the keys and the values
+        both standardised to the integers 0 to n.
+        """
         keys, values = list(set(self.col_map.keys())), list(set(self.col_map.values()))
         key_map, value_map = {key: keys.index(key) for key in keys}, {
             value: values.index(value) for value in values
@@ -207,21 +242,11 @@ class RowColMap:
         new_row_map = {key_map[key]: value_map[self.row_map[key]] for key in keys}
         return RowColMap(new_col_map, new_row_map)
 
-    def standardised_subset(self, col_values, row_values):
-        return self.subset_of_map(col_values, row_values).standardise_map()
-
-    def preimages_of_cols(self, cols):
-        keys = []
-        for item in self.col_map.items():
-            if item[1] in cols:
-                keys.append(item[0])
-        return keys
-
     def preimage_of_obstructions(
         self, obstructions: Iterable[GriddedCayleyPerm]
-    ) -> Iterable[GriddedCayleyPerm]:
+    ) -> OBSTRUCTIONS:
         """Return the preimages of the obstructions."""
-        return list(
+        return tuple(
             chain.from_iterable(
                 self.preimage_of_gridded_cperm(ob) for ob in obstructions
             )
@@ -229,27 +254,27 @@ class RowColMap:
 
     def preimage_of_requirements(
         self, requirements: Iterable[Iterable[GriddedCayleyPerm]]
-    ) -> Iterable[Iterable[GriddedCayleyPerm]]:
+    ) -> REQUIREMENTS:
         """Return the preimages of the requirements."""
-        return list(self.preimage_of_obstructions(req) for req in requirements)
+        return tuple(self.preimage_of_obstructions(req) for req in requirements)
 
-    def preimage_of_tiling(self, tiling: "Tiling") -> Tuple[OBSTRUCTIONS, REQUIREMENTS]:
+    def preimage_of_tiling(self, tiling: "Tiling") -> tuple[OBSTRUCTIONS, REQUIREMENTS]:
         """Return the preimage of the tiling."""
         return self.preimage_of_obstructions(
             tiling.obstructions
         ), self.preimage_of_requirements(tiling.requirements)
 
-    def preimage_of_cell(self, cell: Tuple[int, int]) -> Tuple[int, int]:
+    def preimage_of_cell(self, cell: tuple[int, int]) -> tuple[tuple[int, int], ...]:
         """Return the preimage of the cell."""
-        all_cells = []
-        for col in self.preimages_of_col(cell[0]):
-            for row in self.preimages_of_row(cell[1]):
-                all_cells.append((col, row))
-        return all_cells
+        return tuple(
+            (x, y)
+            for x in self.preimages_of_col(cell[0])
+            for y in self.preimages_of_row(cell[1])
+        )
 
     def preimage_of_cells(
-        self, cells: Iterable[Tuple[int, int]]
-    ) -> List[Tuple[int, int]]:
+        self, cells: Iterable[tuple[int, int]]
+    ) -> list[tuple[int, int]]:
         """Return the preimage of the cells."""
         return list(chain.from_iterable(self.preimage_of_cell(cell) for cell in cells))
 

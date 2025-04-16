@@ -187,7 +187,7 @@ class Tiling(CombinatorialClass):
         new_obstructions = tuple(
             ob
             for ob in self.obstructions
-            if not (ob.positions[0][1] in rows or ob.positions[0][0] in cols)
+            if all(x not in cols and y not in rows for x, y in ob.positions)
         )
 
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
@@ -461,6 +461,13 @@ class Tiling(CombinatorialClass):
         for _ in self.minimal_gridded_cperms():
             return False
         return True
+
+    def is_subset(self, other: "Tiling") -> bool:
+        if not self.dimensions == other.dimensions:
+            return False
+        return set(self.obstructions).issubset(set(other.obstructions)) and set(
+            self.requirements
+        ).issubset(set(other.requirements))
 
     def minimal_gridded_cperms(self) -> Iterator[GriddedCayleyPerm]:
         """Returns an iterator of minimal gridded Cayley permutations."""

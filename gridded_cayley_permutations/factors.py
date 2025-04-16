@@ -80,7 +80,7 @@ class Factors:
             self.tiling.sub_tiling(factor, simplify=False) for factor in factors
         )
 
-    def find_factors_as_cells(self) -> tuple[tuple[tuple[int, int], ...]]:
+    def find_factors_as_cells(self) -> tuple[tuple[tuple[int, int]]]:
         """Return the factors of the tiling as cells."""
         self.combine_cells_in_row_or_col()
         self.combine_cells_in_obs_and_reqs()

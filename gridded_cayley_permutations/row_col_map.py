@@ -278,5 +278,8 @@ class RowColMap:
         """Return the preimage of the cells."""
         return list(chain.from_iterable(self.preimage_of_cell(cell) for cell in cells))
 
+    def __repr__(self) -> str:
+        return f"RowColMap({repr(self.col_map)}, {repr(self.row_map)})"
+
     def __str__(self) -> str:
         return f"RowColMap({self.col_map}, {self.row_map})"

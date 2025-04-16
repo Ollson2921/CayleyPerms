@@ -365,6 +365,14 @@ class Tiling(CombinatorialClass):
                     return False
         return True
 
+    def can_fuse_row(self, row: int) -> bool:
+        """Check if a row can be fused."""
+        return self.is_fusable(1, row)
+
+    def can_fuse_col(self, col: int) -> bool:
+        """Check if a column can be fused."""
+        return self.is_fusable(0, col)
+
     def check_shifts(
         self, direction: int, index: int, ob_list: tuple[GriddedCayleyPerm, ...]
     ) -> bool:

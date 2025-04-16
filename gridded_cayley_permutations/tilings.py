@@ -94,6 +94,19 @@ class Tiling(CombinatorialClass):
                 return False
         return True
 
+    def gcp_in_tiling(self, gcp: GriddedCayleyPerm) -> bool:
+        """
+        Checks whether a single gridded Cayley permutation is in the tiling.
+        """
+        return (
+            all(
+                x < self.dimensions[0] and y < self.dimensions[1]
+                for x, y in gcp.positions
+            )
+            and self.satisfies_obstructions(gcp)
+            and self.satisfies_requirements(gcp)
+        )
+
     @cached_property
     def active_cells(self) -> set[tuple[int, int]]:
         """Returns the set of active cells in the tiling.

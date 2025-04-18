@@ -9,6 +9,7 @@ setup(
     packages=[
         "cayley_permutations",
         "gridded_cayley_permutations",
+        "tilescope_folder",
     ],
     install_requires=["comb_spec_searcher"],  # external packages as dependencies
 )

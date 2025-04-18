@@ -25,7 +25,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def can_be_equivalent(self) -> bool:
         return False
 
-    def is_two_way(self, comb_class: Tiling):
+    def is_two_way(self, comb_class: Tiling) -> bool:
         return False
 
     def is_reversible(self, comb_class: Tiling) -> bool:

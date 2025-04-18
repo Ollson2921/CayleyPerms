@@ -388,14 +388,14 @@ class LessThanRowColSeparation:
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[Tuple[List[GriddedCayleyPerm], List[List[GriddedCayleyPerm]]]]:
+    ) -> Iterator[Tuple[tuple[GriddedCayleyPerm], tuple[tuple[GriddedCayleyPerm]]]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
-        yield [], []
+        yield (), ()
 
     @property
-    def new_obstructions(self) -> List[GriddedCayleyPerm]:
+    def new_obstructions(self) -> tuple[GriddedCayleyPerm]:
         new_obstructions = []
         for cell in product(
             range(self.new_dimensions[0]), range(self.new_dimensions[1])
@@ -404,7 +404,7 @@ class LessThanRowColSeparation:
                 new_obstructions.append(
                     GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
                 )
-        return new_obstructions
+        return tuple(new_obstructions)
 
     @property
     def new_active_cells(self) -> set[Cell]:
@@ -489,7 +489,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[Tuple[List[GriddedCayleyPerm], List[List[GriddedCayleyPerm]]]]:
+    ) -> Iterator[Tuple[tuple[GriddedCayleyPerm], tuple[tuple[GriddedCayleyPerm]]]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
@@ -529,7 +529,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                         reqs.extend(row_reqs[row])
                     else:
                         obs.extend(row_obs[row])
-                yield point_obs + obs, reqs
+                yield tuple(point_obs + obs), tuple(reqs)
 
     def point_obs(self):
         point_obs = []

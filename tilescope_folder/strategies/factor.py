@@ -10,7 +10,7 @@ from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 # from .dummy_constructor import DummyConstructor
 
 
-class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
+class AbstractFactorStrategy:
     def __init__(
         self,
         ignore_parent: bool = True,
@@ -106,10 +106,12 @@ class ShuffleFactorStrategy(
             raise StrategyDoesNotApply
         return factors
 
-    # def constructor(
-    #     self, comb_class: Tiling, children: Tuple[Tiling, ...] | None = None
-    # ) -> Constructor:
-    #     return DummyConstructor()
+    def constructor(
+        self, comb_class: Tiling, children: Tuple[Tiling, ...] | None = None
+    ) -> (
+        Constructor
+    ):  # return catesian product constructor, class imported from the same file
+        raise NotImplementedError
 
     def can_be_equivalent(self) -> bool:
         return True
@@ -128,6 +130,8 @@ class ShuffleFactorStrategy(
     def shifts(
         self, comb_class: Tiling, children: Tuple[Tiling, ...] | None
     ) -> Tuple[int, ...]:
+        if children is None:
+            children = self.decomposition_function(comb_class)
         min_sizes = tuple(child.minimum_size_of_object() for child in children)
         point_sum = sum(min_sizes)
         return tuple(point_sum - min_size for min_size in min_sizes)

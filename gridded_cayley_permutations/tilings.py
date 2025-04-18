@@ -471,6 +471,10 @@ class Tiling(CombinatorialClass):
         return True
 
     def is_subset(self, other: "Tiling") -> bool:
+        """
+        Return True if the set of gridded permutations on self
+        is a subset of the set of gridded permutations on other.
+        """
         if not self.dimensions == other.dimensions:
             return False
         return set(self.obstructions).issubset(set(other.obstructions)) and set(

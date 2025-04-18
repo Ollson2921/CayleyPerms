@@ -621,10 +621,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     def column_row_inequalities(
         self,
-    ) -> tuple[
-        set[tuple[Cell, Cell]],
-        set[tuple[Cell, Cell]],
-    ]:
+    ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
         """
         Return the inequalities for the column and row
         (this one doesn't need to check if inequalities on the same row are strict).

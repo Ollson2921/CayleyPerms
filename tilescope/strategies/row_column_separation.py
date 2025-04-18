@@ -66,6 +66,7 @@ class Graph:
         self._trim_edges(v1)
 
     def reduce(self) -> None:
+        """Reduce the graph."""
         if self._reduced:
             return
         non_edge = self.find_non_edge()
@@ -202,6 +203,7 @@ class Graph:
             self._matrix[head][tail] = 0
 
     def _is_edge(self, v1: int, v2: int) -> bool:
+        """Check if the edge (v1, v2) is in the graph."""
         return self._matrix[v1][v2] != 0
 
     def _length3_cycle(
@@ -224,6 +226,7 @@ class Graph:
         return None
 
     def __repr__(self) -> str:
+        """Return a string representation of the graph."""
         s = f"Graph over the vertices {self._vertex_labels}\n"
         s += f"Vertex weight is {self._vertex_weights}\n"
         for row in self._matrix:
@@ -246,6 +249,8 @@ class Graph:
 
 
 class RowColOrder:
+    """Class to compute the order of the cells in a tiling."""
+
     def __init__(
         self,
         cells: Set[Cell],
@@ -303,9 +308,11 @@ class RowColOrder:
         return row_m, col_m
 
     def row_ineq_graph(self) -> Graph:
+        """Return the graph of the row inequalities."""
         return Graph(self._active_cells, self._ineq_matrices[0])
 
     def col_ineq_graph(self) -> Graph:
+        """Return the graph of the column inequalities."""
         return Graph(self._active_cells, self._ineq_matrices[1])
 
     @staticmethod
@@ -348,6 +355,7 @@ class RowColOrder:
 
     @cached_property
     def max_column_row_order(self) -> Tuple[List[int], List[int]]:
+        """A maximal order on the rows and columns."""
         return self.max_col_order, self.max_row_order
 
 
@@ -357,10 +365,12 @@ class LessThanRowColSeparation:
     """
 
     def __init__(self, tiling: Tiling) -> None:
+        """Initialize the separation algorithm with a tiling."""
         self.tiling = tiling
 
     @property
     def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+        """Return the row and column order of the tiling."""
         col_ineq, row_ineq = self.column_row_inequalities()
         col_order, row_order = RowColOrder(
             self.tiling.active_cells, col_ineq, row_ineq
@@ -369,10 +379,12 @@ class LessThanRowColSeparation:
 
     @property
     def row_order(self) -> list[set[Cell]]:
+        """Return the row order of the tiling."""
         return self.row_col_order[1]
 
     @property
     def col_order(self) -> list[set[Cell]]:
+        """Return the column order of the tiling."""
         return self.row_col_order[0]
 
     def row_col_separation(self) -> Iterator[Tiling]:
@@ -401,6 +413,7 @@ class LessThanRowColSeparation:
 
     @property
     def new_obstructions(self) -> tuple[GriddedCayleyPerm]:
+        """The new obstructions for the tiling"""
         new_obstructions = []
         for cell in product(
             range(self.new_dimensions[0]), range(self.new_dimensions[1])
@@ -413,14 +426,17 @@ class LessThanRowColSeparation:
 
     @property
     def new_active_cells(self) -> set[Cell]:
+        """Return the new active cells of the tiling."""
         return set(self.map_cell(cell) for cell in self.tiling.active_cells)
 
     @property
     def new_dimensions(self) -> Tuple[int, int]:
+        """Return the new dimensions of the tiling."""
         return (len(self.row_col_map.col_map), len(self.row_col_map.row_map))
 
     @property
     def row_col_map(self) -> RowColMap:
+        """Return the row and column map."""
         pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
         pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
         row_map = dict(enumerate(pre_row_indices))
@@ -537,6 +553,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                 yield tuple(point_obs + obs), tuple(reqs)
 
     def point_obs(self):
+        """Return the point obstructions."""
         point_obs = []
         for j in self.point_rows:
             cells = self.active_cells_in_row(j)
@@ -558,6 +575,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     @property
     def new_active_cells(self) -> Set[Cell]:
+        """Return the new active cells of the tiling."""
         new_active_cells = [self.map_cell(cell) for cell in self.tiling.active_cells]
         point_row_active_cells = []
         for row in self.point_rows:
@@ -582,6 +600,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     @property
     def row_col_map(self) -> RowColMap:
+        """Return the row and column map."""
         pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
         pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
         row_map = {}
@@ -599,6 +618,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     @property
     def point_rows(self) -> List[int]:
+        """Return the point rows."""
         point_rows: list[int] = []
         for i in range(self.tiling.dimensions[1]):
             point_rows.extend(
@@ -638,23 +658,29 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 class LessThanRowColSeparationStrategy(
     DisjointUnionStrategy[Tiling, GriddedCayleyPerm]
 ):
+    """A strategy that separates rows and columns."""
+
     def __init__(
         self,
         ignore_parent: bool = True,
         possibly_empty: bool = True,
     ):
+        """Initialize the strategy."""
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        """Return the decomposition function."""
         algo = LessThanRowColSeparation(comb_class)
         return (next(algo.row_col_separation()),)
 
     def extra_parameters(
         self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
+        """Return the extra parameters for the strategy."""
         return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self) -> str:
+        """Return a string that describe the operation performed on the tiling."""
         return "Separate rows and columns"
 
     def backward_map(
@@ -663,6 +689,7 @@ class LessThanRowColSeparationStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
+        """Return the backward map for the strategy."""
         if children is None:
             children = self.decomposition_function(comb_class)
         raise NotImplementedError
@@ -673,14 +700,17 @@ class LessThanRowColSeparationStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
+        """Return the forward map for the strategy."""
         if children is None:
             children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def __str__(self) -> str:
+        """Return a string representation of the strategy."""
         return self.formal_step()
 
     def __repr__(self) -> str:
+        """Return a string representation of the strategy."""
         return (
             f"{self.__class__.__name__}("
             f"ignore_parent={self.ignore_parent}, "
@@ -696,6 +726,7 @@ class LessThanRowColSeparationStrategy(
 
     @classmethod
     def from_dict(cls, d: dict) -> "LessThanRowColSeparationStrategy":
+        """Create a strategy from a dictionary."""
         return cls(
             ignore_parent=d["ignore_parent"],
             possibly_empty=d["possibly_empty"],
@@ -703,9 +734,13 @@ class LessThanRowColSeparationStrategy(
 
 
 class LessThanOrEqualRowColSeparationStrategy(LessThanRowColSeparationStrategy):
+    """A strategy that allows interleaving in the top/bottom rows when separating"""
+
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        """Return the decomposition function."""
         algo = LessThanOrEqualRowColSeparation(comb_class)
         return tuple(algo.row_col_separation())
 
     def formal_step(self) -> str:
+        """Return a string that describe the operation performed on the tiling."""
         return super().formal_step() + " allowing interleaving in top/bottom rows"

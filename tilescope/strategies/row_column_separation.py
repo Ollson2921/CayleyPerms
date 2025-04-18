@@ -44,13 +44,13 @@ class Graph:
         self._is_acyclic = False
 
     @property
-    def num_vertices(self):
+    def num_vertices(self) -> int:
         """
         The number of vertices of the graph
         """
         return len(self._vertex_weights)
 
-    def _merge_vertices(self, v1, v2):
+    def _merge_vertices(self, v1: int, v2: int) -> None:
         """
         Merge the two vertices.
 
@@ -65,7 +65,7 @@ class Graph:
         self._add_matrix_columns(v1, v2)
         self._trim_edges(v1)
 
-    def reduce(self):
+    def reduce(self) -> None:
         if self._reduced:
             return
         non_edge = self.find_non_edge()
@@ -74,7 +74,7 @@ class Graph:
             non_edge = self.find_non_edge()
         self._reduced = True
 
-    def find_non_edge(self):
+    def find_non_edge(self) -> Optional[Tuple[int, int]]:
         """
         Return a non-edge of the graph.
 
@@ -86,7 +86,7 @@ class Graph:
                 return (v1, v2)
         return None
 
-    def is_acyclic(self):
+    def is_acyclic(self) -> bool:
         """
         Check if the graph is acyclic.
 
@@ -98,7 +98,7 @@ class Graph:
             return True
         return self.find_cycle() is None
 
-    def find_cycle(self):
+    def find_cycle(self) -> Optional[Tuple[Tuple[int, int], ...]]:
         """
         Return the edges of a cycle of the graphs. The graphs first need to be
         reduced
@@ -124,7 +124,9 @@ class Graph:
         self._is_acyclic = True
         return None
 
-    def break_cycle_in_all_ways(self, edges):
+    def break_cycle_in_all_ways(
+        self, edges: Iterator[Tuple[int, int]]
+    ) -> Iterator["Graph"]:
         """
         Generator over Graph object obtained by removing one edge of the
         `edges` iterator.
@@ -140,7 +142,7 @@ class Graph:
             new_graph._is_acyclic = False
             yield new_graph
 
-    def vertex_order(self):
+    def vertex_order(self) -> List[int]:
         """
         Return the order of the vertex in a reduced acyclic graph.
 
@@ -154,7 +156,7 @@ class Graph:
         vert_num_parent = [row.count(0) for row in self._matrix]
         return [p[1] for p in sorted(zip(vert_num_parent, self._vertex_labels))]
 
-    def _add_matrix_rows(self, row1_idx, row2_idx):
+    def _add_matrix_rows(self, row1_idx: int, row2_idx: int) -> None:
         """
         Deletes row 2 from the graph matrix and change row 1 to
         the sum of both row.
@@ -164,7 +166,7 @@ class Graph:
         row2 = self._matrix.pop(row2_idx)
         self._matrix[row1_idx] = list(map(sum, zip(row1, row2)))
 
-    def _add_matrix_columns(self, col1_idx, col2_idx):
+    def _add_matrix_columns(self, col1_idx: int, col2_idx: int) -> None:
         """
         Deletes column 2 from the graph matrix and change column 1 to
         the sum of both column.
@@ -174,7 +176,7 @@ class Graph:
             c2_value = row.pop(col2_idx)
             row[col1_idx] += c2_value
 
-    def _trim_edges(self, vertex):
+    def _trim_edges(self, vertex: int) -> None:
         """
         Remove all the edges that touch vertex that that have a weight which is
         too small.
@@ -190,7 +192,7 @@ class Graph:
             self._delete_edge_if_small(v1, v2, weight_prod)
             self._delete_edge_if_small(v2, v1, weight_prod)
 
-    def _delete_edge_if_small(self, head, tail, cap):
+    def _delete_edge_if_small(self, head: int, tail: int, cap: int) -> None:
         """
         Delete the edges that goes from head to tail if its weight is lower
         than the cap.
@@ -199,10 +201,12 @@ class Graph:
         if weight < cap:
             self._matrix[head][tail] = 0
 
-    def _is_edge(self, v1, v2):
+    def _is_edge(self, v1: int, v2: int) -> bool:
         return self._matrix[v1][v2] != 0
 
-    def _length3_cycle(self, v1, v2, v3):
+    def _length3_cycle(
+        self, v1: int, v2: int, v3: int
+    ) -> Optional[Tuple[Tuple[int, int], ...]]:
         """
         Return the edges of a length 3 cycle containing the three vertices if
         such a cycle exist. Otherwise return None
@@ -217,22 +221,23 @@ class Graph:
         orientation2 = ((v1, v3), (v3, v2), (v2, v1))
         if is_cycle(orientation2):
             return orientation2
+        return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         s = f"Graph over the vertices {self._vertex_labels}\n"
         s += f"Vertex weight is {self._vertex_weights}\n"
         for row in self._matrix:
             s += f"{row}\n"
         return s
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Graph") -> bool:
         """
         A graph is 'smaller if it as more vertices.
         Useful for the priority queue
         """
         return self.num_vertices > other.num_vertices
 
-    def __le__(self, other):
+    def __le__(self, other: "Graph") -> bool:
         """
         A graph is 'smaller if it as more vertices.
         Useful for the priority queue
@@ -251,15 +256,15 @@ class RowColOrder:
         self.row_ineq = row_ineq
         self.col_ineq = col_ineq
 
-    def cell_at_idx(self, idx):
+    def cell_at_idx(self, idx: int) -> Cell:
         """Return the cell at index `idx`."""
         return self._active_cells[idx]
 
-    def cell_idx(self, cell):
+    def cell_idx(self, cell: Cell) -> int:
         """Return the index of the cell"""
         return self._active_cells.index(cell)
 
-    def _basic_matrix(self, row):
+    def _basic_matrix(self, row: bool) -> List[List[int]]:
         """
         Compute the basic matrix of inequalities based only on difference in
         row and columns. If `row` is True return the matrix for the row,
@@ -268,11 +273,11 @@ class RowColOrder:
         idx = 1 if row else 0
         m = []
         for c1 in self._active_cells:
-            row = [1 if c1[idx] < c2[idx] else 0 for c2 in self._active_cells]
-            m.append(row)
+            new_row = [1 if c1[idx] < c2[idx] else 0 for c2 in self._active_cells]
+            m.append(new_row)
         return m
 
-    def _add_ineq(self, ineq, matrix):
+    def _add_ineq(self, ineq: Tuple[Cell, Cell], matrix: List[List[int]]) -> None:
         """
         Add an inequalities to the matrix.
 
@@ -282,7 +287,7 @@ class RowColOrder:
         matrix[self.cell_idx(small_c)][self.cell_idx(big_c)] = 1
 
     @cached_property
-    def _ineq_matrices(self):
+    def _ineq_matrices(self) -> Tuple[List[List[int]], List[List[int]]]:
         """
         Return the matrices of inequalities between the cells.
 
@@ -297,14 +302,14 @@ class RowColOrder:
             self._add_ineq(ineq, col_m)
         return row_m, col_m
 
-    def row_ineq_graph(self):
+    def row_ineq_graph(self) -> Graph:
         return Graph(self._active_cells, self._ineq_matrices[0])
 
-    def col_ineq_graph(self):
+    def col_ineq_graph(self) -> Graph:
         return Graph(self._active_cells, self._ineq_matrices[1])
 
     @staticmethod
-    def _all_order(graph, only_max=False):
+    def _all_order(graph, only_max: bool = False) -> Iterator[List[int]]:
         """
         Generator of ordering of the active cells.
 
@@ -327,22 +332,22 @@ class RowColOrder:
                     heapq.heappush(heap, g)
 
     @staticmethod
-    def _maximal_order(graph):
+    def _maximal_order(graph) -> List[int]:
         """Returns a order that maximise separation."""
         return next(RowColOrder._all_order(graph))
 
     @cached_property
-    def max_row_order(self):
+    def max_row_order(self) -> List[int]:
         """A maximal order on the rows."""
         return self._maximal_order(self.row_ineq_graph())
 
     @cached_property
-    def max_col_order(self):
+    def max_col_order(self) -> List[int]:
         """A maximal order on the columns."""
         return self._maximal_order(self.col_ineq_graph())
 
     @cached_property
-    def max_column_row_order(self):
+    def max_column_row_order(self) -> Tuple[List[int], List[int]]:
         return self.max_col_order, self.max_row_order
 
 
@@ -649,7 +654,7 @@ class LessThanRowColSeparationStrategy(
     ) -> Tuple[Dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
-    def formal_step(self):
+    def formal_step(self) -> str:
         return "Separate rows and columns"
 
     def backward_map(
@@ -702,5 +707,5 @@ class LessThanOrEqualRowColSeparationStrategy(LessThanRowColSeparationStrategy):
         algo = LessThanOrEqualRowColSeparation(comb_class)
         return tuple(algo.row_col_separation())
 
-    def formal_step(self):
+    def formal_step(self) -> str:
         return super().formal_step() + " allowing interleaving in top/bottom rows"

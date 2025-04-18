@@ -75,6 +75,13 @@ class Factors:
 
     def find_factors(self) -> tuple[Tiling, ...]:
         """Return the factors of the tiling."""
+        factors = self.find_factors_as_cells()
+        return tuple(
+            self.tiling.sub_tiling(factor, simplify=False) for factor in factors
+        )
+
+    def find_factors_as_cells(self) -> tuple[tuple[tuple[int, int], ...], ...]:
+        """Return the factors of the tiling as cells."""
         self.combine_cells_in_row_or_col()
         self.combine_cells_in_obs_and_reqs()
         factors = []
@@ -84,10 +91,7 @@ class Factors:
                 if self.cells_dict[cell] == val:
                     factor.append(cell)
             factors.append(factor)
-        factors = sorted(sorted(f) for f in factors)
-        return tuple(
-            self.tiling.sub_tiling(factor, simplify=False) for factor in factors
-        )
+        return tuple(sorted(tuple(sorted(f)) for f in factors))
 
 
 class ShuffleFactors(Factors):

@@ -94,6 +94,19 @@ class Tiling(CombinatorialClass):
                 return False
         return True
 
+    def gcp_in_tiling(self, gcp: GriddedCayleyPerm) -> bool:
+        """
+        Checks whether a single gridded Cayley permutation is in the tiling.
+        """
+        return (
+            all(
+                x < self.dimensions[0] and y < self.dimensions[1]
+                for x, y in gcp.positions
+            )
+            and self.satisfies_obstructions(gcp)
+            and self.satisfies_requirements(gcp)
+        )
+
     @cached_property
     def active_cells(self) -> set[tuple[int, int]]:
         """Returns the set of active cells in the tiling.
@@ -174,7 +187,7 @@ class Tiling(CombinatorialClass):
         new_obstructions = tuple(
             ob
             for ob in self.obstructions
-            if not (ob.positions[0][1] in rows or ob.positions[0][0] in cols)
+            if all(x not in cols and y not in rows for x, y in ob.positions)
         )
 
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
@@ -352,6 +365,14 @@ class Tiling(CombinatorialClass):
                     return False
         return True
 
+    def can_fuse_row(self, row: int) -> bool:
+        """Check if a row can be fused."""
+        return self.is_fusable(1, row)
+
+    def can_fuse_col(self, col: int) -> bool:
+        """Check if a column can be fused."""
+        return self.is_fusable(0, col)
+
     def check_shifts(
         self, direction: int, index: int, ob_list: tuple[GriddedCayleyPerm, ...]
     ) -> bool:
@@ -448,6 +469,17 @@ class Tiling(CombinatorialClass):
         for _ in self.minimal_gridded_cperms():
             return False
         return True
+
+    def is_subset(self, other: "Tiling") -> bool:
+        """
+        Return True if the set of gridded permutations on self
+        is a subset of the set of gridded permutations on other.
+        """
+        if not self.dimensions == other.dimensions:
+            return False
+        return set(self.obstructions).issubset(set(other.obstructions)) and set(
+            self.requirements
+        ).issubset(set(other.requirements))
 
     def minimal_gridded_cperms(self) -> Iterator[GriddedCayleyPerm]:
         """Returns an iterator of minimal gridded Cayley permutations."""

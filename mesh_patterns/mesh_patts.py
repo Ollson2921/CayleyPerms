@@ -25,14 +25,17 @@ regions implied by the shaded cells are also shaded in the larger
 Cayley permutation, i.e., contain no points.
 """
 
-from cayley_permutations import CayleyPermutation
-from typing import Tuple, Iterable, Iterator, Union
 from itertools import product
+from typing import Tuple, Iterable, Iterator, Union
+
+from cayley_permutations import CayleyPermutation
 
 Cell = Tuple[int, int]
 
 
 class MeshPattern:
+    """The MeshPattern class."""
+
     def __init__(
         self,
         pattern: CayleyPermutation,
@@ -83,6 +86,7 @@ class MeshPattern:
 
     def sub_mesh_pattern(self, indices: Iterable[int]) -> "MeshPattern":
         """Returns a sub mesh pattern of the mesh pattern at the given indices"""
+        indices = tuple(indices)
         row_bounds, col_bounds = self.row_col_bounds(indices)
         cells = tuple(
             (i, j)
@@ -101,11 +105,10 @@ class MeshPattern:
         return mp
 
     def row_col_bounds(
-        self, indices: tuple[int, ...]
+        self, indices: Tuple[int, ...]
     ) -> tuple[tuple[Cell, ...], tuple[Cell, ...]]:
         """Returns the row and column bounds of the regions implied by projecting
         to the given occurrence."""
-        indices = tuple(indices)
         values = tuple(sorted(set(self.pattern[i] for i in indices)))
         col_bounds = (
             [(0, indices[0] + 1)]
@@ -120,7 +123,7 @@ class MeshPattern:
             shift += val1 + 1
         row_bounds.append((values[-1] + 1 + shift, values[-1] + 2 + shift))
         row_bounds.append((values[-1] + 2 + shift, 2 * (max(self.pattern) + 1) + 1))
-        return row_bounds, col_bounds
+        return tuple(row_bounds), tuple(col_bounds)
 
     def avoids(self, patts: Iterable["MeshPattern"]) -> bool:
         """Returns True if avoids all of the mesh patterns."""
@@ -132,10 +135,7 @@ class MeshPattern:
 
     def contains_patt(self, mesh_patt: "MeshPattern") -> bool:
         """Return True if self contains the mesh pattern."""
-        for occ in mesh_patt.occurrences_of_pattern(self.pattern):
-            if self.is_shaded_areas_map_correct(mesh_patt, occ):
-                return True
-        return False
+        return any(True for _ in self.occurrences_in_mesh(mesh_patt))
 
     def avoids_patt(self, mesh_patt: "MeshPattern") -> bool:
         """Return True if self avoids the mesh pattern."""
@@ -147,28 +147,29 @@ class MeshPattern:
         """Yield all occurrences of the mesh pattern in either a
         Cayley permutation or another mesh pattern."""
         if isinstance(other, CayleyPermutation):
-            yield from self._occurrences_in_cperm(patt)
+            yield from self.occurrences_in_cperm(other)
         else:
-            yield from self._occurrences_in_mesh(patt)
+            yield from self.occurrences_in_mesh(other)
 
-    def _occurrences_in_cperm(
+    def occurrences_in_cperm(
         self, cperm: CayleyPermutation
     ) -> Iterator[Tuple[int, ...]]:
+        """Yield all occurrences of the mesh pattern in a Cayley permutation."""
         for occ in self.pattern.occurrences_in(cperm):
-            if self.is_valid_occurrence(occ, cperm):
+            if self.avoids_shading(cperm, occ):
                 yield occ
 
-    def _occurrences_in_mesh(
+    def occurrences_in_mesh(
         self, mesh_patt: "MeshPattern"
     ) -> Iterator[Tuple[int, ...]]:
         """Yield all occurrences of the mesh pattern in another mesh pattern."""
-        for occ in self._occurrences_in_cperm(mesh_patt.pattern):
-            if self.is_shaded_areas_map_correct(mesh_patt, occ):
+        for occ in self.occurrences_in_cperm(mesh_patt.pattern):
+            if self.shaded_cells <= mesh_patt.sub_mesh_pattern(occ).shaded_cells:
                 yield occ
 
     def is_avoided_by_cperm(self, cperm: CayleyPermutation) -> bool:
         """Returns true if the Cayely permutation avoids the mesh pattern."""
-        return not self.is_contained_in_cperm(cperm)
+        return not self.is_contained_by_cperm(cperm)
 
     def is_contained_by_cperm(self, cperm: CayleyPermutation) -> bool:
         """Returns true if the Cayely permutation contains the mesh pattern."""
@@ -274,9 +275,9 @@ class MeshPattern:
 
         return "\n".join(reversed(rows))
 
-    def __eq__(self, other: "MeshPattern") -> bool:
+    def __eq__(self, other) -> bool:
         if not isinstance(other, MeshPattern):
-            return False
+            return NotImplemented
         return self.pattern == other.pattern and self.shaded_cells == other.shaded_cells
 
     def __hash__(self) -> int:

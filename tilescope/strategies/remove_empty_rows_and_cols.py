@@ -13,6 +13,8 @@ Cell = Tuple[int, int]
 class RemoveEmptyRowsAndColumnsStrategy(
     DisjointUnionStrategy[Tiling, GriddedCayleyPerm]
 ):
+    """Removes all the empty rows and columns from a tiling."""
+
     def __init__(
         self,
         ignore_parent: bool = True,

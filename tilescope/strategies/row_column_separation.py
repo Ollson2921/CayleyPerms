@@ -1,3 +1,5 @@
+"""For row and column separating a tiling and related strategies."""
+
 import heapq
 from itertools import combinations, product
 from typing import Dict, Iterator, List, Optional, Set, Tuple
@@ -202,9 +204,9 @@ class Graph:
         if weight < cap:
             self._matrix[head][tail] = 0
 
-    def _is_edge(self, v1: int, v2: int) -> bool:
-        """Check if the edge (v1, v2) is in the graph."""
-        return self._matrix[v1][v2] != 0
+    def _is_edge(self, vertex1: int, vertex2: int) -> bool:
+        """Check if the edge (vertex1, vertex2) is in the graph."""
+        return self._matrix[vertex1][vertex2] != 0
 
     def _length3_cycle(
         self, v1: int, v2: int, v3: int
@@ -462,9 +464,12 @@ class LessThanRowColSeparation:
         set[tuple[tuple[int, int], tuple[int, int]]],
     ]:
         """Finds the length 2 obstructions in different cells.
-        If they are on the same column and are an increasing obstruction, they are added to less_than_col to separate columns.
-        If they are on the same row and are an increasing obstruction, they are added to less_than_row to separate rows.
-        If they are in the same row and a constant obstruction, they are added to not_equal to help with strictly less than later.
+        If they are on the same column and are an increasing obstruction,
+        they are added to less_than_col to separate columns.
+        If they are on the same row and are an increasing obstruction,
+        they are added to less_than_row to separate rows.
+        If they are in the same row and a constant obstruction,
+        they are added to not_equal to help with strictly less than later.
         """
         not_equal = set()
         less_than_row = set()
@@ -496,7 +501,8 @@ class LessThanRowColSeparation:
         self,
     ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
         """
-        Return the inequalities for the row and column (this one checking that inequalities on the same row are strict).
+        Return the inequalities for the row and column
+        (this one checking that inequalities on the same row are strict).
         """
         less_than_col, less_than_row, not_equal = self.inequalities_sets()
         return less_than_col, less_than_row.intersection(not_equal)

@@ -115,14 +115,22 @@ class MeshPattern:
             + [(x + 1, y + 1) for x, y in zip(indices, indices[1:])]
             + [(indices[-1] + 1, len(self.pattern) + 1)]
         )
-        row_bounds = [(0, values[0] + 1)]
-        shift = 0
+
+        def rows_below_value(value: int) -> int:
+            return 2 * value + 1
+
+        row_bounds = [(0, rows_below_value(values[0]))]
+
+        def insert_rows(n: int, m: int) -> None:
+            n = rows_below_value(n)
+            m = rows_below_value(m)
+            row_bounds.append((n, n + 1))
+            row_bounds.append((n + 1, m))
+
         for val1, val2 in zip(values, values[1:]):
-            row_bounds.append((val1 + 1 + shift, val1 + 2 + shift))
-            row_bounds.append((val1 + 2 + shift, val2 + 2 + shift))
-            shift += val1 + 1
-        row_bounds.append((values[-1] + 1 + shift, values[-1] + 2 + shift))
-        row_bounds.append((values[-1] + 2 + shift, 2 * (max(self.pattern) + 1) + 1))
+            insert_rows(val1, val2)
+        insert_rows(values[-1], max(self.pattern) + 1)
+
         return tuple(row_bounds), tuple(col_bounds)
 
     def avoids(self, *mesh_patts: "MeshPattern") -> bool:

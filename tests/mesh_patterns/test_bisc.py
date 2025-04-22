@@ -78,3 +78,14 @@ def test_universes():
         720,
         5040,
     ]
+
+
+def test_perm():
+    avoiders = PermutationPatternFinder.universe_up_to_size(PermutationPatternFinder, 6)
+    containers = (
+        CayleyMeshPatternFinder.universe_up_to_size(CayleyMeshPatternFinder, 6)
+        - avoiders
+    )
+    bisc = CayleyMeshPatternFinder(3, avoiders, containers)
+    basis = list(bisc.find_mesh_basis())[0]
+    assert basis == [MeshPattern((0, 0), [])]

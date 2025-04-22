@@ -333,11 +333,31 @@ class MeshPattern:
     def __len__(self) -> int:
         return len(self.pattern)
 
-    def __leq__(self, other: "MeshPattern") -> bool:
-        return self.pattern <= other.pattern and self.shaded_cells <= other.shaded_cells
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return (self.pattern, sorted(self.shaded_cells)) < (
+            other.pattern,
+            sorted(other.shaded_cells),
+        )
 
-    def __lt__(self, other: "MeshPattern") -> bool:
-        return self.pattern <= other.pattern and self.shaded_cells < other.shaded_cells
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return (self.pattern, sorted(self.shaded_cells)) <= (
+            other.pattern,
+            sorted(other.shaded_cells),
+        )
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return other.__lt__(self)
+
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return other.__le__(self)
 
     def __str__(self) -> str:
         return f"MeshPattern({self.pattern}, {self.shaded_cells})"

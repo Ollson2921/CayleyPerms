@@ -54,3 +54,10 @@ def test_avoid_and_contains(mp2):
     assert not mp2.is_avoided_by_word(cperm)
     cperm = (1, 3, 0, 2)
     assert mp2.is_avoided_by_word(cperm)
+
+
+def test_lt():
+    mp1 = MeshPattern((0, 1, 0), frozenset())
+    mp2 = MeshPattern((0, 0), frozenset())
+    assert mp2 < mp1
+    assert mp2 <= mp1

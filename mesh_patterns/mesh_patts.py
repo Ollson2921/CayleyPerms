@@ -20,13 +20,13 @@ the 9 x 5 grid as:
      | |x| |
 
 An occurrence of a mesh pattern is an occurrence of the underlying
-Cayley permutation in a larger Cayley permutation, such that the
+Cayley permutation in a word over the integers, such that the
 regions implied by the shaded cells are also shaded in the larger
-Cayley permutation, i.e., contain no points.
+word, i.e., contain no points.
 """
 
 from itertools import product
-from typing import Tuple, Iterable, Iterator, Union
+from typing import Iterable, Iterator, Tuple, Union
 
 from cayley_permutations import CayleyPermutation
 
@@ -38,11 +38,11 @@ class MeshPattern:
 
     def __init__(
         self,
-        pattern: CayleyPermutation,
+        pattern: Iterable[int],
         shaded_cells: Iterable[Cell],
     ):
-        self.pattern = pattern
-        self.shaded_cells = tuple(sorted(set(shaded_cells)))
+        self.pattern = CayleyPermutation(pattern)
+        self.shaded_cells = frozenset(shaded_cells)
         self._check_init()
 
     def _check_init(self):
@@ -125,13 +125,13 @@ class MeshPattern:
         row_bounds.append((values[-1] + 2 + shift, 2 * (max(self.pattern) + 1) + 1))
         return tuple(row_bounds), tuple(col_bounds)
 
-    def avoids(self, patts: Iterable["MeshPattern"]) -> bool:
+    def avoids(self, *mesh_patts: "MeshPattern") -> bool:
         """Returns True if avoids all of the mesh patterns."""
-        return all(self.avoids_patt(mesh_patt) for mesh_patt in patts)
+        return all(self.avoids_patt(mesh_patt) for mesh_patt in mesh_patts)
 
-    def contains(self, mesh_patts: Iterable["MeshPattern"]) -> bool:
+    def contains(self, *mesh_patts: "MeshPattern") -> bool:
         """Return True if self contains any of the mesh patterns."""
-        return not self.avoids(mesh_patts)
+        return not self.avoids(*mesh_patts)
 
     def contains_patt(self, mesh_patt: "MeshPattern") -> bool:
         """Return True if self contains the mesh pattern."""
@@ -142,64 +142,77 @@ class MeshPattern:
         return not self.contains_patt(mesh_patt)
 
     def occurrences_in(
-        self, other: Union[CayleyPermutation, "MeshPattern"]
+        self, other: Union[tuple[int, ...], "MeshPattern"]
     ) -> Iterator[Tuple[int, ...]]:
         """Yield all occurrences of the mesh pattern in either a
-        Cayley permutation or another mesh pattern."""
-        if isinstance(other, CayleyPermutation):
-            yield from self.occurrences_in_cperm(other)
+        word over the natural numbers or another mesh pattern."""
+        if isinstance(other, tuple):
+            yield from self.occurrences_in_word(other)
         else:
             yield from self.occurrences_in_mesh(other)
 
-    def occurrences_in_cperm(
-        self, cperm: CayleyPermutation
-    ) -> Iterator[Tuple[int, ...]]:
-        """Yield all occurrences of the mesh pattern in a Cayley permutation."""
-        for occ in self.pattern.occurrences_in(cperm):
-            if self.avoids_shading(cperm, occ):
+    def occurrences_in_word(self, word: tuple[int, ...]) -> Iterator[Tuple[int, ...]]:
+        """Yield all occurrences of the mesh pattern in a word over the natural numbers."""
+        for occ in self.pattern.occurrences_in(word):
+            if self.avoids_shading(word, occ):
                 yield occ
 
     def occurrences_in_mesh(
         self, mesh_patt: "MeshPattern"
     ) -> Iterator[Tuple[int, ...]]:
         """Yield all occurrences of the mesh pattern in another mesh pattern."""
-        for occ in self.occurrences_in_cperm(mesh_patt.pattern):
+        for occ in self.occurrences_in_word(mesh_patt.pattern):
             if self.shaded_cells <= mesh_patt.sub_mesh_pattern(occ).shaded_cells:
                 yield occ
 
-    def is_avoided_by_cperm(self, cperm: CayleyPermutation) -> bool:
+    def is_avoided_by_word(self, word: tuple[int, ...]) -> bool:
         """Returns true if the Cayely permutation avoids the mesh pattern."""
-        return not self.is_contained_by_cperm(cperm)
+        return not self.is_contained_by_word(word)
 
-    def is_contained_by_cperm(self, cperm: CayleyPermutation) -> bool:
+    def is_contained_by_word(self, word: tuple[int, ...]) -> bool:
         """Returns true if the Cayely permutation contains the mesh pattern."""
-        return any(True for _ in self.occurrences_in(cperm))
+        return any(True for _ in self.occurrences_in(word))
 
     def avoids_shading(
         self,
-        cperm: CayleyPermutation,
+        word: tuple[int, ...],
         indices: Tuple[int, ...],
     ) -> bool:
         """Return True if no points in shading that is projected to the
-        Cayley permutation according to the indices."""
-        for cell in self.shaded_cells:
-            (i1, i2), (j1, j2) = self.region_of_perm(cperm, indices, cell)
-            if any(i1 <= idx < i2 and j1 <= val < j2 for idx, val in enumerate(cperm)):
-                return False
-        return True
-
-    def avoids_shaded_cell(
-        self, cperm: CayleyPermutation, indices: tuple[int, ...], cell: Cell
-    ) -> bool:
-        """Returns true if the projected cell contains no points in the
-        Cayley permutation with respect to the given indices."""
-        (i1, i2), (j1, j2) = self.region_of_perm(cperm, indices, cell)
-        return not any(
-            i1 <= idx < i2 and j1 <= val < j2 for idx, val in enumerate(cperm)
+        word over the natural numbers according to the indices."""
+        return all(
+            self.avoids_shaded_cell(word, indices, cell) for cell in self.shaded_cells
         )
 
+    @staticmethod
+    def avoids_shaded_cell(
+        word: tuple[int, ...], indices: tuple[int, ...], cell: Cell
+    ) -> bool:
+        """Returns true if the projected cell contains no points in the
+        word over the natural numbers with respect to the given indices."""
+        if not indices:
+            assert cell == (0, 0)
+            return bool(word)
+        (i1, i2), (j1, j2) = MeshPattern.region_of_perm(word, indices, cell)
+        return not any(
+            i1 <= idx < i2 and j1 <= val < j2
+            for idx, val in enumerate(word)
+            if idx not in indices
+        )
+
+    @staticmethod
+    def contains_shaded_cell(
+        word: tuple[int, ...], indices: tuple[int, ...], cell: Cell
+    ) -> bool:
+        """
+        Return true if word contains a point in the shaded region once
+        cell is projected to the occurrenc
+        e"""
+        return not MeshPattern.avoids_shaded_cell(word, indices, cell)
+
+    @staticmethod
     def region_of_perm(
-        self, cperm: CayleyPermutation, occ: tuple[int, ...], cell: Cell
+        word: tuple[int, ...], occ: tuple[int, ...], cell: Cell
     ) -> tuple[tuple[int, int], tuple[int, int]]:
         """
         Returns two tuples of the form (i1, i2) and (j1, j2) where
@@ -209,11 +222,11 @@ class MeshPattern:
           that can be in the shaded region.
         """
         indices = tuple(occ)
-        values = sorted(set(cperm[idx] for idx in occ))
+        values = sorted(set(word[idx] for idx in occ))
         col, row = cell
         # get bounds for indices
         i1 = 0 if col == 0 else indices[col - 1]
-        i2 = len(cperm) if col == len(occ) else indices[col]
+        i2 = len(word) if col == len(occ) else indices[col]
         # get bounds for values
         row_idx = row // 2
         if row % 2:
@@ -226,6 +239,26 @@ class MeshPattern:
             j2 = values[-1] + 1 if row_idx == len(values) else values[row_idx]
         return (i1, i2), (j1, j2)
 
+    @staticmethod
+    def non_empty_regions(
+        obj: Iterable[int], occurrence: tuple[int, ...]
+    ) -> frozenset[tuple[int, int]]:
+        """
+        Return the set of cells that contain a point when projected onto occurrence.
+        """
+        obj = tuple(obj)
+        occurrence = tuple(occurrence)
+        number_of_values = len(set(obj[i] for i in occurrence))
+        return frozenset(
+            (
+                cell
+                for cell in product(
+                    range(len(occurrence) + 1), range(2 * number_of_values + 1)
+                )
+                if MeshPattern.contains_shaded_cell(obj, occurrence, cell)
+            )
+        )
+
     def complement(self) -> "MeshPattern":
         """Returns the complement of the mesh pattern - anything
         that was shaded now isn't, anything that wasn't now is
@@ -235,7 +268,7 @@ class MeshPattern:
             (
                 cell
                 for cell in product(
-                    range(len(self.pattern)), range(2 * (max(self.pattern) + 1))
+                    range(len(self.pattern)), range(2 * max(self.pattern) + 1)
                 )
                 if cell not in self.shaded_cells
             ),
@@ -251,23 +284,29 @@ class MeshPattern:
         -●-+-
          | |
         """
-        if len(self.pattern) == 0:
-            return "+-+\n| |\n+-+\n"
         shaded_cell = "x"
         point = "\u25cf"
+
+        if len(self.pattern) == 0:
+            if self.shaded_cells:
+                return f"+-+\n|{shaded_cell}|\n+-+\n"
+            return "+-+\n| |\n+-+\n"
+
         n = len(self.pattern)
         m = max(self.pattern) + 1
 
-        # create Cayley permutation
+        # create the grid
         empty_row = " |" * n
         plus_row = "+".join("-" for _ in range(n + 1))
         rows = [empty_row, plus_row] * m + [empty_row]
 
-        # mark shaded cells
+        # mark Cayley permutation
         for idx, val in enumerate(self.pattern):
             row = rows[val * 2 + 1]
             row = row[: idx * 2 + 1] + point + row[idx * 2 + 2 :]
             rows[val * 2 + 1] = row
+
+        # mark shaded cells
         for idx, val in self.shaded_cells:
             row = rows[val]
             row = row[: idx * 2] + shaded_cell + row[idx * 2 + 1 :]

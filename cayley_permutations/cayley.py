@@ -6,7 +6,10 @@ from itertools import combinations
 from typing import Any, Iterable, Iterator, Optional
 
 
-class CayleyPermutation:
+DEBUG = False
+
+
+class CayleyPermutation(tuple[int, ...]):
     """
     A Cayley Permutation is a list of integers with repeats allowed where
     if n is in the list, every k < n is in the list.
@@ -20,29 +23,19 @@ class CayleyPermutation:
 
     # pylint: disable=too-many-public-methods
 
-    def __init__(self, cperm: Iterable[int], debug: bool = False):
-        """
-        Checks that the input is a Cayley permutation and converts it to zero based if not already.
-        """
-        try:
-            self.cperm: tuple[int, ...] = tuple(cperm)
-        except TypeError as error:
-            raise TypeError(
-                "Input to CayleyPermutation must be an iterable of ints."
-            ) from error
+    def __new__(cls, iterable: Iterable[int]):
+        if DEBUG:
+            iterable = tuple(iterable)
+            if not (
+                len(iterable) == 0
+                or all(val in iterable for val in range(max(iterable) + 1))
+            ):
+                raise ValueError("Not a valid input to CayleyPermutation")
+        return super(CayleyPermutation, cls).__new__(cls, iterable)
 
-        # These checks should be turned off
-        if debug:
-            if len(self.cperm) != 0:
-                for val in range(max(self.cperm)):
-                    if val not in self.cperm:
-                        raise ValueError(
-                            "Input to CayleyPermutation must be a "
-                            "zero-based Cayley permutation."
-                        )
-
-    def __eq__(self, other) -> bool:
-        return self.cperm == other.cperm
+    def is_cayley_perm(self) -> bool:
+        """Return True if input is correct"""
+        return len(self) == 0 or all(val in self for val in range(max(self) + 1))
 
     def as_one_based(self) -> "list[int]":
         """Returns Cayley permutation as a one based list from zero based.
@@ -51,7 +44,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([1, 2, 3, 0]).as_one_based()
         [2, 3, 4, 1]
         """
-        return [x + 1 for x in self.cperm]
+        return [x + 1 for x in self]
 
     @classmethod
     def from_one_based(cls, cperm: Iterable[int]) -> "CayleyPermutation":
@@ -81,12 +74,12 @@ class CayleyPermutation:
         if len(self) == 0:
             return sub_cperms
         for i in range(len(self)):
-            sub_cperms.add(self.standardise((self.cperm[:i] + self.cperm[i + 1 :])))
+            sub_cperms.add(self.standardise((self[:i] + self[i + 1 :])))
         return sub_cperms
 
     def is_simple(self) -> bool:
         """Returns true if the Cayley permutation is simple."""
-        number_of_indices = len(self.cperm)
+        number_of_indices = len(self)
         for a, b in combinations(range(number_of_indices), 2):
             if len(self.interval(a, b)) < number_of_indices:
                 return False
@@ -113,11 +106,11 @@ class CayleyPermutation:
     def add_to_interval(self, indices_in_interval: list[int]) -> list[int]:
         """For any values in the Cayley permutation that are in the range
         of the interval, adds their indices to the list of indices in the interval."""
-        subcperm = [self.cperm[idx] for idx in indices_in_interval]
+        subcperm = [self[idx] for idx in indices_in_interval]
         max_val = max(subcperm)
         min_val = min(subcperm)
         values_in_interval = list(range(min_val, max_val + 1))
-        for idx, val in enumerate(self.cperm):
+        for idx, val in enumerate(self):
             if idx not in indices_in_interval:
                 if val in values_in_interval:
                     indices_in_interval.append(idx)
@@ -135,8 +128,8 @@ class CayleyPermutation:
         blocks = []
         current_index = 0
         while current_index < len(self):
-            end_index = len(self.cperm) - 1
-            while len(self.interval(current_index, end_index)) == len(self.cperm):
+            end_index = len(self) - 1
+            while len(self.interval(current_index, end_index)) == len(self):
                 if current_index == end_index:
                     break
                 end_index -= 1
@@ -155,7 +148,7 @@ class CayleyPermutation:
         block_decomposition = self.block_decomposition()
         cperm = []
         for block in block_decomposition:
-            cperm.append(self.cperm[block[0]])
+            cperm.append(self[block[0]])
         return CayleyPermutation.standardise(cperm)
 
     @classmethod
@@ -171,8 +164,8 @@ class CayleyPermutation:
         CayleyPermutation((0, 1, 2, 1, 0))
         """
         simple_cperm, blocks_decomp = simple_decomp
-        simple = simple_cperm.cperm
-        blocks = [block.cperm for block in blocks_decomp]
+        simple = simple_cperm
+        blocks = list(blocks_decomp)
         blocks_and_indices = []
         current_max = -1
         for i in range(max(simple) + 1):
@@ -210,29 +203,29 @@ class CayleyPermutation:
         cperm_blocks = []
         for block in blocks:
             cperm_blocks.append(
-                CayleyPermutation.standardise(self.cperm[block[0] : block[-1] + 1])
+                CayleyPermutation.standardise(self[block[0] : block[-1] + 1])
             )
         return simple_cperm, tuple(cperm_blocks)
 
     def sum_decomposable(self) -> bool:
         """Returns true if the Cayley permutation is sum decomposable."""
-        for idx in range(len(self.cperm) - 1):
+        for idx in range(len(self) - 1):
             interval = self.interval(0, idx)
-            if len(interval) == len(self.cperm):
+            if len(interval) == len(self):
                 return False
             for i in interval:
-                if self.cperm[i] == 0:
+                if self[i] == 0:
                     return True
         return False
 
     def skew_decomposable(self) -> bool:
         """Returns true if the Cayley permutation is skew decomposable."""
-        for idx in range(len(self.cperm) - 1, 0, -1):
-            interval = self.interval(idx, len(self.cperm) - 1)
-            if len(interval) == len(self.cperm):
+        for idx in range(len(self) - 1, 0, -1):
+            interval = self.interval(idx, len(self) - 1)
+            if len(interval) == len(self):
                 return False
             for i in interval:
-                if self.cperm[i] == 0:
+                if self[i] == 0:
                     return True
         return False
 
@@ -260,17 +253,17 @@ class CayleyPermutation:
 
     def insert(self, index, value):
         """Inserts value at index in the Cayley permutation."""
-        return CayleyPermutation(self.cperm[:index] + [value] + self.cperm[index:])
+        return CayleyPermutation(self[:index] + [value] + self[index:])
 
     def subperm_from_indices(self, indices: list[int]) -> "CayleyPermutation":
         """Returns the Cayley permutation at the indices."""
-        return CayleyPermutation.standardise([self.cperm[idx] for idx in indices])
+        return CayleyPermutation.standardise([self[idx] for idx in indices])
 
     def indices_above_value(self, value: int) -> list[int]:
         """Returns a list of the indices of the values that
         are greater than or equal to the input value."""
         above_max_indices = []
-        for idx, val in enumerate(self.cperm):
+        for idx, val in enumerate(self):
             if val >= value:
                 above_max_indices.append(idx)
         return above_max_indices
@@ -288,15 +281,13 @@ class CayleyPermutation:
         101
         011
         """
-        val = max(self.cperm)
-        index = self.cperm.index(val)
+        val = max(self)
+        index = self.index(val)
         perms = []
-        for i in range(len(self.cperm) + 1):
-            perms.append(
-                CayleyPermutation(self.cperm[:i] + (val + 1,) + self.cperm[i:])
-            )
+        for i in range(len(self) + 1):
+            perms.append(CayleyPermutation(self[:i] + (val + 1,) + self[i:]))
         for i in range(index + 1):
-            perms.append(CayleyPermutation(self.cperm[:i] + (val,) + self.cperm[i:]))
+            perms.append(CayleyPermutation(self[:i] + (val,) + self[i:]))
         return perms
 
     def contains(
@@ -365,7 +356,7 @@ class CayleyPermutation:
 
     def reverse(self) -> "CayleyPermutation":
         """Returns the reverse of the Cayley permutation."""
-        return CayleyPermutation(self.cperm[::-1])
+        return CayleyPermutation(self[::-1])
 
     def first_k_entries(self, k: int) -> list[int]:
         """Returns a list of the indices of the first k numbers
@@ -381,7 +372,7 @@ class CayleyPermutation:
         indices: list[int] = []
         while len(indices) < k:
             mindices = []
-            for idx, val in enumerate(self.cperm):
+            for idx, val in enumerate(self):
                 if val == current_min:
                     mindices.append(idx)
             indices.extend(mindices[-(k - len(indices)) :])
@@ -396,11 +387,11 @@ class CayleyPermutation:
         >>> CayleyPermutation([2, 0, 1, 2]).last_k_entries(2)
         [0, 3]
         """
-        current_max = max(self.cperm)
+        current_max = max(self)
         indices: list[int] = []
         while len(indices) < k:
             maxindices = []
-            for idx, val in enumerate(self.cperm):
+            for idx, val in enumerate(self):
                 if val == current_max:
                     maxindices.append(idx)
             indices.extend(maxindices[: k - len(indices)])
@@ -420,12 +411,12 @@ class CayleyPermutation:
 
     def occurrences_in(
         self,
-        cperm: "CayleyPermutation",
+        word: tuple[int, ...],
         self_colours: Optional[Iterable[Any]] = None,
         patt_colours: Optional[Iterable[Any]] = None,
     ) -> Iterator[tuple[int, ...]]:
-        """Find all indices of occurrences of self in patt. If the
-        optional colours are provided, in an occurrences the colours of
+        """Find all indices of occurrences of self in word over natural numbers.
+        If the optional colours are provided, in an occurrences the colours of
         the patterns have to match the colours of the permutation.
 
         Adapted from Ragnar Ardal's code in permuta.Perm.
@@ -439,33 +430,47 @@ class CayleyPermutation:
         [(0,), (1,), (2,), (3,)]
         >>> list(CayleyPermutation([]).occurrences_in(CayleyPermutation((1, 2, 3, 0))))
         [()]
-        >>> list(CayleyPermutation((1, 0)).occurrences_in( CayleyPermutation((1, 2, 3, 0, 0))))
+        >>> list(CayleyPermutation((1, 0)).occurrences_in(CayleyPermutation((1, 2, 3, 0, 0))))
         [(0, 3), (0, 4), (1, 3), (1, 4), (2, 3), (2, 4)]
         >>> list(CayleyPermutation((0, 0)).occurrences_in(CayleyPermutation((0, 1, 2, 1, 2))))
         [(1, 3), (2, 4)]
 
         """
+        if not self:
+            yield tuple()
+            return
         if self_colours is not None:
             assert patt_colours is not None
             self_colours = tuple(self_colours)
             patt_colours = tuple(patt_colours)
+            i = 0
+            for cell in patt_colours:
+                if self_colours[i] == cell:
+                    i += 1
+                if i == len(self_colours):
+                    break
+            else:
+                # if we get here, we have not found all the colours, so no occurrence exists
+                return
+
         if len(self) == 0:
             yield tuple()
             return
-        if len(self) > len(cperm):
+        if len(self) > len(word):
             return
 
         # The indices of the occurrence in perm.
         # This will be updated as we go through the possible occurrences.
         occurrence_indices = [0] * len(self)
         pattern_details = self._pattern_details
+        number_of_values = max(word)
 
         def occurrences(i: int, k: int) -> Iterator[tuple[int, ...]]:
             # works with occurrences_indices and other defined variables
-            # i is the index of the element in cperm being considered
-            # k is how many elements of cperm that have already been added
+            # i is the index of the element in word being considered
+            # k is how many elements of word that have already been added
             # to the occurrence
-            elements_remaining = len(cperm) - i
+            elements_remaining = len(word) - i
             elements_needed = len(self) - k
 
             # lfi = left floor index
@@ -485,17 +490,17 @@ class CayleyPermutation:
                 # new element of occurrence must be at least as from its
                 # left floor as self[k] is from its left floor
                 lower_bound = (
-                    cperm[occurrence_indices[left_floor_idx]] + lower_bound_points
+                    word[occurrence_indices[left_floor_idx]] + lower_bound_points
                 )
             if left_ceil_idx == -1:
                 # no left ceil index fo new element must be at least less
                 # than its left ceiling as self[k] is to its left ceiling
-                upper_bound = cperm.number_of_values - upper_bound_points
+                upper_bound = number_of_values - upper_bound_points
             else:
                 # new element of occurrence must at least less than its
                 # left ceiling as self[k] is to its left ceiling
                 upper_bound = (
-                    cperm[occurrence_indices[left_ceil_idx]] - upper_bound_points
+                    word[occurrence_indices[left_ceil_idx]] - upper_bound_points
                 )
 
             # Loop over remaining elements of perm / the index i
@@ -503,7 +508,7 @@ class CayleyPermutation:
                 if elements_remaining < elements_needed:
                     # can't form an occurrence as not enough points
                     return
-                element = cperm[i]
+                element = word[i]
                 if (
                     self_colours is None
                     or patt_colours[i] == self_colours[k]  # type: ignore[index]
@@ -620,9 +625,7 @@ class CayleyPermutation:
 
     def delete_index(self, index: int) -> "CayleyPermutation":
         """Returns a Cayley permutation with the index deleted."""
-        return CayleyPermutation.standardise(
-            self.cperm[:index] + self.cperm[index + 1 :]
-        )
+        return CayleyPermutation.standardise(self[:index] + self[index + 1 :])
 
     def is_monotonically_decreasing(self) -> bool:
         """Returns true if the Cayley permutation is monotonicaly decreasing.
@@ -631,9 +634,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([2, 1, 0, 0]).is_monotonically_decreasing()
         True
         """
-        first_elements = self.cperm[:-1]
-        second_elements = self.cperm[1:]
-        for first, second in zip(first_elements, second_elements):
+        for first, second in zip(self[:-1], self[1:]):
             if first < second:
                 return False
         return True
@@ -645,9 +646,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([0, 1, 2, 2]).is_monotonically_increasing()
         True
         """
-        first_elements = self.cperm[:-1]
-        second_elements = self.cperm[1:]
-        for first, second in zip(first_elements, second_elements):
+        for first, second in zip(self[:-1], self[1:]):
             if first > second:
                 return False
         return True
@@ -661,9 +660,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([0, 1, 2]).is_increasing()
         True
         """
-        first_elements = self.cperm[:-1]
-        second_elements = self.cperm[1:]
-        for first, second in zip(first_elements, second_elements):
+        for first, second in zip(self[:-1], self[1:]):
             if first >= second:
                 return False
         return True
@@ -677,9 +674,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([2, 1, 0]).is_decreasing()
         True
         """
-        first_elements = self.cperm[:-1]
-        second_elements = self.cperm[1:]
-        for first, second in zip(first_elements, second_elements):
+        for first, second in zip(self[:-1], self[1:]):
             if first <= second:
                 return False
         return True
@@ -691,9 +686,7 @@ class CayleyPermutation:
         >>> CayleyPermutation([0, 0, 1, 0]).is_constant()
         False
         """
-        first_elements = self.cperm[:-1]
-        second_elements = self.cperm[1:]
-        for first, second in zip(first_elements, second_elements):
+        for first, second in zip(self[:-1], self[1:]):
             if first != second:
                 return False
         return True
@@ -724,9 +717,9 @@ class CayleyPermutation:
         """
         if len(self) == 0:
             return True
-        max_val = max(self.cperm)
+        max_val = max(self)
         for i in range(max_val + 1):
-            for val in self.cperm:
+            for val in self:
                 if val > i:
                     return False
                 if val == i:
@@ -745,7 +738,9 @@ class CayleyPermutation:
         [CayleyPermutation((0, 1, 0, 2, 3, 2)), CayleyPermutation((0, 1, 2, 0, 3, 2))]
         """
         idx_current_max, val_current_max, working_index = -1, -1, 0
-        states = [(self.cperm, idx_current_max, val_current_max, working_index)]
+        states: list[tuple[tuple[int, ...], int, int, int]] = [
+            (self, idx_current_max, val_current_max, working_index)
+        ]
         while states:
             new_states: list[tuple[tuple[int, ...], int, int, int]] = []
             for state in states:
@@ -820,12 +815,12 @@ class CayleyPermutation:
         """Returns an ascii plot of the mesh pattern."""
         if len(self) == 0:
             return "+---+\n|   |\n+---+\n"
-        n = len(self.cperm)
-        m = max(self.cperm)
+        n = len(self)
+        m = max(self)
         rows = []
         for i in range(m + 1):
             new_row = []
-            for j in self.cperm:
+            for j in self:
                 if j == i:
                     new_row.append(" \u25cf ")
                 else:
@@ -842,8 +837,8 @@ class CayleyPermutation:
         """Returns an ascii plot of the Cayley permutation."""
         if len(self) == 0:
             return "+---+\n|   |\n+---+\n"
-        n = len(self.cperm)
-        m = max(self.cperm)
+        n = len(self)
+        m = max(self)
         empty_cell = "   "
         point = "\u25cf"
         normal_row = "---"
@@ -852,7 +847,7 @@ class CayleyPermutation:
         point_rows = []
         for i in range(m + 1):
             new_row = normal_row
-            for j in self.cperm:
+            for j in self:
                 if j == i:
                     new_row += point + normal_row
                 else:
@@ -875,7 +870,7 @@ class CayleyPermutation:
         point_rows = []
         for i in range(self.number_of_values + 1):
             new_row = normal_row
-            for j in self.cperm:
+            for j in self:
                 if j == i:
                     if j in top_left:
                         new_row += "🔵" + normal_row
@@ -889,41 +884,29 @@ class CayleyPermutation:
                     new_row += "+ " + normal_row
             new_row += "\n"
             point_rows.append(new_row)
-        empty_row = "| ".join("   " for _ in range(len(self.cperm) + 1)) + "\n"
+        empty_row = "| ".join("   " for _ in range(len(self) + 1)) + "\n"
         grid = empty_row + empty_row.join(reversed(point_rows)) + empty_row
         return grid
 
     def to_jsonable(self) -> dict:
         """Returns a dictionary of the Cayley permutation."""
-        return {"cperm": self.cperm}
+        return {"cperm": self}
 
     @classmethod
     def from_dict(cls, d: dict) -> "CayleyPermutation":
         """Returns a Cayley permutation from a dictionary."""
         return cls(d["cperm"])
 
-    def __len__(self):
-        return len(self.cperm)
-
-    def __iter__(self):
-        return iter(self.cperm)
-
-    def __hash__(self):
-        return hash(tuple(self.cperm))
-
     def __str__(self):
         if len(self) == 0:
             return "\u03b5"
-        return "".join(str(x) if x < 10 else f"({str(x)})" for x in self.cperm)
+        return "".join(str(x) if x < 10 else f"({str(x)})" for x in self)
 
     def __repr__(self):
-        return f"CayleyPermutation({self.cperm})"
+        return f"CayleyPermutation({tuple(self)})"
 
-    def __lt__(self, other: "CayleyPermutation") -> bool:
-        return (len(self.cperm), self.cperm) < (len(other.cperm), other.cperm)
+    def __lt__(self, other) -> bool:
+        return (len(self), tuple(self)) < (len(other), tuple(other))
 
-    def __le__(self, other: "CayleyPermutation") -> bool:
-        return (len(self.cperm), self.cperm) <= (len(other.cperm), other.cperm)
-
-    def __getitem__(self, key: int) -> int:
-        return self.cperm[key]
+    def __le__(self, other) -> bool:
+        return (len(self), tuple(self)) <= (len(other), tuple(other))

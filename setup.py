@@ -7,5 +7,8 @@ setup(
     author="Reid Acton, Christian Bean, and Abigail Ollson",
     author_email="c.n.bean@keele.ac.uk",
     packages=["cayley_permutations", "gridded_cayley_permutations", "mesh_patterns"],
-    install_requires=["comb_spec_searcher"],  # external packages as dependencies
+    install_requires=[
+        "comb_spec_searcher",
+        "tqdm",
+    ],  # external packages as dependencies
 )

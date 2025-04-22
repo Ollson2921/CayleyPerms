@@ -1,7 +1,8 @@
 """Test for MeshPattern class"""
 
-from mesh_patterns import MeshPattern
 import pytest
+
+from mesh_patterns import MeshPattern
 
 
 @pytest.fixture

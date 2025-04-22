@@ -1,7 +1,9 @@
 """Tests for the CayleyPermutation class."""
 
 import random
+
 import pytest
+
 from cayley_permutations import CayleyPermutation
 
 

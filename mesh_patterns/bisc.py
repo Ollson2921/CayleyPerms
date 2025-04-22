@@ -7,7 +7,7 @@ Output: a set of Cayley mesh patterns P such that Av(P) = S
 
 import abc
 from collections import defaultdict
-from itertools import combinations
+from itertools import combinations, permutations, product
 from typing import Iterable, Iterator, Optional
 
 from logzero import logger  # type: ignore
@@ -41,8 +41,9 @@ class AbstractPatternFinder(abc.ABC):
             for i in range(max(self.avoiders.keys()) + 1):
                 self.containers[i] = set(self.universe_of_size(i) - self.avoiders[i])
 
+    @staticmethod
     @abc.abstractmethod
-    def universe_of_size(self, n: int) -> frozenset[tuple[int, ...]]:
+    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
         """
         Returns the set of all words of size n.
         """
@@ -265,10 +266,71 @@ class CayleyMeshPatternFinder(AbstractPatternFinder):
     Class for finding patterns that define a set of Cayley Permutations
     """
 
-    def universe_of_size(self, n: int) -> frozenset[CayleyPermutation]:
+    @staticmethod
+    def universe_of_size(n: int) -> frozenset[CayleyPermutation]:
         return frozenset(CayleyPermutation.of_size(n))
 
 
-# class InversionSequencePatternFinder(AbstractPatternFinder):
-#     def universe_of_size(self, n):
-#         return super().universe_of_size(n)
+class InversionSequencePatternFinder(AbstractPatternFinder):
+    """
+    Class for finding patterns that define a set of inversion sequences
+    """
+
+    @staticmethod
+    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
+        return frozenset(product(*[range(i) for i in range(1, n + 1)]))
+
+
+class PermutationPatternFinder(AbstractPatternFinder):
+    """
+    Class for finding patterns that define a set of permutations
+    """
+
+    @staticmethod
+    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
+        return frozenset(permutations(range(n)))
+
+
+class AscentSequencePatternFinder(AbstractPatternFinder):
+    """
+    Class for finding patterns that define a set of ascent sequences
+    """
+
+    @staticmethod
+    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
+        def number_of_ascents(seq: tuple[int, ...]) -> int:
+            return sum(1 for a, b in zip(seq, seq[1:]) if a < b)
+
+        def ascent_sequences(n: int) -> Iterator[tuple[int, ...]]:
+            if n == 0:
+                yield tuple()
+                return
+            if n == 1:
+                yield (0,)
+                return
+            for seq in ascent_sequences(n - 1):
+                for value in range(number_of_ascents(seq) + 2):
+                    yield seq + (value,)
+
+        return frozenset(ascent_sequences(n))
+
+
+class RestrictedGrowthFunctionPatternFinder(AbstractPatternFinder):
+    """
+    Class for finding patterns that define a set of restricted growth functions
+    """
+
+    @staticmethod
+    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
+        def rgf(n: int) -> Iterator[tuple[int, ...]]:
+            if n == 0:
+                yield tuple()
+                return
+            if n == 1:
+                yield (0,)
+                return
+            for cperm in rgf(n - 1):
+                for value in range(max(cperm) + 2):
+                    yield cperm + (value,)
+
+        return frozenset(rgf(n))

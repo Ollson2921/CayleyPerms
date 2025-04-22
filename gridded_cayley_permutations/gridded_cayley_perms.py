@@ -2,6 +2,7 @@
 
 from itertools import combinations
 from typing import Iterable, Iterator
+
 from comb_spec_searcher import CombinatorialObject
 
 from cayley_permutations import CayleyPermutation

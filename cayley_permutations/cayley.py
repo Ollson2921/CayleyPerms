@@ -5,7 +5,6 @@ from functools import cached_property
 from itertools import combinations
 from typing import Any, Iterable, Iterator, Optional
 
-
 DEBUG = False
 
 

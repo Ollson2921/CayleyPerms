@@ -310,6 +310,22 @@ class GriddedCayleyPerm(CombinatorialObject):
             CayleyPermutation.standardise(new_pattern), new_positions
         )
 
+    def sub_gridded_cayley_perms_at_indices(
+        self, indices: tuple[int, ...]
+    ) -> "GriddedCayleyPerm":
+        """Return the sub gridded cayley perm at the given indices"""
+        return GriddedCayleyPerm(
+            self.pattern.subperm_from_indices(indices),
+            tuple(self.positions[idx] for idx in indices),
+        )
+
+    def sub_gridded_cayley_perms(self, size: int) -> set["GriddedCayleyPerm"]:
+        """Return all the gridded cayley permutations of given size contained in self"""
+        return frozenset(
+            self.sub_gridded_cayley_perms_at_indices(indices)
+            for indices in combinations(range(len(self)), size)
+        )
+
     def shifts(self, direction: int, index: int) -> Iterator["GriddedCayleyPerm"]:
         """Returns all ways to shift points in a Cayley permutation between two rows or columns"""
         if direction == 0:  # Column Shift

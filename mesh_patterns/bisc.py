@@ -77,9 +77,7 @@ class AbstractPatternFinder(abc.ABC):
         """
         Returns all containers.
         """
-        return frozenset().union(
-            *(self.containers[i] for i in range(self.max_patt_size + 1))
-        )
+        return frozenset().union(*(self.containers[i] for i in self.containers))
 
     @staticmethod
     def minimal_patterns(patterns: Iterable[MeshPattern]) -> set[MeshPattern]:
@@ -128,9 +126,9 @@ class AbstractPatternFinder(abc.ABC):
         # see algorithm 3.1.7 for ln(n) approximation - sort subsets by percentage of
         # subset not yet covered
         logger.info("Searching for set cover")
-        subsets_left.sort(key=lambda x: len(x[1]))
         res = []
         while subsets_left:
+            subsets_left.sort(key=lambda x: len(x[1]))
             patt, patt_containers = subsets_left.pop()
             res.append(patt)
             containers -= patt_containers
@@ -143,7 +141,7 @@ class AbstractPatternFinder(abc.ABC):
                 for patt, patt_containers in subsets_left
                 if patt_containers
             ]
-            subsets_left.sort(key=lambda x: len(x[1]))
+
         if not containers:
             yield res
 

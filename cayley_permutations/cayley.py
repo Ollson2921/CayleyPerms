@@ -256,7 +256,7 @@ class CayleyPermutation(tuple[int, ...]):
 
     def subperm_from_indices(self, indices: list[int]) -> "CayleyPermutation":
         """Returns the Cayley permutation at the indices."""
-        return CayleyPermutation.standardise([self[idx] for idx in indices])
+        return CayleyPermutation.standardise(self[idx] for idx in indices)
 
     def indices_above_value(self, value: int) -> list[int]:
         """Returns a list of the indices of the values that

@@ -254,7 +254,7 @@ class CayleyPermutation(tuple[int, ...]):
         """Inserts value at index in the Cayley permutation."""
         return CayleyPermutation(self[:index] + [value] + self[index:])
 
-    def subperm_from_indices(self, indices: list[int]) -> "CayleyPermutation":
+    def subperm_from_indices(self, indices: Iterable[int]) -> "CayleyPermutation":
         """Returns the Cayley permutation at the indices."""
         return CayleyPermutation.standardise(self[idx] for idx in indices)
 

@@ -319,7 +319,7 @@ class GriddedCayleyPerm(CombinatorialObject):
             tuple(self.positions[idx] for idx in indices),
         )
 
-    def sub_gridded_cayley_perms(self, size: int) -> set["GriddedCayleyPerm"]:
+    def sub_gridded_cayley_perms(self, size: int) -> frozenset["GriddedCayleyPerm"]:
         """Return all the gridded cayley permutations of given size contained in self"""
         return frozenset(
             self.sub_gridded_cayley_perms_at_indices(indices)

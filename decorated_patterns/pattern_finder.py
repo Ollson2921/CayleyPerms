@@ -3,7 +3,6 @@ Input: a set of words S
 Output: a set of Cayley decorated patterns P such that Av(P) = S
 """
 
-import abc
 from collections import defaultdict
 from itertools import combinations
 from typing import Iterable, Iterator, Optional
@@ -24,7 +23,7 @@ from mesh_patterns.bisc import (
 from .decorated_pattern import DecoratedPattern
 
 
-class DecoratedPatternFinder(abc.ABC):
+class DecoratedPatternFinder(AbstractPatternFinder):
     """
     Abstract class for finding decorated patterns that define a set of words.
     """
@@ -36,55 +35,8 @@ class DecoratedPatternFinder(abc.ABC):
         avoiders: Iterable[tuple[int, ...]],
         containers: Optional[Iterable[tuple[int, ...]]] = None,
     ):
-        self.max_patt_size = max_patt_size
         self.max_obstruction_size = max_obstruction_size
-        self.avoiders: defaultdict[int, set[tuple[int, ...]]] = defaultdict(set)
-        self.containers: defaultdict[int, set[tuple[int, ...]]] = defaultdict(set)
-        for word in avoiders:
-            self.avoiders[len(word)].add(word)
-        if containers is not None:
-            for word in containers:
-                self.containers[len(word)].add(word)
-        else:
-            for i in range(max(self.avoiders.keys()) + 1):
-                self.containers[i] = set(self.universe_of_size(i) - self.avoiders[i])
-
-    @staticmethod
-    @abc.abstractmethod
-    def universe_of_size(n: int) -> frozenset[tuple[int, ...]]:
-        """
-        Returns the set of all words of size n.
-        """
-        raise NotImplementedError
-
-    def universe_up_to_size(self, n: int) -> frozenset[tuple[int, ...]]:
-        """
-        Returns the set of all words of size less than or equal to n.
-        """
-        return frozenset().union(*(self.universe_of_size(i) for i in range(n + 1)))
-
-    def all_avoiders(self) -> frozenset[tuple[int, ...]]:
-        """
-        Returns all avoiders of size greater than or equal to start.
-        """
-        return frozenset().union(*(self.avoiders[i] for i in self.avoiders))
-
-    def all_containers(self) -> frozenset[tuple[int, ...]]:
-        """
-        Returns all containers.
-        """
-        return frozenset().union(*(self.containers[i] for i in self.containers))
-
-    @staticmethod
-    def enumerate_hitting_sets(
-        vertices: list[int],
-        edges: list[tuple[int, ...]],
-        non_vertices: Optional[list[int]] = None,
-    ) -> list[set[int]]:
-        """Find hitting sets"""
-        return AbstractPatternFinder.enumerate_hitting_sets(
-            vertices, edges, non_vertices
-        )
+        super().__init__(max_patt_size, avoiders, containers)
 
     @staticmethod
     def minimal_patterns(patterns: Iterable[DecoratedPattern]) -> set[DecoratedPattern]:
@@ -105,32 +57,26 @@ class DecoratedPatternFinder(abc.ABC):
         minimal_patterns_not_contained = self.find_minimal_patterns_not_contained()
         patts = self.minimal_patterns(minimal_patterns_not_contained)
 
-        subsets_left = []
         containers = self.all_containers()
-        for patt in tqdm(patts, desc="Cmoputing container sets"):
-            patt_containers = set(
-                word for word in containers if patt.contained_by_word(word)
-            )
-            subsets_left.append((patt, patt_containers))
+        container_labels: dict[tuple[int, ...], int] = {}
+        for word in containers:
+            container_labels[word] = len(container_labels)
 
-        res = []
-        while subsets_left:
-            subsets_left.sort(key=lambda x: x[1])
-            patt, patt_containers = subsets_left.pop()
-            res.append(patt)
-            containers -= patt_containers
-            subsets_left = [
-                (patt, old_patt_containers - patt_containers)
-                for patt, old_patt_containers in subsets_left
-            ]
-            subsets_left = [
-                (patt, patt_containers)
-                for patt, patt_containers in subsets_left
-                if patt_containers
-            ]
-        if not containers:
-            return res
-        raise ValueError("No basis found, try increasing input parameters")
+        label_to_patt: dict[int, DecoratedPattern] = {}
+        subsets_left = []
+        for patt in tqdm(patts, desc="Cmoputing container sets"):
+            label = len(label_to_patt)
+            label_to_patt[label] = patt
+            patt_containers = set(
+                container_labels[word]
+                for word in containers
+                if patt.contained_by_word(word)
+            )
+            subsets_left.append((label, patt_containers))
+
+        basis_labels = self.set_cover(container_labels.values(), subsets_left)
+
+        return [label_to_patt[label] for label in basis_labels]
 
     def find_minimal_patterns_not_contained(self) -> Iterator[DecoratedPattern]:
         """

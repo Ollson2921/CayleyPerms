@@ -14,11 +14,11 @@ class GriddedCayleyPerm(CombinatorialObject):
     # pylint: disable=too-many-public-methods
     def __init__(
         self,
-        pattern: CayleyPermutation,
+        pattern: Iterable[int],
         positions: Iterable[tuple[int, int]],
         validate=False,
     ) -> None:
-        self.pattern = pattern
+        self.pattern = CayleyPermutation(pattern)
         self.positions: tuple[tuple[int, int], ...] = tuple(
             (x, y) for x, y in positions
         )

@@ -238,9 +238,9 @@ class MeshPatternFinder(AbstractPatternFinder):
         """
         # pylint: disable=too-many-nested-blocks
         logger.info("Computing maximal shadded patterns contained")
-        contained_patterns: dict[CayleyPermutation, set[frozenset[tuple[int, int]]]] = (
-            defaultdict(set)
-        )
+        contained_patterns: dict[
+            CayleyPermutation, set[frozenset[tuple[int, int]]]
+        ] = defaultdict(set)
         for i in range(self.max_patt_size + 1):
             logger.info("Computing size %s patterns", i)
             for word in tqdm(self.all_avoiders(i)):

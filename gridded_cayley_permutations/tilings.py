@@ -8,7 +8,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 from collections import defaultdict
 from copy import copy
 from functools import cached_property
-from itertools import product
+from itertools import product, chain
 from math import factorial
 from typing import Iterable, Iterator
 
@@ -146,6 +146,18 @@ class Tiling(CombinatorialClass):
                 point_cells.add(cell)
         return point_cells
 
+    def not_blank_cells(self) -> set[tuple[int, int]]:
+        """Returns the set of cells that are a position for some ob or req."""
+        combined_obs_and_reqs = self.obstructions + tuple(chain(*self.requirements))
+        return set(chain(*(gcp.positions for gcp in combined_obs_and_reqs)))
+
+    def blank_cells(self) -> set[tuple[int, int]]:
+        """Returns the set of cells that contain no obs or reqs."""
+        return (
+            set(product(range(self.dimensions[0]), range(self.dimensions[1])))
+            - self.not_blank_cells()
+        )
+
     def delete_columns(self, cols: Iterable[int]) -> "Tiling":
         """
         Deletes columns at indices specified
@@ -219,6 +231,16 @@ class Tiling(CombinatorialClass):
             row for row, count in row_count.items() if count == self.dimensions[0]
         )
         return empty_cols, empty_rows
+
+    def find_blank_columns_and_rows(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        """Returns a list of the indices of blank columns and
+        a list of the indices of blank rows."""
+        if self.dimensions == (0, 0):
+            return tuple(), tuple()
+        not_blank_cols, not_blank_rows = zip(*self.not_blank_cells())
+        blank_cols = tuple(set(range(self.dimensions[0])) - set(not_blank_cols))
+        blank_rows = tuple(set(range(self.dimensions[1])) - set(not_blank_rows))
+        return blank_cols, blank_rows
 
     def remove_empty_rows_and_columns(self) -> "Tiling":
         """Deletes any rows and columns in the gridding that are empty"""

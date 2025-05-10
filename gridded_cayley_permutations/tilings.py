@@ -348,21 +348,22 @@ class Tiling(CombinatorialClass):
             return self.delete_rows_and_columns([index], [])
         return self.delete_rows_and_columns([], [index])
 
-    def is_fusable(self, direction: int, index: int, allow_requirements=False) -> bool:
-        """Checks if the columns/rows are fuseable, if so returns the
-        obstructions and requirements else returns None."""
-        assert direction in (0, 1)
-        ob_list = tuple(
-            ob for ob in self.obstructions if ob.contains_index(direction, index)
-        )
-        if not self.check_shifts(direction, index, ob_list):
+    def is_fusable(self, direction: int, index: int) -> bool:
+        """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable, 
+        if so returns the obstructions and requirements else returns None."""
+        col_map = {i:i for i in range(self.dimensions[0])}
+        row_map = {i:i for i in range(self.dimensions[1])}
+        if direction == 0:
+            col_map[index+1] = index
+        else:
+            row_map[index+1] = index
+        backmap = RowColMap(col_map, row_map)
+        obs = set(backmap.preimage_of_obstructions(self.obstructions))
+        if not obs == set(self.obstructions):
             return False
-        for reqs in self.requirements:
-            if any(req.contains_index(direction, index) for req in reqs):
-                if not allow_requirements:
-                    return False
-                if not self.check_shifts(direction, index, reqs):
-                    return False
+        reqs = set(backmap.preimage_of_requirements(self.requirements))
+        if not reqs == set(self.requirements):
+            return False
         return True
 
     def can_fuse_row(self, row: int) -> bool:

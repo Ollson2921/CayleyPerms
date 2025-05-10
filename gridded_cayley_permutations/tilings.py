@@ -189,10 +189,18 @@ class Tiling(CombinatorialClass):
             for ob in self.obstructions
             if all(x not in cols and y not in rows for x, y in ob.positions)
         )
-
+        
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
-
-        new_requirements = rc_map.map_requirements(self.requirements)
+        new_requirements = []
+        for req_list in self.requirements:
+            new_req_list = tuple(
+                req
+                for req in req_list
+                if all(x not in cols and y not in rows for x, y in req.positions)
+            )
+            if new_req_list:
+                new_requirements.append(new_req_list)
+        new_requirements = rc_map.map_requirements(new_requirements)
         new_dimensions = (
             self.dimensions[0] - len(cols),
             self.dimensions[1] - len(rows),
@@ -348,20 +356,26 @@ class Tiling(CombinatorialClass):
             return self.delete_rows_and_columns([index], [])
         return self.delete_rows_and_columns([], [index])
 
-    def is_fusable(self, direction: int, index: int) -> bool:
-        """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable, 
+    def is_fuseable(self, direction: int, index: int) -> bool:
+        """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
         if so returns the obstructions and requirements else returns None."""
-        col_map = {i:i for i in range(self.dimensions[0])}
-        row_map = {i:i for i in range(self.dimensions[1])}
+        col_map = {i: i for i in range(self.dimensions[0])}
+        row_map = {i: i for i in range(self.dimensions[1])}
         if direction == 0:
-            col_map[index+1] = index
+            temp_tiling = self.delete_rows_and_columns([index], [])
+            for i in range(index + 1, self.dimensions[0]):
+                col_map[i] = col_map[i] - 1
         else:
-            row_map[index+1] = index
+            temp_tiling = self.delete_rows_and_columns([], [index])
+            for i in range(index + 1, self.dimensions[1]):
+                row_map[i] = row_map[i] - 1
         backmap = RowColMap(col_map, row_map)
-        obs = set(backmap.preimage_of_obstructions(self.obstructions))
+        obs = set(backmap.preimage_of_obstructions(temp_tiling.obstructions))
         if not obs == set(self.obstructions):
             return False
-        reqs = set(backmap.preimage_of_requirements(self.requirements))
+        reqs = set(
+            map(tuple, backmap.preimage_of_requirements(temp_tiling.requirements))
+        )
         if not reqs == set(self.requirements):
             return False
         return True

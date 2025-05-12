@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import lru_cache
 from heapq import heapify, heappop, heappush
 from itertools import product
-from typing import Iterator, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
     # pylint: disable=all

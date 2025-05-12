@@ -1,7 +1,9 @@
 """Tests for the CayleyPermutation class."""
 
 import random
+
 import pytest
+
 from cayley_permutations import CayleyPermutation
 
 
@@ -9,7 +11,7 @@ def test_init_method():
     """Tests the init method."""
     cperm1 = CayleyPermutation([0, 1, 2, 3])
     assert cperm1 == CayleyPermutation((0, 1, 2, 3))
-    assert cperm1.cperm == (0, 1, 2, 3)
+    assert cperm1 == (0, 1, 2, 3)
     assert CayleyPermutation(cperm1) == cperm1
 
     with pytest.raises(TypeError):

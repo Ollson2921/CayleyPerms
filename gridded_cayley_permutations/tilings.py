@@ -67,7 +67,7 @@ class Tiling(CombinatorialClass):
                 next_gcp = gcp.insertion_different_value(val, cell)
                 if self.satisfies_obstructions(next_gcp):
                     yield next_gcp
-                if val in gcp.pattern.cperm:
+                if val in gcp.pattern:
                     if cell[1] == gcp.row_containing_value(val):
                         next_gcp = gcp.insertion_same_value(val, cell)
                         if self.satisfies_obstructions(next_gcp):

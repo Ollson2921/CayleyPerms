@@ -7,7 +7,7 @@ which must be contained.
 from collections import defaultdict
 from itertools import product
 from math import factorial
-from typing import Iterable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from cayley_permutations import CayleyPermutation
 

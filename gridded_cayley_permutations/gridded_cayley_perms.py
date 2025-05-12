@@ -2,6 +2,7 @@
 
 from itertools import combinations
 from typing import Iterable, Iterator
+
 from comb_spec_searcher import CombinatorialObject
 
 from cayley_permutations import CayleyPermutation
@@ -47,15 +48,15 @@ class GriddedCayleyPerm(CombinatorialObject):
 
     def increasing_are_above(self) -> bool:
         """Checks if a larger value is in a cell greater than or equal to the current one."""
-        for j in range(len(self.pattern)):
+        for j, val in enumerate(self.pattern):
             for i in range(j):
-                if self.pattern.cperm[i] < self.pattern.cperm[j]:
+                if self.pattern[i] < val:
                     if self.positions[i][1] > self.positions[j][1]:
                         return False
-                if self.pattern.cperm[i] > self.pattern.cperm[j]:
+                if self.pattern[i] > val:
                     if self.positions[i][1] < self.positions[j][1]:
                         return False
-                if self.pattern.cperm[i] == self.pattern.cperm[j]:
+                if self.pattern[i] == val:
                     if self.positions[i][1] != self.positions[j][1]:
                         return False
         return True
@@ -113,7 +114,7 @@ class GriddedCayleyPerm(CombinatorialObject):
         new_positions = self.positions[:index] + (cell,) + self.positions[index:]
         if value in self.values_in_row(cell[1]):
             new_pattern = CayleyPermutation(
-                self.pattern.cperm[:index] + (value,) + self.pattern.cperm[index:]
+                self.pattern[:index] + (value,) + self.pattern[index:]
             )
             yield GriddedCayleyPerm(new_pattern, new_positions)
         updated_pattern = tuple(val if val < value else val + 1 for val in self.pattern)
@@ -138,9 +139,9 @@ class GriddedCayleyPerm(CombinatorialObject):
     ) -> "GriddedCayleyPerm":
         """Inserts value to the end of the Cayley permutation as a repeat
         and adds cell to the positions."""
-        assert value in self.pattern.cperm
+        assert value in self.pattern
         new_positions = self.positions + (cell,)
-        new_pattern = CayleyPermutation(self.pattern.cperm + (value,))
+        new_pattern = CayleyPermutation(self.pattern + (value,))
         return GriddedCayleyPerm(new_pattern, new_positions)
 
     def min_max_values_in_row(self, row_index: int) -> tuple[int, int]:
@@ -152,7 +153,7 @@ class GriddedCayleyPerm(CombinatorialObject):
         indices = self.indices_in_cells(cells_in_row_or_below)
         cperm = []
         for idx in indices:
-            cperm.append(self.pattern.cperm[idx])
+            cperm.append(self.pattern[idx])
         if not cperm:
             if row_index == 0:
                 return (-1, -1)
@@ -166,7 +167,7 @@ class GriddedCayleyPerm(CombinatorialObject):
 
     def values_in_row(self, row: int) -> tuple[int, ...]:
         """Returns all values in the row."""
-        return tuple(self.pattern.cperm[i] for i in self.indices_in_row(row))
+        return tuple(self.pattern[i] for i in self.indices_in_row(row))
 
     def indices_in_col(self, col: int) -> tuple[int, ...]:
         """Returns all indices in the column."""
@@ -174,7 +175,7 @@ class GriddedCayleyPerm(CombinatorialObject):
 
     def values_in_col(self, col: int) -> tuple[int, ...]:
         """Returns all values in the column."""
-        return tuple(self.pattern.cperm[i] for i in self.indices_in_col(col))
+        return tuple(self.pattern[i] for i in self.indices_in_col(col))
 
     def contains_index(self, direction: int, index: int) -> bool:
         """
@@ -247,8 +248,8 @@ class GriddedCayleyPerm(CombinatorialObject):
 
     def row_containing_value(self, value: int) -> int:
         """Returns the row containing the value."""
-        for i in range(len(self.pattern)):
-            if self.pattern.cperm[i] == value:
+        for i, patt_value in enumerate(self.pattern):
+            if patt_value == value:
                 return self.positions[i][1]
         raise ValueError("Value not in GriddedCayleyPerm.")
 
@@ -306,7 +307,7 @@ class GriddedCayleyPerm(CombinatorialObject):
         for idx, cell in enumerate(self.positions):
             if cell in cells:
                 new_positions.append(cell)
-                new_pattern.append(self.pattern.cperm[idx])
+                new_pattern.append(self.pattern[idx])
         return GriddedCayleyPerm(
             CayleyPermutation.standardise(new_pattern), new_positions
         )

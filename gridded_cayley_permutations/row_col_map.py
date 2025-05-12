@@ -6,9 +6,9 @@ It provides methods for mapping and generating preimages of gridded Cayley permu
 It is assumed that the pre-image of any row or column is an interval.
 """
 
+from functools import cached_property
 from itertools import chain, product
 from typing import TYPE_CHECKING, Iterable, Iterator, Tuple
-from functools import cached_property
 
 from gridded_cayley_permutations import GriddedCayleyPerm
 

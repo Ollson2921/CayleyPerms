@@ -78,103 +78,6 @@ class Av:
             count.append(len(self.generate_cperms(size)))
         return count
 
-    # def new_generate_cperms(
-    #     self, size: int
-    # ) -> dict[CayleyPermutation, tuple[list[int], list[int]]]:
-    #     """
-    #     # not working
-    #     Returns a list of Cayley permutations of size 'size' which avoids the basis.
-
-    #     Examples:
-    #     >>> Av([CayleyPermutation([1, 0]), CayleyPermutation([0, 1])]).new_generate_cperms(3)
-    #     {CayleyPermutation([0, 0, 0]): ([], [])}
-
-    #     >>> Av([CayleyPermutation([0, 0]), CayleyPermutation([1, 0])]).new_generate_cperms(4)
-    #     {CayleyPermutation([0, 1, 2, 3]): ([], [])}
-    #     """
-    #     self.ensure_level(size)
-    #     return self.cache[size]
-
-    # def ensure_level(self, size: int):
-    #     """Ensures that the cache has a level for size 'size'."""
-    #     maximums = {max(cperm.cperm) for cperm in self.basis}
-    #     max_basis_value = max(maximums)
-    #     for nplusone in range(len(self.cache), size + 1):
-    #         n = nplusone - 1
-    #         new_level: dict[CayleyPermutation, tuple[list[int], list[int]]] = {}
-    #         for cperm, valid_ins in self.cache[n].items():
-    #             new_max, same_max = valid_ins
-    #             if len(cperm.cperm) == 0:
-    #                 max_value = -1
-    #             else:
-    #                 max_value = max(cperm.cperm)
-    #             for index in self.new_max_valid_insertions(cperm, max_basis_value):
-    #                 new_cperm = cperm.insert(index, max_value + 1)
-    #                 if self.condition() or not new_cperm.contains(self.basis):
-    #                     new_level[new_cperm] = ([], [])
-    #                     new_max.append(index)
-    #             for index in self.same_max_valid_insertions(cperm, max_basis_value):
-    #                 new_cperm = cperm.insert(index, max_value)
-    #                 if self.condition() or not new_cperm.contains(self.basis):
-    #                     new_level[new_cperm] = ([], [])
-    #                     same_max.append(index)
-
-    #         self.cache.append(new_level)
-
-    # def new_max_valid_insertions(
-    #     self, cperm: CayleyPermutation, max_basis_value: int
-    # ) -> frozenset[int]:
-    #     """Returns a list of indices where a new maximum can be inserted into cperm."""
-    #     res = None
-    #     if len(cperm) == 0:
-    #         return frozenset([0])
-    #     if max(cperm) < max_basis_value:
-    #         return frozenset(range(len(cperm) + 1))
-    #     for index in cperm.indices_above_value(max(cperm.cperm) - max_basis_value):
-    #         sub_cperm = cperm.delete_index(index)
-    #         indices = self.cache[len(sub_cperm)][sub_cperm][0]
-    #         valid_indices = [i for i in indices if i <= index]
-    #         valid_indices.extend([i + 1 for i in indices if i >= index])
-    #         if res is None:
-    #             res = frozenset(valid_indices)
-    #         else:
-    #             res = res.intersection(valid_indices)
-    #         if not res:
-    #             break
-    #     assert res is not None
-    #     return res
-
-    # def same_max_valid_insertions(
-    #     self, cperm: CayleyPermutation, max_basis_value: int
-    # ) -> frozenset[int]:
-    #     """Returns a list of indices where the same maximum can be inserted into cperm."""
-    #     res = None
-    #     if len(cperm) == 0:
-    #         return frozenset([])
-    #     if max(cperm.cperm) < max_basis_value:
-    #         last_entry = cperm.index_rightmost_max()
-    #         return frozenset(range(last_entry + 1, len(cperm) + 1))
-    #     for index in cperm.indices_above_value(max(cperm.cperm) - max_basis_value):
-    #         sub_cperm = cperm.delete_index(index)
-    #         if len(sub_cperm.cperm) == 0:
-    #             max_sub_cperm = 0
-    #         else:
-    #             max_sub_cperm = max(sub_cperm.cperm)
-    #         if max(cperm.cperm) != max_sub_cperm:
-    #             indices = self.cache[len(sub_cperm)][sub_cperm][0]
-    #         else:
-    #             indices = self.cache[len(sub_cperm)][sub_cperm][1]
-    #         valid_indices = [i for i in indices if i <= index]
-    #         valid_indices.extend([i + 1 for i in indices if i >= index])
-    #         if res is None:
-    #             res = frozenset(valid_indices)
-    #         else:
-    #             res = res.intersection(valid_indices)
-    #         if not res:
-    #             break
-    #     assert res is not None
-    #     return res
-
     def condition(self) -> bool:
         """Returns True if can skip pattern avoidance."""
         return False
@@ -191,26 +94,6 @@ class CanonicalAv(Av):
             not cperm.contains(self.basis, require_last=require_last)
             and cperm.is_canonical()
         )
-
-    # def generate_cperms(self, size: int) -> list[CayleyPermutation]:
-    #     """Generates canonical Cayley permutations of size 'size' avoiding the basis.
-
-    #     Examples:
-    #     >>> CanonicalAv([CayleyPermutation([1, 2])]).generate_cperms(3)
-    #     [CayleyPermutation([1, 1, 1])]
-    #     >>> for cperm in CanonicalAv([CayleyPermutation([1, 2, 3])]).generate_cperms(3):
-    #     ...     print(cperm)
-    #     111
-    #     112
-    #     121
-    #     122
-    #     """
-    #     perms = []
-    #     config = CanonicalConfiguration(["🔹"])
-    #     for perm in config.cayley_perms(size, self.basis):
-    #         if len(perm) == size:
-    #             perms.append(perm)
-    #     return perms
 
     def get_canonical_basis(self) -> list[CayleyPermutation]:
         """Turns a basis into canonical form using as_canonical() from the CayleyPermutation class.
@@ -239,7 +122,7 @@ class CanonicalAv(Av):
                 if self.new_max_okay(cperm, idx):
                     acceptable_indices.append(idx)
             return frozenset(acceptable_indices)
-        for index in cperm.indices_above_value(max(cperm.cperm) - max_basis_value):
+        for index in cperm.indices_above_value(max(cperm) - max_basis_value):
             sub_cperm = cperm.delete_index(index)
             indices = self.cache[len(sub_cperm)][sub_cperm][0]
             valid_indices = [i for i in indices if i <= index]

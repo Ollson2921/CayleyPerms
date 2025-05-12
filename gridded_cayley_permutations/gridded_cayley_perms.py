@@ -18,8 +18,6 @@ class GriddedCayleyPerm(CombinatorialObject):
         positions: Iterable[tuple[int, int]],
         validate=False,
     ) -> None:
-        from row_col_map import RowColMap
-
         self.pattern = pattern
         self.positions: tuple[tuple[int, int], ...] = tuple(
             (x, y) for x, y in positions

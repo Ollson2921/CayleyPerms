@@ -556,7 +556,7 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
         if self.dimensions == (0, 0):
-            return "+---+\n| \u03b5 |\n+---+\n"
+            return "+---+\n|\u03b5|\n+---+\n"
         crossing_string = "Crossing obstructions: \n"
         point_rows = self.point_rows()
 
@@ -602,13 +602,13 @@ class Tiling(CombinatorialClass):
                 requirements_string += f"{req} \n"
 
         n, m = self.dimensions
-        edge_row = "---".join("+" for _ in range(n + 1)) + "\n"
-        fill_row = "   ".join("|" for _ in range(n + 1)) + "\n"
+        edge_row = "-".join("+" for _ in range(n + 1)) + "\n"
+        fill_row = " ".join("|" for _ in range(n + 1)) + "\n"
         grid = fill_row.join(edge_row for _ in range(m + 1))
         fill_rows = [copy(fill_row) for _ in range(m)]
         for cell, key in cell_key.items():
             i, j = cell
-            fill_rows[j] = fill_rows[j][: 2 + 4 * i] + key + fill_rows[j][3 + 4 * i :]
+            fill_rows[j] = fill_rows[j][: i * 2 + 1] + key + fill_rows[j][i * 2 + 2 :]
 
         for pr in point_rows:
             fill_rows[pr] = fill_rows[pr][:-1] + "*\n"

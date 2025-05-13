@@ -552,7 +552,6 @@ class Tiling(CombinatorialClass):
         )
 
     def __str__(self) -> str:
-        # what should empty tiling be?
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
         if self.dimensions == (0, 0):

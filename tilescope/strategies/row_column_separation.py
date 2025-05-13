@@ -414,7 +414,7 @@ class LessThanRowColSeparation:
         yield (), ()
 
     @property
-    def new_obstructions(self) -> tuple[GriddedCayleyPerm]:
+    def new_obstructions(self) -> tuple[GriddedCayleyPerm, ...]:
         """The new obstructions for the tiling"""
         new_obstructions = []
         for cell in product(

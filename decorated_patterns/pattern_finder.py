@@ -54,7 +54,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         """
         Return a list of decorated patterns P such that Av(P) = avoiders
         """
-        minimal_patterns_not_contained = self.find_minimal_patterns_not_contained()
+        minimal_patterns_not_contained = self.find_minimal_patterns_avoided()
         patts = self.minimal_patterns(minimal_patterns_not_contained)
 
         containers = self.all_containers()
@@ -65,6 +65,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         label_to_patt: dict[int, DecoratedPattern] = {}
         subsets_left = []
         for patt in tqdm(patts, desc="Cmoputing container sets"):
+            # do in parallel?
             label = len(label_to_patt)
             label_to_patt[label] = patt
             patt_containers = set(
@@ -78,7 +79,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
 
         return [label_to_patt[label] for label in basis_labels]
 
-    def find_minimal_patterns_not_contained(self) -> Iterator[DecoratedPattern]:
+    def find_minimal_patterns_avoided(self) -> Iterator[DecoratedPattern]:
         """
         Compute the minimal set of patterns to those contained in avoiders
         """
@@ -93,6 +94,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         for patt, obstructions in tqdm(
             maximal_obstruction_sets.items(), desc="Computing minimal patterns avoided"
         ):
+            # do in parallel?
             vertices = set()
             edges = set()
             gp_label: dict[GriddedCayleyPerm, int] = {}
@@ -120,20 +122,35 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         contained_obstructions: defaultdict[
             CayleyPermutation, set[frozenset[GriddedCayleyPerm]]
         ] = defaultdict(set)
-        for word in self.all_avoiders():
+        for word in tqdm(self.all_avoiders(), desc="computing candidate patterns"):
+            # do in parallel? Inner loop handled in parent process.
             for cperm, obstructions in self.find_contained_gridded_perms(word).items():
                 sets_to_remove = set()
                 to_add = True
                 for other_obstructions in contained_obstructions[cperm]:
-                    if other_obstructions.issubset(obstructions):
+                    if self.requirement_implies_requirement(
+                        other_obstructions, obstructions
+                    ):
+                        # containing other_obstructions implies containing obstructions
                         to_add = False
                         break
-                    if obstructions.issubset(other_obstructions):
+                    if self.requirement_implies_requirement(
+                        obstructions, other_obstructions
+                    ):
+                        # containing obstructions implies containing other_obstructions
                         sets_to_remove.add(other_obstructions)
                 if to_add:
                     contained_obstructions[cperm] -= sets_to_remove
                     contained_obstructions[cperm].add(frozenset(obstructions))
         return contained_obstructions
+
+    @staticmethod
+    def requirement_implies_requirement(
+        req: set[GriddedCayleyPerm] | frozenset[GriddedCayleyPerm],
+        other_req: set[GriddedCayleyPerm] | frozenset[GriddedCayleyPerm],
+    ) -> bool:
+        """Return true if containing req implies containing other req"""
+        return all(other_gp.contains(req) for other_gp in other_req)
 
     def find_contained_gridded_perms(
         self, word: tuple[int, ...]

@@ -25,14 +25,13 @@ class Factors:
         self.tiling = tiling
         self.cells = list(sorted(self.tiling.active_cells))
         self.cells_dict = {cell: cell for cell in self.cells}
-        self.point_rows = self.tiling.point_rows()
 
     def combine_cells_in_row_or_col(self) -> None:
         """Combines cells that are in the same column or row unless in a point row."""
         cells = self.cells
         for cell, cell2 in combinations(cells, 2):
             if cell[0] == cell2[0] or (
-                cell[1] == cell2[1] and cell[1] not in self.point_rows
+                cell[1] == cell2[1] and cell[1] not in self.tiling.point_rows
             ):
                 self.combine_cells(cell, cell2)
 
@@ -70,7 +69,7 @@ class Factors:
         return (
             ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0]))
             and ob.positions[0][1] == ob.positions[1][1]
-            and ob.positions[0][1] in self.point_rows
+            and ob.positions[0][1] in self.tiling.point_rows
         )
 
     def find_factors(self) -> tuple[Tiling, ...]:

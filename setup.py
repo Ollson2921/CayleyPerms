@@ -6,7 +6,12 @@ setup(
     description="A module for using Cayley permutations.",
     author="Reid Acton, Christian Bean, and Abigail Ollson",
     author_email="c.n.bean@keele.ac.uk",
-    packages=["cayley_permutations", "gridded_cayley_permutations", "mesh_patterns"],
+    packages=[
+        "cayley_permutations",
+        "gridded_cayley_permutations",
+        "mesh_patterns",
+        "decorated_patterns",
+    ],
     install_requires=[
         "comb_spec_searcher",
         "tqdm",

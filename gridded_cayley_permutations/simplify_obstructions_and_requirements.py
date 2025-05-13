@@ -129,7 +129,11 @@ class SimplifyObstructionsAndRequirements:
         return ob.sub_gridded_cayley_perm(cells)
 
     def point_rows(self) -> set[int]:
-        """Returns the point rows of the tiling."""
+        """
+        Returns the point rows of the tiling.
+
+        # TODO: be passed from the tiling in the init to avoid duplicated code?
+        """
         point_rows = set()
         counter_dict: dict[int, int] = defaultdict(int)
         for ob in self.obstructions:

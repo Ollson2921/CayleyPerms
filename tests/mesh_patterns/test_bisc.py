@@ -32,8 +32,7 @@ def test_cayley_bisc(mp1):
                 containers.add(cperm)
 
     bisc = CayleyMeshPatternFinder(patt_size, avoiders, containers)
-    basis = list(bisc.find_mesh_basis())[0]
-    assert basis == [
+    assert bisc.find_mesh_basis() == [
         MeshPattern(
             (0, 2, 1),
             [(2, 0), (2, 1)],
@@ -87,5 +86,4 @@ def test_perm():
         - avoiders
     )
     bisc = CayleyMeshPatternFinder(3, avoiders, containers)
-    basis = list(bisc.find_mesh_basis())[0]
-    assert basis == [MeshPattern((0, 0), [])]
+    assert bisc.find_mesh_basis() == [MeshPattern((0, 0), [])]

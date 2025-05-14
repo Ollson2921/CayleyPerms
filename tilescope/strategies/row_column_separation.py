@@ -2,7 +2,14 @@
 
 import heapq
 from itertools import combinations, product
-from typing import Dict, Iterator, List, Optional, Set, Tuple
+from typing import (
+    Iterator,
+    Optional,
+    Generic,
+    Tuple,
+    TypeVar,
+    Iterable,
+)
 from functools import cached_property
 from comb_spec_searcher import DisjointUnionStrategy
 
@@ -11,9 +18,14 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
 
 Cell = Tuple[int, int]
+Obstructions = Tuple[GriddedCayleyPerm, ...]
+Requirements = Tuple[Obstructions, ...]
 
 
-class Graph:
+Vertex = TypeVar("Vertex", bound=object)
+
+
+class Graph(Generic[Vertex]):
     """
     A weighted directed graph implemented with an adjacency matrix.
 
@@ -36,7 +48,7 @@ class Graph:
         - For the vertex order implied by a reduced acyclic graph
     """
 
-    def __init__(self, vertices, matrix=None):
+    def __init__(self, vertices: Iterable[Vertex], matrix=None):
         self._vertex_labels = [set([v]) for v in vertices]
         self._vertex_weights = [1 for _ in self._vertex_labels]
         self._matrix = matrix
@@ -77,7 +89,7 @@ class Graph:
             non_edge = self.find_non_edge()
         self._reduced = True
 
-    def find_non_edge(self) -> Optional[Tuple[int, int]]:
+    def find_non_edge(self) -> Optional[tuple[int, int]]:
         """
         Return a non-edge of the graph.
 
@@ -101,7 +113,7 @@ class Graph:
             return True
         return self.find_cycle() is None
 
-    def find_cycle(self) -> Optional[Tuple[Tuple[int, int], ...]]:
+    def find_cycle(self) -> Optional[tuple[tuple[int, int], ...]]:
         """
         Return the edges of a cycle of the graphs. The graphs first need to be
         reduced
@@ -128,8 +140,8 @@ class Graph:
         return None
 
     def break_cycle_in_all_ways(
-        self, edges: Iterator[Tuple[int, int]]
-    ) -> Iterator["Graph"]:
+        self, edges: Iterable[tuple[int, int]]
+    ) -> Iterator["Graph[Vertex]"]:
         """
         Generator over Graph object obtained by removing one edge of the
         `edges` iterator.
@@ -145,7 +157,7 @@ class Graph:
             new_graph._is_acyclic = False
             yield new_graph
 
-    def vertex_order(self) -> List[int]:
+    def vertex_order(self) -> list[set[Vertex]]:
         """
         Return the order of the vertex in a reduced acyclic graph.
 
@@ -210,7 +222,7 @@ class Graph:
 
     def _length3_cycle(
         self, v1: int, v2: int, v3: int
-    ) -> Optional[Tuple[Tuple[int, int], ...]]:
+    ) -> Optional[tuple[tuple[int, int], tuple[int, int], tuple[int, int]]]:
         """
         Return the edges of a length 3 cycle containing the three vertices if
         such a cycle exist. Otherwise return None
@@ -255,9 +267,9 @@ class RowColOrder:
 
     def __init__(
         self,
-        cells: Set[Cell],
-        col_ineq: Set[Tuple[Cell, Cell]],
-        row_ineq: Set[Tuple[Cell, Cell]],
+        cells: set[Cell],
+        col_ineq: set[tuple[Cell, Cell]],
+        row_ineq: set[tuple[Cell, Cell]],
     ):
         self._active_cells = tuple(sorted(cells))
         self.row_ineq = row_ineq
@@ -271,7 +283,7 @@ class RowColOrder:
         """Return the index of the cell"""
         return self._active_cells.index(cell)
 
-    def _basic_matrix(self, row: bool) -> List[List[int]]:
+    def _basic_matrix(self, row: bool) -> list[list[int]]:
         """
         Compute the basic matrix of inequalities based only on difference in
         row and columns. If `row` is True return the matrix for the row,
@@ -284,7 +296,7 @@ class RowColOrder:
             m.append(new_row)
         return m
 
-    def _add_ineq(self, ineq: Tuple[Cell, Cell], matrix: List[List[int]]) -> None:
+    def _add_ineq(self, ineq: tuple[Cell, Cell], matrix: list[list[int]]) -> None:
         """
         Add an inequalities to the matrix.
 
@@ -294,7 +306,7 @@ class RowColOrder:
         matrix[self.cell_idx(small_c)][self.cell_idx(big_c)] = 1
 
     @cached_property
-    def _ineq_matrices(self) -> Tuple[List[List[int]], List[List[int]]]:
+    def _ineq_matrices(self) -> tuple[list[list[int]], list[list[int]]]:
         """
         Return the matrices of inequalities between the cells.
 
@@ -309,16 +321,18 @@ class RowColOrder:
             self._add_ineq(ineq, col_m)
         return row_m, col_m
 
-    def row_ineq_graph(self) -> Graph:
+    def row_ineq_graph(self) -> Graph[Cell]:
         """Return the graph of the row inequalities."""
         return Graph(self._active_cells, self._ineq_matrices[0])
 
-    def col_ineq_graph(self) -> Graph:
+    def col_ineq_graph(self) -> Graph[Cell]:
         """Return the graph of the column inequalities."""
         return Graph(self._active_cells, self._ineq_matrices[1])
 
     @staticmethod
-    def _all_order(graph, only_max: bool = False) -> Iterator[List[int]]:
+    def _all_order(
+        graph: Graph[Cell], only_max: bool = False
+    ) -> Iterator[list[set[Cell]]]:
         """
         Generator of ordering of the active cells.
 
@@ -341,22 +355,24 @@ class RowColOrder:
                     heapq.heappush(heap, g)
 
     @staticmethod
-    def _maximal_order(graph) -> List[int]:
+    def _maximal_order(graph: Graph[Cell]) -> list[set[Cell]]:
         """Returns a order that maximise separation."""
         return next(RowColOrder._all_order(graph))
 
     @cached_property
-    def max_row_order(self) -> List[int]:
+    def max_row_order(self) -> list[set[Cell]]:
         """A maximal order on the rows."""
         return self._maximal_order(self.row_ineq_graph())
 
     @cached_property
-    def max_col_order(self) -> List[int]:
+    def max_col_order(self) -> list[set[Cell]]:
         """A maximal order on the columns."""
         return self._maximal_order(self.col_ineq_graph())
 
     @cached_property
-    def max_column_row_order(self) -> Tuple[List[int], List[int]]:
+    def max_column_row_order(
+        self,
+    ) -> tuple[list[set[Cell]], list[set[Cell]]]:
         """A maximal order on the rows and columns."""
         return self.max_col_order, self.max_row_order
 
@@ -409,14 +425,14 @@ class LessThanRowColSeparation:
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[Tuple[tuple[GriddedCayleyPerm], tuple[tuple[GriddedCayleyPerm]]]]:
+    ) -> Iterator[tuple[Obstructions, Requirements]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
         yield (), ()
 
     @property
-    def new_obstructions(self) -> tuple[GriddedCayleyPerm, ...]:
+    def new_obstructions(self) -> Obstructions:
         """The new obstructions for the tiling"""
         new_obstructions = []
         for cell in product(
@@ -434,7 +450,7 @@ class LessThanRowColSeparation:
         return set(self.map_cell(cell) for cell in self.tiling.active_cells)
 
     @property
-    def new_dimensions(self) -> Tuple[int, int]:
+    def new_dimensions(self) -> tuple[int, int]:
         """Return the new dimensions of the tiling."""
         return (len(self.row_col_map.col_map), len(self.row_col_map.row_map))
 
@@ -461,9 +477,9 @@ class LessThanRowColSeparation:
     def inequalities_sets(
         self,
     ) -> tuple[
-        set[tuple[tuple[int, int], tuple[int, int]]],
-        set[tuple[tuple[int, int], tuple[int, int]]],
-        set[tuple[tuple[int, int], tuple[int, int]]],
+        set[tuple[Cell, Cell]],
+        set[tuple[Cell, Cell]],
+        set[tuple[Cell, Cell]],
     ]:
         """Finds the length 2 obstructions in different cells.
         If they are on the same column and are an increasing obstruction,
@@ -518,15 +534,13 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[Tuple[tuple[GriddedCayleyPerm], tuple[tuple[GriddedCayleyPerm]]]]:
+    ) -> Iterator[tuple[Obstructions, Requirements]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
         point_obs = self.point_obs()
-        obs = []
-        reqs = []
-        row_reqs = {}
-        row_obs = {}
+        row_reqs: dict[int, Requirements] = {}
+        row_obs: dict[int, Obstructions] = {}
         for row in self.point_rows:
             indices_of_above = []
             indices_of_below = []
@@ -544,23 +558,20 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                 row_point_gcps_below.append(
                     GriddedCayleyPerm(CayleyPermutation([0]), ((i, row),))
                 )
-            reqs.append(row_point_gcps_above)
-            reqs.append(row_point_gcps_below)
-            obs.extend(row_point_gcps_above + row_point_gcps_below)
-            row_reqs[row] = [row_point_gcps_above, row_point_gcps_below]
-            row_obs[row] = row_point_gcps_above + row_point_gcps_below
+            row_reqs[row] = (tuple(row_point_gcps_above), tuple(row_point_gcps_below))
+            row_obs[row] = tuple(row_point_gcps_above + row_point_gcps_below)
         for i in range(len(self.point_rows) + 1):
             for positive_rows in combinations(self.point_rows, i):
-                obs = []
-                reqs = []
+                obs: list[GriddedCayleyPerm] = []
+                reqs: list[tuple[GriddedCayleyPerm, ...]] = []
                 for row in self.point_rows:
                     if row in positive_rows:
                         reqs.extend(row_reqs[row])
                     else:
                         obs.extend(row_obs[row])
-                yield tuple(point_obs + obs), tuple(reqs)
+                yield point_obs + tuple(obs), tuple(reqs)
 
-    def point_obs(self):
+    def point_obs(self) -> Obstructions:
         """Return the point obstructions."""
         point_obs = []
         for j in self.point_rows:
@@ -579,10 +590,10 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                 point_obs.append(
                     GriddedCayleyPerm(CayleyPermutation([1, 0]), [cell, cell])
                 )
-        return point_obs
+        return tuple(point_obs)
 
     @property
-    def new_active_cells(self) -> Set[Cell]:
+    def new_active_cells(self) -> set[Cell]:
         """Return the new active cells of the tiling."""
         new_active_cells = [self.map_cell(cell) for cell in self.tiling.active_cells]
         point_row_active_cells = []
@@ -592,7 +603,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                     point_row_active_cells.append((cell[0], row))
         return set(new_active_cells + point_row_active_cells)
 
-    def point_row_cells(self, row: int) -> List[Cell]:
+    def point_row_cells(self, row: int) -> list[Cell]:
         """TODO: find the active cells of point rows, currently just adding them all.
 
         AO: this iterated over self.new_dimensions[0], but self.new_dimensions[0] is an
@@ -602,7 +613,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         point_row_cells.append((i, row))
         return point_row_cells
 
-    def active_cells_in_row(self, row: int) -> List[Cell]:
+    def active_cells_in_row(self, row: int) -> list[Cell]:
         """Returns the cells in the row of the separated tiling that are active."""
         return [cell for cell in self.new_active_cells if cell[1] == row]
 
@@ -625,7 +636,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         return RowColMap(col_map, row_map)
 
     @property
-    def point_rows(self) -> List[int]:
+    def point_rows(self) -> list[int]:
         """Return the point rows."""
         point_rows: list[int] = []
         for i in range(self.tiling.dimensions[1]):
@@ -676,14 +687,14 @@ class LessThanRowColSeparationStrategy(
         """Initialize the strategy."""
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
         algo = LessThanRowColSeparation(comb_class)
         return (next(algo.row_col_separation()),)
 
     def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
-    ) -> Tuple[Dict[str, str], ...]:
+        self, comb_class: Tiling, children: Optional[tuple[Tiling, ...]] = None
+    ) -> tuple[dict[str, str], ...]:
         """Return the extra parameters for the strategy."""
         return tuple({} for _ in self.decomposition_function(comb_class))
 
@@ -694,8 +705,8 @@ class LessThanRowColSeparationStrategy(
     def backward_map(
         self,
         comb_class: Tiling,
-        objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[Tiling, ...]] = None,
+        objs: tuple[Optional[GriddedCayleyPerm], ...],
+        children: Optional[tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         """Return the backward map for the strategy."""
         if children is None:
@@ -706,8 +717,8 @@ class LessThanRowColSeparationStrategy(
         self,
         comb_class: Tiling,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[Tiling, ...]] = None,
-    ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
+        children: Optional[tuple[Tiling, ...]] = None,
+    ) -> tuple[Optional[GriddedCayleyPerm], ...]:
         """Return the forward map for the strategy."""
         if children is None:
             children = self.decomposition_function(comb_class)
@@ -744,7 +755,7 @@ class LessThanRowColSeparationStrategy(
 class LessThanOrEqualRowColSeparationStrategy(LessThanRowColSeparationStrategy):
     """A strategy that allows interleaving in the top/bottom rows when separating"""
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
         algo = LessThanOrEqualRowColSeparation(comb_class)
         return tuple(algo.row_col_separation())

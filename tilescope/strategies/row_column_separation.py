@@ -705,8 +705,8 @@ class LessThanRowColSeparationStrategy(
         children: Optional[tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         """Return the backward map for the strategy."""
-        if children is None:
-            children = self.decomposition_function(comb_class)
+        # if children is None:
+        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -716,13 +716,9 @@ class LessThanRowColSeparationStrategy(
         children: Optional[tuple[Tiling, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
         """Return the forward map for the strategy."""
-        if children is None:
-            children = self.decomposition_function(comb_class)
+        # if children is None:
+        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        """Return a string representation of the strategy."""
-        return self.formal_step()
 
     def __repr__(self) -> str:
         """Return a string representation of the strategy."""

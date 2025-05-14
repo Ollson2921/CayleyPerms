@@ -37,8 +37,8 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
+        # if children is None:
+        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -47,12 +47,9 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
+        # if children is None:
+        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(" f"ignore_parent={self.ignore_parent})"

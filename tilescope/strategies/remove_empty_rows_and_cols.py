@@ -13,6 +13,9 @@ Cell = Tuple[int, int]
 class RemoveEmptyRowsAndColumnsStrategy(
     DisjointUnionStrategy[Tiling, GriddedCayleyPerm]
 ):
+    """Removes all the empty rows and columns from a tiling."""
+
+    # pylint: disable=duplicate-code
     def __init__(
         self,
         ignore_parent: bool = True,
@@ -40,8 +43,6 @@ class RemoveEmptyRowsAndColumnsStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -50,12 +51,7 @@ class RemoveEmptyRowsAndColumnsStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return (

@@ -1,12 +1,15 @@
-from comb_spec_searcher import StrategyFactory, Strategy
+"""Module for fusion strategy and factory"""
+
 from typing import Tuple, Optional, Dict, Set, Iterator
+from comb_spec_searcher import StrategyFactory, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor
-
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 
 
 class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
+    """Strategy that fuses two rows or columns of a tiling together."""
+
     def __init__(self, direction: int, index: int, tracked: bool = False):
         self.direction = direction
         self.index = index
@@ -19,17 +22,18 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
             ignore_parent=False, inferrable=True, possibly_empty=False, workable=True
         )
 
-    def decomposition_function(self, tiling: Tiling) -> tuple[Tiling]:
-        return (tiling.fuse(self.direction, self.index),)
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling]:
+        return (comb_class.fuse(self.direction, self.index),)
 
     def can_be_equivalent(self) -> bool:
         return False
 
-    def is_two_way(self, comb_class: Tiling):
+    def is_two_way(self, comb_class: Tiling) -> bool:
         return False
 
     def is_reversible(self, comb_class: Tiling) -> bool:
-        """TODO: We told this to return true to make it work but for tracked tilings and counting will need to change"""
+        """TODO: We told this to return true to make it work but
+        for tracked tilings and counting will need to change"""
         return True
 
     def shifts(
@@ -50,7 +54,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         assert children is None or children == (child,)
         raise NotImplementedError
 
-    def reverse_constructor(  # pylint: disable=no-self-use
+    def reverse_constructor(
         self,
         idx: int,
         comb_class: Tiling,
@@ -66,6 +70,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def left_right_both_sided_parameters(
         self, comb_class: Tiling
     ) -> Tuple[Set[str], Set[str], Set[str]]:
+        """Returns parameters."""
         raise NotImplementedError
 
     def _fuse_parameter(self, comb_class: Tiling) -> str:
@@ -134,6 +139,8 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
 
 
 class FusionFactory(StrategyFactory[Tiling]):
+    """Factory for doing fusion."""
+
     def __call__(self, comb_class: Tiling):
         # print("Trying fusion")
         for direction in [1, 0]:

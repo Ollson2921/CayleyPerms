@@ -10,14 +10,14 @@ from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 # from .dummy_constructor import DummyConstructor
 
 
-class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
+class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
+    """Factors the tiling into sections that are independent of each other."""
+
     def __init__(
         self,
         ignore_parent: bool = True,
         workable: bool = True,
     ):
-        # TODO: input should include partition: Iterable[Iterable[Cell]] to
-        #       allow for interleaving factors.
         super().__init__(
             ignore_parent=ignore_parent, workable=workable, inferrable=True
         )
@@ -38,9 +38,6 @@ class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         return tuple({} for _ in children)
 
     def formal_step(self) -> str:
-        """
-        Return a string that describe the operation performed on the tiling.
-        """
         return "Factor the tiling into factors"
 
     def backward_map(
@@ -49,8 +46,6 @@ class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -59,12 +54,7 @@ class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[GriddedCayleyPerm, ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return (
@@ -83,19 +73,13 @@ class AbstractFactorStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "AbstractFactorStrategy":
+    def from_dict(cls, d: dict) -> "FactorStrategy":
         return cls(**d)
 
 
-class FactorStrategy(
-    AbstractFactorStrategy, CartesianProductStrategy[Tiling, GriddedCayleyPerm]
-):
-    pass
+class ShuffleFactorStrategy(FactorStrategy, Strategy[Tiling, GriddedCayleyPerm]):
+    """Strategy for finding shuffle factors."""
 
-
-class ShuffleFactorStrategy(
-    AbstractFactorStrategy, Strategy[Tiling, GriddedCayleyPerm]
-):
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
         if 1 not in comb_class.dimensions:
             raise StrategyDoesNotApply(
@@ -106,10 +90,11 @@ class ShuffleFactorStrategy(
             raise StrategyDoesNotApply
         return factors
 
-    # def constructor(
-    #     self, comb_class: Tiling, children: Tuple[Tiling, ...] | None = None
-    # ) -> Constructor:
-    #     return DummyConstructor()
+    def constructor(
+        self, comb_class: Tiling, children: Tuple[Tiling, ...] | None = None
+    ) -> Constructor:
+        """TODO: shouldn't be catesian product"""
+        raise NotImplementedError
 
     def can_be_equivalent(self) -> bool:
         return True
@@ -123,11 +108,14 @@ class ShuffleFactorStrategy(
     def reverse_constructor(
         self, idx: int, comb_class: Tiling, children: Tuple[Tiling, ...] | None = None
     ) -> Constructor:
+        """TODO: shouldn't be catesian product"""
         raise NotImplementedError
 
     def shifts(
-        self, comb_class: Tiling, children: Tuple[Tiling, ...] | None
+        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
     ) -> Tuple[int, ...]:
+        if children is None:
+            children = self.decomposition_function(comb_class)
         min_sizes = tuple(child.minimum_size_of_object() for child in children)
         point_sum = sum(min_sizes)
         return tuple(point_sum - min_size for min_size in min_sizes)

@@ -1,3 +1,5 @@
+"""Strategies and factories for inserting points of a requirement into a tiling."""
+
 from typing import Dict, Iterable, Iterator, Optional, Tuple
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
@@ -9,6 +11,8 @@ Cell = Tuple[int, int]
 
 
 class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
+    """Insert a point of a requirement into a tiling."""
+
     def __init__(self, gcps: Iterable[GriddedCayleyPerm], ignore_parent: bool = False):
         super().__init__(ignore_parent=ignore_parent)
         self.gcps = frozenset(gcps)
@@ -33,8 +37,6 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -43,12 +45,7 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(" f"ignore_parent={self.ignore_parent})"
@@ -69,6 +66,8 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
 
 
 class InsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for doing vertical insertion encoding point placements."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
         for col in range(comb_class.dimensions[0]):
             if not comb_class.col_is_positive(col):
@@ -92,6 +91,8 @@ class InsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
 
 
 class CellInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for inserting points into active cells of a tiling."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
         for cell in comb_class.active_cells:
             gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)

@@ -10,6 +10,7 @@ setup(
         "cayley_permutations",
         "gridded_cayley_permutations",
         "mesh_patterns",
+        "tilescope",
         "decorated_patterns",
     ],
     install_requires=[

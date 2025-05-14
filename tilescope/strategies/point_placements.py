@@ -29,6 +29,8 @@ Cell = Tuple[int, int]
 
 
 class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
+    """Insert a point of into a tiling in a direction."""
+
     DIRECTIONS = Directions
 
     def __init__(
@@ -45,9 +47,11 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         super().__init__(ignore_parent=ignore_parent)
 
     def algorithm(self, tiling: Tiling) -> PointPlacement:
+        """Return the algorithm to be used for point placement."""
         return PointPlacement(tiling)
 
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        """Return the decomposition function for the strategy."""
         return (comb_class.add_obstructions(self.gcps),) + self.algorithm(
             comb_class
         ).point_placement(self.gcps, self.indices, self.direction)
@@ -58,7 +62,10 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self):
-        return f"Placed the point of the requirement {self.gcps} at indices {self.indices} in direction {self.direction}"
+        return (
+            f"Placed the point of the requirement {self.gcps} "
+            + "at indices {self.indices} in direction {self.direction}"
+        )
 
     def backward_map(
         self,
@@ -66,8 +73,6 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -76,12 +81,7 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return (
@@ -103,11 +103,14 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
 
     @classmethod
     def from_dict(cls, d: dict) -> "RequirementPlacementStrategy":
+        """Return a strategy from a dictionary."""
         gcps = tuple(GriddedCayleyPerm.from_dict(gcp) for gcp in d.pop("gcps"))
         return cls(gcps=gcps, **d)
 
 
 class InsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
+    """Factory for doing vertical insertion encoding point placements."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
         cells = comb_class.active_cells - comb_class.point_cells()
         gcps = tuple(
@@ -129,6 +132,8 @@ class InsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
 
 
 class PointPlacementFactory(StrategyFactory[Tiling]):
+    """Factory for doing point placements."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
         for cell in comb_class.positive_cells():
             for direction in Directions:
@@ -150,18 +155,25 @@ class PointPlacementFactory(StrategyFactory[Tiling]):
 
 
 class PartialRequirementPlacementStrategy(RequirementPlacementStrategy):
+    """Partially places points in a tiling."""
+
     DIRECTIONS = [DIR_LEFT, DIR_RIGHT]
 
     def algorithm(self, tiling: Tiling) -> PointPlacement:
         return PartialPointPlacements(tiling)
 
     def formal_step(self):
-        return f"Partially placed the point of the requirement {self.gcps} at indices {self.indices} in direction {self.direction}"
+        return (
+            f"Partially placed the point of the requirement {self.gcps} "
+            + "at indices {self.indices} in direction {self.direction}"
+        )
 
 
 class RowInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for having a point requirement on a row."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
-        not_point_rows = set(range(comb_class.dimensions[1])) - comb_class.point_rows()
+        not_point_rows = set(range(comb_class.dimensions[1])) - comb_class.point_rows
         for row in not_point_rows:
             all_gcps = []
             for col in range(comb_class.dimensions[0]):
@@ -184,6 +196,8 @@ class RowInsertionFactory(StrategyFactory[Tiling]):
 
 
 class ColInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for having a point requirement on a column."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
         not_point_cols = set(range(comb_class.dimensions[0])) - set(
             cell[0] for cell in comb_class.point_cells()

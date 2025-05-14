@@ -240,7 +240,7 @@ class RowColMap:
             value: values.index(value) for value in values
         }
         new_row_map = {key_map[key]: value_map[self.row_map[key]] for key in keys}
-        return RowColMap(new_col_map, new_row_map)
+        return self.__class__(new_col_map, new_row_map)
 
     def preimage_of_obstructions(
         self, obstructions: Iterable[GriddedCayleyPerm]

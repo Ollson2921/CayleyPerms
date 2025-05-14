@@ -200,7 +200,7 @@ class Tiling(CombinatorialClass):
             )
             if new_req_list:
                 new_requirements.append(new_req_list)
-        new_requirements = rc_map.map_requirements(new_requirements)
+        new_requirements = list(rc_map.map_requirements(new_requirements))
         new_dimensions = (
             self.dimensions[0] - len(cols),
             self.dimensions[1] - len(rows),

@@ -180,7 +180,7 @@ class RowInsertionFactory(StrategyFactory[Tiling]):
     """Factory for having a point requirement on a row."""
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
-        not_point_rows = set(range(comb_class.dimensions[1])) - comb_class.point_rows()
+        not_point_rows = set(range(comb_class.dimensions[1])) - comb_class.point_rows
         for row in not_point_rows:
             all_gcps = []
             for col in range(comb_class.dimensions[0]):

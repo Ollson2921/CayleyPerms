@@ -11,6 +11,8 @@ from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 
 
 class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
+    """Factors the tiling into sections that are independent of each other."""
+
     def __init__(
         self,
         ignore_parent: bool = True,
@@ -88,6 +90,8 @@ class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
 
 
 class ShuffleFactorStrategy(FactorStrategy, Strategy[Tiling, GriddedCayleyPerm]):
+    """Strategy for finding shuffle factors."""
+
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
         if 1 not in comb_class.dimensions:
             raise StrategyDoesNotApply(
@@ -120,7 +124,7 @@ class ShuffleFactorStrategy(FactorStrategy, Strategy[Tiling, GriddedCayleyPerm])
         raise NotImplementedError
 
     def shifts(
-        self, comb_class: Tiling, children: Tuple[Tiling, ...] | None
+        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
     ) -> Tuple[int, ...]:
         if children is None:
             children = self.decomposition_function(comb_class)

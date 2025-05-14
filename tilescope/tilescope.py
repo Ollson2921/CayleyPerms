@@ -1,5 +1,7 @@
+"""Module contaiing TileScope class for running TileScope with."""
+
 from comb_spec_searcher import CombinatorialSpecificationSearcher
 
 
 class TileScope(CombinatorialSpecificationSearcher):
-    pass
+    """TileScope class for running TileScope with."""

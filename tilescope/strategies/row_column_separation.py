@@ -476,11 +476,7 @@ class LessThanRowColSeparation:
 
     def inequalities_sets(
         self,
-    ) -> tuple[
-        set[tuple[Cell, Cell]],
-        set[tuple[Cell, Cell]],
-        set[tuple[Cell, Cell]],
-    ]:
+    ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
         """Finds the length 2 obstructions in different cells.
         If they are on the same column and are an increasing obstruction,
         they are added to less_than_col to separate columns.

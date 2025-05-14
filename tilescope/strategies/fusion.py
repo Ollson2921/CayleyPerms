@@ -70,6 +70,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def left_right_both_sided_parameters(
         self, comb_class: Tiling
     ) -> Tuple[Set[str], Set[str], Set[str]]:
+        """Returns parameters."""
         raise NotImplementedError
 
     def _fuse_parameter(self, comb_class: Tiling) -> str:

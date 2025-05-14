@@ -18,8 +18,6 @@ class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
         ignore_parent: bool = True,
         workable: bool = True,
     ):
-        # TODO: input should include partition: Iterable[Iterable[Cell]] to
-        #       allow for interleaving factors.
         super().__init__(
             ignore_parent=ignore_parent, workable=workable, inferrable=True
         )

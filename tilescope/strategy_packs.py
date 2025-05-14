@@ -11,9 +11,9 @@ from .strategies import (
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
-    RowInsertionFactory,
-    ColInsertionFactory,
-    FusionFactory,
+    # RowInsertionFactory,
+    # ColInsertionFactory,
+    # FusionFactory,
 )
 
 

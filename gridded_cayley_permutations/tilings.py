@@ -189,7 +189,7 @@ class Tiling(CombinatorialClass):
             for ob in self.obstructions
             if all(x not in cols and y not in rows for x, y in ob.positions)
         )
-        
+
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
         new_requirements = []
         for req_list in self.requirements:
@@ -356,7 +356,7 @@ class Tiling(CombinatorialClass):
             return self.delete_rows_and_columns([index], [])
         return self.delete_rows_and_columns([], [index])
 
-    def is_fuseable(self, direction: int, index: int) -> bool:
+    def is_fusable(self, direction: int, index: int) -> bool:
         """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
         if so returns the obstructions and requirements else returns None."""
         col_map = {i: i for i in range(self.dimensions[0])}
@@ -637,3 +637,8 @@ class Tiling(CombinatorialClass):
             self.dimensions == other.dimensions
             and len(self.obstructions) < len(other.obstructions)
         )
+
+    def __leq__(self, other: object) -> bool:
+        if not isinstance(other, Tiling):
+            return NotImplemented
+        return self < other or self == other

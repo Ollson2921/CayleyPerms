@@ -73,8 +73,6 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        # if children is None:
-        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -83,8 +81,6 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        # if children is None:
-        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def __repr__(self) -> str:

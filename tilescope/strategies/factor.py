@@ -38,9 +38,6 @@ class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
         return tuple({} for _ in children)
 
     def formal_step(self) -> str:
-        """
-        Return a string that describe the operation performed on the tiling.
-        """
         return "Factor the tiling into factors"
 
     def backward_map(
@@ -49,8 +46,6 @@ class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -59,12 +54,7 @@ class FactorStrategy(CartesianProductStrategy[Tiling, GriddedCayleyPerm]):
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[GriddedCayleyPerm, ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        return self.formal_step()
 
     def __repr__(self) -> str:
         return (

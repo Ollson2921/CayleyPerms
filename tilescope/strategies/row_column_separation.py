@@ -387,9 +387,7 @@ class LessThanRowColSeparation:
         self.tiling = tiling
 
     @property
-    def row_col_order(
-        self,
-    ) -> tuple[list[set[Cell]], list[set[Cell]]]:
+    def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
         """Return the row and column order of the tiling."""
         col_ineq, row_ineq = self.column_row_inequalities()
         col_order, row_order = RowColOrder(
@@ -476,7 +474,11 @@ class LessThanRowColSeparation:
 
     def inequalities_sets(
         self,
-    ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
+    ) -> tuple[
+        set[tuple[Cell, Cell]],
+        set[tuple[Cell, Cell]],
+        set[tuple[Cell, Cell]],
+    ]:
         """Finds the length 2 obstructions in different cells.
         If they are on the same column and are an increasing obstruction,
         they are added to less_than_col to separate columns.
@@ -675,6 +677,7 @@ class LessThanRowColSeparationStrategy(
 ):
     """A strategy that separates rows and columns."""
 
+    # pylint: disable=duplicate-code
     def __init__(
         self,
         ignore_parent: bool = True,
@@ -695,7 +698,6 @@ class LessThanRowColSeparationStrategy(
         return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self) -> str:
-        """Return a string that describe the operation performed on the tiling."""
         return "Separate rows and columns"
 
     def backward_map(
@@ -704,9 +706,6 @@ class LessThanRowColSeparationStrategy(
         objs: tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        """Return the backward map for the strategy."""
-        # if children is None:
-        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def forward_map(
@@ -715,13 +714,9 @@ class LessThanRowColSeparationStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[tuple[Tiling, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
-        """Return the forward map for the strategy."""
-        # if children is None:
-        #     children = self.decomposition_function(comb_class)
         raise NotImplementedError
 
     def __repr__(self) -> str:
-        """Return a string representation of the strategy."""
         return (
             f"{self.__class__.__name__}("
             f"ignore_parent={self.ignore_parent}, "
@@ -729,7 +724,6 @@ class LessThanRowColSeparationStrategy(
         )
 
     def to_jsonable(self) -> dict:
-        """Return a dictionary form of the strategy."""
         d: dict = super().to_jsonable()
         d.pop("workable")
         d.pop("inferrable")
@@ -737,7 +731,6 @@ class LessThanRowColSeparationStrategy(
 
     @classmethod
     def from_dict(cls, d: dict) -> "LessThanRowColSeparationStrategy":
-        """Create a strategy from a dictionary."""
         return cls(
             ignore_parent=d["ignore_parent"],
             possibly_empty=d["possibly_empty"],

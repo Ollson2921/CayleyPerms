@@ -55,16 +55,6 @@ class AbstractPatternFinder(abc.ABC):
         """
         return frozenset().union(*(self.universe_of_size(i) for i in range(n + 1)))
 
-    def word_avoids(self, word: tuple[int, ...], *args: MeshPattern):
-        """Return True if the word avoids all of the mesh patterns."""
-        return all(mesh_patt.is_avoided_by_word(word) for mesh_patt in args)
-
-    def word_contains(self, word: tuple[int, ...], *args: MeshPattern) -> bool:
-        """
-        Returns True if the word contains any of the mesh patterns.
-        """
-        return not self.word_avoids(word, *args)
-
     def all_avoiders(self, start: int = 0) -> frozenset[tuple[int, ...]]:
         """
         Returns all avoiders of size greater than or equal to start.
@@ -77,9 +67,80 @@ class AbstractPatternFinder(abc.ABC):
         """
         Returns all containers.
         """
-        return frozenset().union(
-            *(self.containers[i] for i in range(self.max_patt_size + 1))
-        )
+        return frozenset().union(*(self.containers[i] for i in self.containers))
+
+    @staticmethod
+    def enumerate_hitting_sets(
+        vertices: list[int],
+        edges: list[tuple[int, ...]],
+        non_vertices: Optional[list[int]] = None,
+    ) -> list[set[int]]:
+        """
+        Find hitting sets
+
+        https://esham.io/files/2012/09/olympic-colors/pkbuch-chap1.pdf
+        page 16 - Algorithm 1.4, don't care about k here.
+        """
+        # edges.sort(key=lambda x: len(x))
+        if non_vertices is None:
+            non_vertices = []
+        if not edges:
+            return [set(non_vertices)]
+        res = []
+        edge = edges[0]
+        for v in edge:
+            new_vertices = vertices.copy()
+            new_vertices.remove(v)
+            new_edges = list(e for e in edges[1:] if v not in e)
+            new_non_vertices = non_vertices + [v]
+            res.extend(
+                AbstractPatternFinder.enumerate_hitting_sets(
+                    new_vertices, new_edges, new_non_vertices
+                )
+            )
+        return res
+
+    @staticmethod
+    def set_cover(
+        universe: Iterable[int], subsets_left: list[tuple[int, set[int]]]
+    ) -> list[int]:
+        """
+        Greedy algorithm:
+        https://pages.cs.wisc.edu/~shuchi/courses/880-S07/scribe-notes/lecture03.pdf
+        algorithm 3.1.4 and theorem 3.1.5 say that this is ln(n/OPT) approximation
+        see algorithm 3.1.7 for ln(n) approximation - sort subsets by percentage of
+        subset not yet covered
+        """
+        left = set(universe)
+        res = []
+        while subsets_left:
+            subsets_left.sort(key=lambda x: len(x[1]))
+            label, subset = subsets_left.pop()
+            res.append(label)
+            left -= subset
+            subsets_left = [
+                (label, old_subset - subset) for label, old_subset in subsets_left
+            ]
+            subsets_left = [(label, subset) for label, subset in subsets_left if subset]
+        if not left:
+            return res
+        raise ValueError("No basis found, try increasing input parameters")
+
+
+class MeshPatternFinder(AbstractPatternFinder):
+    """
+    Abstract class for finding a set of mesh patterns that define a set of words
+    """
+
+    def word_avoids(self, word: tuple[int, ...], *args: MeshPattern):
+        """Return True if the word avoids all of the mesh patterns."""
+        return all(mesh_patt.is_avoided_by_word(word) for mesh_patt in args)
+
+    def word_contains(self, word: tuple[int, ...], *args: MeshPattern) -> bool:
+        """
+        Returns True if the word contains any of the mesh patterns.
+        """
+        return not self.word_avoids(word, *args)
 
     @staticmethod
     def minimal_patterns(patterns: Iterable[MeshPattern]) -> set[MeshPattern]:
@@ -93,7 +154,7 @@ class AbstractPatternFinder(abc.ABC):
                 basis.add(patt)
         return basis
 
-    def find_mesh_basis(self) -> Iterator[list[MeshPattern]]:
+    def find_mesh_basis(self) -> list[MeshPattern]:
         """
         Find the minimal patterns that are not contained in the avoiders.
 
@@ -112,40 +173,27 @@ class AbstractPatternFinder(abc.ABC):
             self.find_minimal_patterns_not_contained()
         )
         basis = self.minimal_patterns(minimal_patterns_not_contained)
+
         containers = self.all_containers()
+        container_labels: dict[tuple[int, ...], int] = {}
+        for word in containers:
+            container_labels[word] = len(container_labels)
 
         logger.info("Computing container set for patterns")
+        label_to_patt: dict[int, MeshPattern] = {}
         subsets_left = []
         for patt in tqdm(basis, desc="Computing contained sets"):
             patt_containers = set(
-                word for word in containers if self.word_contains(word, patt)
+                container_labels[word]
+                for word in containers
+                if self.word_contains(word, patt)
             )
-            subsets_left.append((patt, patt_containers))
+            label = len(label_to_patt)
+            label_to_patt[label] = patt
+            subsets_left.append((label, patt_containers))
 
-        # Greedy algorithm:
-        # https://pages.cs.wisc.edu/~shuchi/courses/880-S07/scribe-notes/lecture03.pdf
-        # algorithm 3.1.4 and theorem 3.1.5 say that this is ln(n/OPT) approximation
-        # see algorithm 3.1.7 for ln(n) approximation - sort subsets by percentage of
-        # subset not yet covered
-        logger.info("Searching for set cover")
-        subsets_left.sort(key=lambda x: len(x[1]))
-        res = []
-        while subsets_left:
-            patt, patt_containers = subsets_left.pop()
-            res.append(patt)
-            containers -= patt_containers
-            subsets_left = [
-                (patt, old_patt_containers - patt_containers)
-                for patt, old_patt_containers in subsets_left
-            ]
-            subsets_left = [
-                (patt, patt_containers)
-                for patt, patt_containers in subsets_left
-                if patt_containers
-            ]
-            subsets_left.sort(key=lambda x: len(x[1]))
-        if not containers:
-            yield res
+        basis_labels = self.set_cover(container_labels.values(), subsets_left)
+        return [label_to_patt[label] for label in basis_labels]
 
     def find_minimal_patterns_not_contained(self) -> Iterator[MeshPattern]:
         """
@@ -180,37 +228,6 @@ class AbstractPatternFinder(abc.ABC):
             ):
                 cells = [label_cell[v] for v in shading_labels]
                 yield MeshPattern(patt, cells)
-
-    @staticmethod
-    def enumerate_hitting_sets(
-        vertices: list[int],
-        edges: list[tuple[int, ...]],
-        non_vertices: Optional[list[int]] = None,
-    ) -> list[set[int]]:
-        """
-        Find hitting sets
-
-        https://esham.io/files/2012/09/olympic-colors/pkbuch-chap1.pdf
-        page 16 - Algorithm 1.4, don't care about k here.
-        """
-        # edges.sort(key=lambda x: len(x))
-        if non_vertices is None:
-            non_vertices = []
-        if not edges:
-            return [set(non_vertices)]
-        res = []
-        edge = edges[0]
-        for v in edge:
-            new_vertices = vertices.copy()
-            new_vertices.remove(v)
-            new_edges = list(e for e in edges[1:] if v not in e)
-            new_non_vertices = non_vertices + [v]
-            res.extend(
-                AbstractPatternFinder.enumerate_hitting_sets(
-                    new_vertices, new_edges, new_non_vertices
-                )
-            )
-        return res
 
     def find_maximal_shaded_patterns(
         self,
@@ -261,7 +278,7 @@ class AbstractPatternFinder(abc.ABC):
         return minimal_shadings
 
 
-class CayleyMeshPatternFinder(AbstractPatternFinder):
+class CayleyMeshPatternFinder(MeshPatternFinder):
     """
     Class for finding patterns that define a set of Cayley Permutations
     """
@@ -271,7 +288,7 @@ class CayleyMeshPatternFinder(AbstractPatternFinder):
         return frozenset(CayleyPermutation.of_size(n))
 
 
-class InversionSequencePatternFinder(AbstractPatternFinder):
+class InversionSequencePatternFinder(MeshPatternFinder):
     """
     Class for finding patterns that define a set of inversion sequences
     """
@@ -281,7 +298,7 @@ class InversionSequencePatternFinder(AbstractPatternFinder):
         return frozenset(product(*[range(i) for i in range(1, n + 1)]))
 
 
-class PermutationPatternFinder(AbstractPatternFinder):
+class PermutationPatternFinder(MeshPatternFinder):
     """
     Class for finding patterns that define a set of permutations
     """
@@ -291,7 +308,7 @@ class PermutationPatternFinder(AbstractPatternFinder):
         return frozenset(permutations(range(n)))
 
 
-class AscentSequencePatternFinder(AbstractPatternFinder):
+class AscentSequencePatternFinder(MeshPatternFinder):
     """
     Class for finding patterns that define a set of ascent sequences
     """
@@ -315,7 +332,7 @@ class AscentSequencePatternFinder(AbstractPatternFinder):
         return frozenset(ascent_sequences(n))
 
 
-class RestrictedGrowthFunctionPatternFinder(AbstractPatternFinder):
+class RestrictedGrowthFunctionPatternFinder(MeshPatternFinder):
     """
     Class for finding patterns that define a set of restricted growth functions
     """

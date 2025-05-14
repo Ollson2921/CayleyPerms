@@ -322,6 +322,7 @@ class Tiling(CombinatorialClass):
         """
         return self.add_requirements([requirement_list])
 
+    @cached_property
     def point_rows(self) -> set[int]:
         """Returns the set of rows which only contain points of the same value."""
         point_rows = set()
@@ -557,7 +558,7 @@ class Tiling(CombinatorialClass):
         if self.dimensions == (0, 0):
             return "+---+\n| \u03b5 |\n+---+\n"
         crossing_string = "Crossing obstructions: \n"
-        point_rows = self.point_rows()
+        point_rows = self.point_rows
 
         cell_basis = defaultdict(list)
         for ob in self.obstructions:

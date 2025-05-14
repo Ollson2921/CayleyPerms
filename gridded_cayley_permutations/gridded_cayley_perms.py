@@ -14,11 +14,11 @@ class GriddedCayleyPerm(CombinatorialObject):
     # pylint: disable=too-many-public-methods
     def __init__(
         self,
-        pattern: CayleyPermutation,
+        pattern: Iterable[int],
         positions: Iterable[tuple[int, int]],
         validate=False,
     ) -> None:
-        self.pattern = pattern
+        self.pattern = CayleyPermutation(pattern)
         self.positions: tuple[tuple[int, int], ...] = tuple(
             (x, y) for x, y in positions
         )
@@ -308,6 +308,22 @@ class GriddedCayleyPerm(CombinatorialObject):
                 new_pattern.append(self.pattern[idx])
         return GriddedCayleyPerm(
             CayleyPermutation.standardise(new_pattern), new_positions
+        )
+
+    def sub_gridded_cayley_perms_at_indices(
+        self, indices: tuple[int, ...]
+    ) -> "GriddedCayleyPerm":
+        """Return the sub gridded cayley perm at the given indices"""
+        return GriddedCayleyPerm(
+            self.pattern.subperm_from_indices(indices),
+            tuple(self.positions[idx] for idx in indices),
+        )
+
+    def sub_gridded_cayley_perms(self, size: int) -> frozenset["GriddedCayleyPerm"]:
+        """Return all the gridded cayley permutations of given size contained in self"""
+        return frozenset(
+            self.sub_gridded_cayley_perms_at_indices(indices)
+            for indices in combinations(range(len(self)), size)
         )
 
     def shifts(self, direction: int, index: int) -> Iterator["GriddedCayleyPerm"]:

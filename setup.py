@@ -11,6 +11,7 @@ setup(
         "gridded_cayley_permutations",
         "mesh_patterns",
         "tilescope",
+        "decorated_patterns",
     ],
     install_requires=[
         "comb_spec_searcher",

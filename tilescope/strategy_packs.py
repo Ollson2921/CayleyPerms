@@ -1,4 +1,4 @@
-"""Module containing various strategy packs for running TileScope with."""
+"""Module containing various strategy packs for running TileScope."""
 
 from comb_spec_searcher import StrategyPack, AtomStrategy
 from .strategies import (
@@ -11,21 +11,18 @@ from .strategies import (
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
-    # RowInsertionFactory,
-    # ColInsertionFactory,
-    # FusionFactory,
 )
 
 
 class TileScopePack(StrategyPack):
-    """A strategy pack for TileScope."""
+    """Strategy packs for TileScope."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     @classmethod
     def insertion_encoding(cls):
-        """Insertion encoding strategy."""
+        """Insertion encoding strategy pack."""
         return TileScopePack(
             initial_strats=[
                 FactorStrategy(),
@@ -43,7 +40,7 @@ class TileScopePack(StrategyPack):
 
     @classmethod
     def point_placement(cls):
-        """Point placements strategy."""
+        """Point placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
                 RemoveEmptyRowsAndColumnsStrategy(),
@@ -69,7 +66,7 @@ class TileScopePack(StrategyPack):
 
     @classmethod
     def point_placements_shuffle(cls):
-        """Point placements with shuffle strategy."""
+        """Point placements with shuffle strategy pack."""
         return TileScopePack(
             initial_strats=[
                 ShuffleFactorStrategy(),

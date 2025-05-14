@@ -371,7 +371,9 @@ class LessThanRowColSeparation:
         self.tiling = tiling
 
     @property
-    def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+    def row_col_order(
+        self,
+    ) -> tuple[list[set[Cell]], list[set[Cell]]]:
         """Return the row and column order of the tiling."""
         col_ineq, row_ineq = self.column_row_inequalities()
         col_order, row_order = RowColOrder(

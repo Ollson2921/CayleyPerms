@@ -145,7 +145,7 @@ class RowColMap:
             new_col_map[col_index + i] = original_col + i
         for i in range(number_of_rows):
             new_row_map[row_index + i] = original_row + i
-        return RowColMap(new_col_map, new_row_map)
+        return self.__class__(new_col_map, new_row_map)
 
     def preimages_of_row(self, row: int) -> tuple[int, ...]:
         """Return the preimages of all values in the row."""
@@ -223,7 +223,7 @@ class RowColMap:
             new_col_map[index] = self.col_map[index]
         for index in row_values:
             new_row_map[index] = self.row_map[index]
-        return RowColMap(new_col_map, new_row_map)
+        return self.__class__(new_col_map, new_row_map)
 
     def standardise_map(self) -> "RowColMap":
         """

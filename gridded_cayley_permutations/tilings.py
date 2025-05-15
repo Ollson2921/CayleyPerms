@@ -203,8 +203,16 @@ class Tiling(CombinatorialClass):
         )
 
         new_obstructions = rc_map.map_gridded_cperms(new_obstructions)
-
-        new_requirements = rc_map.map_requirements(self.requirements)
+        new_requirements = []
+        for req_list in self.requirements:
+            new_req_list = tuple(
+                req
+                for req in req_list
+                if all(x not in cols and y not in rows for x, y in req.positions)
+            )
+            if new_req_list:
+                new_requirements.append(new_req_list)
+        new_requirements = list(rc_map.map_requirements(new_requirements))
         new_dimensions = (
             self.dimensions[0] - len(cols),
             self.dimensions[1] - len(rows),
@@ -371,21 +379,28 @@ class Tiling(CombinatorialClass):
             return self.delete_rows_and_columns([index], [])
         return self.delete_rows_and_columns([], [index])
 
-    def is_fusable(self, direction: int, index: int, allow_requirements=False) -> bool:
-        """Checks if the columns/rows are fuseable, if so returns the
-        obstructions and requirements else returns None."""
-        assert direction in (0, 1)
-        ob_list = tuple(
-            ob for ob in self.obstructions if ob.contains_index(direction, index)
-        )
-        if not self.check_shifts(direction, index, ob_list):
+    def is_fusable(self, direction: int, index: int) -> bool:
+        """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
+        if so returns the obstructions and requirements else returns None."""
+        col_map = {i: i for i in range(self.dimensions[0])}
+        row_map = {i: i for i in range(self.dimensions[1])}
+        if direction == 0:
+            temp_tiling = self.delete_rows_and_columns([index], [])
+            for i in range(index + 1, self.dimensions[0]):
+                col_map[i] = col_map[i] - 1
+        else:
+            temp_tiling = self.delete_rows_and_columns([], [index])
+            for i in range(index + 1, self.dimensions[1]):
+                row_map[i] = row_map[i] - 1
+        backmap = RowColMap(col_map, row_map)
+        obs = set(backmap.preimage_of_obstructions(temp_tiling.obstructions))
+        if not obs == set(self.obstructions):
             return False
-        for reqs in self.requirements:
-            if any(req.contains_index(direction, index) for req in reqs):
-                if not allow_requirements:
-                    return False
-                if not self.check_shifts(direction, index, reqs):
-                    return False
+        reqs = set(
+            map(tuple, backmap.preimage_of_requirements(temp_tiling.requirements))
+        )
+        if not reqs == set(self.requirements):
+            return False
         return True
 
     def can_fuse_row(self, row: int) -> bool:
@@ -644,3 +659,8 @@ class Tiling(CombinatorialClass):
             self.dimensions == other.dimensions
             and len(self.obstructions) < len(other.obstructions)
         )
+
+    def __leq__(self, other: object) -> bool:
+        if not isinstance(other, Tiling):
+            return NotImplemented
+        return self < other or self == other

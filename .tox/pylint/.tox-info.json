@@ -1,0 +1,6 @@
+{
+  "ToxEnv": {
+    "name": "pylint",
+    "type": "VirtualEnvRunner"
+  }
+}

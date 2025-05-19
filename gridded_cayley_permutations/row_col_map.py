@@ -312,13 +312,7 @@ class RowColMap:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, RowColMap):
             return NotImplemented
-        return (
-            tuple(sorted(self.col_map.items())),
-            tuple(sorted(self.row_map.items())),
-        ) == (
-            tuple(sorted(other.col_map.items())),
-            tuple(sorted(other.row_map.items())),
-        )
+        return self.col_map == other.col_map and self.row_map == other.row_map
 
     def __lt__(self, other: "RowColMap") -> bool:
         return (

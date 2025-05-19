@@ -16,8 +16,10 @@ if TYPE_CHECKING:
     # pylint: disable=all
     from .tilings import Tiling
 
+
 OBSTRUCTIONS = Tuple[GriddedCayleyPerm, ...]
 REQUIREMENTS = Tuple[Tuple[GriddedCayleyPerm, ...], ...]
+Cell = Tuple[int, int]
 
 
 class RowColMap:
@@ -54,16 +56,39 @@ class RowColMap:
         """
         return tuple(self.map_gridded_cperms(req) for req in requirements)
 
+    def preimages_of_rows_and_cols(
+        self, cols: Iterable[int], rows: Iterable[int]
+    ) -> Tuple[set[int], set[int]]:
+        """Returns the preimages of the rows and cols"""
+        return set(self.preimages_of_cols(cols)), set(self.preimages_of_rows(rows))
+
+    def image_rows_and_cols(self) -> Tuple[set[int], set[int]]:
+        """Gives the indices for the rows and cols in the image"""
+        return set(self.col_map.values()), set(self.row_map.values())
+
+    @cached_property
+    def image_cells(self) -> set[Cell]:
+        """Gives the cells in the image of the map"""
+        return set(product(*self.image_rows_and_cols()))
+
     def preimage_of_gridded_cperm(
         self, gcp: GriddedCayleyPerm
     ) -> Iterator[GriddedCayleyPerm]:
         """
         Return the preimages of a gridded Cayley permutation with respect to the map.
+        Only use this on subgcps that are fully in the image.
+
+        If a gcp is not fully in the image cells then
+        new_positions will be cells not in the preimage so will raise an error.
         """
         for cols, rows in product(
             self._product_of_cols(gcp), self._product_of_rows(gcp)
         ):
             new_positions = tuple(zip(cols, rows))
+            if any(cell not in self.image_cells for cell in new_positions):
+                raise ValueError(
+                    f"The gridded Cayley perm {gcp} does not have a preimage."
+                )
             yield GriddedCayleyPerm(gcp.pattern, new_positions)
 
     def _product_of_rows(self, gcp: GriddedCayleyPerm) -> Iterator[tuple[int, ...]]:
@@ -127,7 +152,7 @@ class RowColMap:
     ) -> "RowColMap":
         """Adds number_of_cols new columns to the at col_index and
         Adds number_of_rows new rows to the map at row_index
-            Assumes we've modified the parameter and the tiling in the same way"""
+            Assumes we've modified the image and preimage cells in the same way"""
         new_col_map, new_row_map = {}, {}
         # This bit moves the existing mappings
         for item in self.col_map.items():

@@ -1,9 +1,7 @@
 """Tests for the CayleyPermutation class."""
 
 import random
-
 import pytest
-
 from cayley_permutations import CayleyPermutation
 
 
@@ -19,6 +17,8 @@ def test_init_method():
 
 
 def test_one_based():
+    """Tests input to CayleyPermutation as one-based or zero-based
+    is the same."""
     assert CayleyPermutation.from_one_based((4, 1, 3, 2)) == CayleyPermutation(
         (3, 0, 2, 1)
     )
@@ -464,6 +464,7 @@ def test_occurrences_in_from_permuta():
 
 
 def test_sub_cperm():
+    """Test the sub_cperm method."""
     assert sorted(CayleyPermutation((0, 2, 1, 2, 1, 3, 2)).sub_cperms()) == [
         CayleyPermutation(()),
         CayleyPermutation((0,)),
@@ -533,6 +534,7 @@ def test_sub_cperm():
 
 
 def test_repr():
+    """Test the __repr__ method of the CayleyPermutation class."""
     for _ in range(100):
         p = list(range(random.randint(2, 20)))
     random.shuffle(p)

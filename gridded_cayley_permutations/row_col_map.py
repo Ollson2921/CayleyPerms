@@ -308,3 +308,18 @@ class RowColMap:
 
     def __str__(self) -> str:
         return f"RowColMap({self.col_map}, {self.row_map})"
+
+    def __lt__(self, other: "RowColMap") -> bool:
+        return (
+            tuple(sorted(self.col_map.items())),
+            tuple(sorted(self.row_map.items())),
+        ) < (tuple(sorted(other.col_map.items())), tuple(sorted(other.row_map.items())))
+
+    def __leq__(self, other: "RowColMap") -> bool:
+        return (
+            tuple(sorted(self.col_map.items())),
+            tuple(sorted(self.row_map.items())),
+        ) <= (
+            tuple(sorted(other.col_map.items())),
+            tuple(sorted(other.row_map.items())),
+        )

@@ -309,6 +309,11 @@ class RowColMap:
     def __str__(self) -> str:
         return f"RowColMap({self.col_map}, {self.row_map})"
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, RowColMap):
+            return NotImplemented
+        return self.col_map == other.col_map and self.row_map == other.row_map
+
     def __lt__(self, other: "RowColMap") -> bool:
         return (
             tuple(sorted(self.col_map.items())),

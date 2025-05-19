@@ -319,4 +319,7 @@ class RowColMap:
         return (
             tuple(sorted(self.col_map.items())),
             tuple(sorted(self.row_map.items())),
-        ) <= (tuple(sorted(other.col_map.items())), tuple(sorted(other.row_map.items())))
+        ) <= (
+            tuple(sorted(other.col_map.items())),
+            tuple(sorted(other.row_map.items())),
+        )

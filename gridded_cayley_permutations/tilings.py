@@ -428,7 +428,9 @@ class Tiling(CombinatorialClass):
                 ]
             )
         )
-        new_tiling = Tiling(new_obstructions, new_requirements, self.dimensions, simplify=False)
+        new_tiling = Tiling(
+            new_obstructions, new_requirements, self.dimensions, simplify=False
+        )
         return new_tiling
 
     # Construction methods

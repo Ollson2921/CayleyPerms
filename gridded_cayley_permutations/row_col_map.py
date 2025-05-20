@@ -81,14 +81,13 @@ class RowColMap:
         If a gcp is not fully in the image cells then
         new_positions will be cells not in the preimage so will raise an error.
         """
+        if any(cell not in self.image_cells for cell in gcp.positions):
+            raise ValueError(f"The gridded Cayley perm {gcp} does not have a preimage.")
         for cols, rows in product(
             self._product_of_cols(gcp), self._product_of_rows(gcp)
         ):
             new_positions = tuple(zip(cols, rows))
-            if any(cell not in self.image_cells for cell in new_positions):
-                raise ValueError(
-                    f"The gridded Cayley perm {gcp} does not have a preimage."
-                )
+
             yield GriddedCayleyPerm(gcp.pattern, new_positions)
 
     def _product_of_rows(self, gcp: GriddedCayleyPerm) -> Iterator[tuple[int, ...]]:

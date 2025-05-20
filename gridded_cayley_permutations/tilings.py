@@ -382,46 +382,54 @@ class Tiling(CombinatorialClass):
     def is_fusable(self, direction: int, index: int) -> bool:
         """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
         if so returns the obstructions and requirements else returns None."""
-        col_map = {i: i for i in range(self.dimensions[0])}
-        row_map = {i: i for i in range(self.dimensions[1])}
         if direction == 0:
-            temp_tiling = self.delete_rows_and_columns([index], [])
-            for i in range(index + 1, self.dimensions[0]):
-                col_map[i] = col_map[i] - 1
+            test_tiling = self.delete_rows_and_columns([index], [])
         else:
-            temp_tiling = self.delete_rows_and_columns([], [index])
-            for i in range(index + 1, self.dimensions[1]):
-                row_map[i] = row_map[i] - 1
-        backmap = RowColMap(col_map, row_map)
-        obs = set(backmap.preimage_of_obstructions(temp_tiling.obstructions))
-        if not obs == set(self.obstructions):
-            return False
-        reqs = set(
-            map(tuple, backmap.preimage_of_requirements(temp_tiling.requirements))
+            test_tiling = self.delete_rows_and_columns([], [index])
+        test_tiling = test_tiling.split_row_or_col(direction, index)
+        return test_tiling == self
+
+    @staticmethod
+    def split_gcps_in_list(
+        gcps: Iterable[GriddedCayleyPerm], direction: int, index: int
+    ) -> tuple[GriddedCayleyPerm, ...]:
+        """Returns the result of unfusing a tiling at index in direction for gcps"""
+        new_gcps = []
+        for gcp in gcps:
+            relevant_positions = tuple(zip(*gcp.positions))
+            if index in relevant_positions[direction]:
+                gcp_shifts = list(gcp.shifts(direction, index))
+                new_gcps += gcp_shifts
+                continue
+            new_relevant_positions = (
+                pos + int(pos > index) for pos in relevant_positions[direction]
+            )
+            if direction == 0:
+                new_positions = tuple(
+                    zip(new_relevant_positions, relevant_positions[1])
+                )
+            else:
+                new_positions = tuple(
+                    zip(relevant_positions[0], new_relevant_positions)
+                )
+            new_gcps.append(GriddedCayleyPerm(gcp.pattern, new_positions))
+        return tuple(sorted(new_gcps))
+
+    def split_row_or_col(self, direction: int, index: int) -> "Tiling":
+        """Unfuses a row or col at index without simplifying the Tiling."""
+        new_obstructions = Tiling.split_gcps_in_list(
+            self.obstructions, direction, index
         )
-        if not reqs == set(self.requirements):
-            return False
-        return True
-
-    def can_fuse_row(self, row: int) -> bool:
-        """Check if a row can be fused."""
-        return self.is_fusable(1, row)
-
-    def can_fuse_col(self, col: int) -> bool:
-        """Check if a column can be fused."""
-        return self.is_fusable(0, col)
-
-    def check_shifts(
-        self, direction: int, index: int, ob_list: tuple[GriddedCayleyPerm, ...]
-    ) -> bool:
-        """CB: what is this doing?"""
-        while len(ob_list) > 0:
-            ob = ob_list[0]
-            for shift in ob.shifts(direction, index):
-                if shift not in ob_list:
-                    return False
-                ob_list = ob_list[1:]
-        return True
+        new_requirements = tuple(
+            sorted(
+                [
+                    Tiling.split_gcps_in_list(req_list, direction, index)
+                    for req_list in self.requirements
+                ]
+            )
+        )
+        new_tiling = Tiling(new_obstructions, new_requirements, self.dimensions, simplify=False)
+        return new_tiling
 
     # Construction methods
 

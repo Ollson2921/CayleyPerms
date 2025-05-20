@@ -428,8 +428,13 @@ class Tiling(CombinatorialClass):
                 ]
             )
         )
+        new_dimensions = list(self.dimensions)
+        new_dimensions[direction] += 1
         new_tiling = Tiling(
-            new_obstructions, new_requirements, self.dimensions, simplify=False
+            new_obstructions,
+            new_requirements,
+            (new_dimensions[0], new_dimensions[1]),
+            simplify=False,
         )
         return new_tiling
 

@@ -24,7 +24,7 @@ class PointUnplacement:
 
     def intersecting_req_list(self) -> tuple[tuple[GriddedCayleyPerm, ...], ...]:
         """Identifies a valid req list that can be merged with the point to be unplaced"""
-        found_lists = tuple[tuple[GriddedCayleyPerm, ...], ...]()
+        found_lists: tuple[tuple[GriddedCayleyPerm, ...], ...] = tuple()
         for req_list in self.tiling.requirements:
             reqs_intersect = (
                 bool(set(req.positions).intersection(self.surrounding_cells))

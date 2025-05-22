@@ -60,10 +60,10 @@ class PointUnplacement:
     def unplace_point(self) -> Tiling:
         """Tries to unplace a point in cell"""
         new_tiling = self.tiling
-        intersecting_list = self.intersecting_req_list()[0]
+        intersecting_list = self.intersecting_req_list()
         if intersecting_list:
-            new_tiling = self.tiling.remove_requirements(intersecting_list)
-            adjusted_list = self.adjust_reqs(intersecting_list)
+            new_tiling = self.tiling.remove_requirements(intersecting_list[0])
+            adjusted_list = self.adjust_reqs(intersecting_list[0])
         else:
             adjusted_list = [
                 GriddedCayleyPerm(
@@ -73,7 +73,7 @@ class PointUnplacement:
         new_tiling = new_tiling.delete_rows_and_columns(
             (self.cell[0], self.cell[0] + 1), (self.cell[1], self.cell[1] + 1)
         )
-        new_tiling.add_requirement_list(adjusted_list)
+        new_tiling = new_tiling.add_requirement_list(adjusted_list)
         return new_tiling
 
     def adjust_reqs(self, req_list: tuple[GriddedCayleyPerm, ...]):
@@ -86,10 +86,10 @@ class PointUnplacement:
             }
             h_cuttoff = sum(cell[0] < self.cell[0] for cell in req.positions)
             v_cuttoff = sum(value < self.cell[1] for value in values.values())
-            new_pattern, new_positions = list(req.pattern), list(req.positions)
+            new_pattern = [value_map[i] for i in req.pattern]
             new_pattern.insert(h_cuttoff, v_cuttoff)
+            new_positions = list(req.positions)
             new_positions.insert(h_cuttoff, self.cell)
-            new_pattern = [value_map[i] for i in new_pattern]
             new_positions = list(map(self.cell_correction, new_positions))
             new_req_list.append(
                 GriddedCayleyPerm(CayleyPermutation(new_pattern), new_positions)
@@ -105,7 +105,7 @@ class PointUnplacement:
     def check_fusability(self, tiling: Tiling) -> bool:
         """Checks if tiling is fusable for point unplacement.
         This is done after intersecting requirements have been removed."""
-        new_tiling = tiling.delete_columns([self.cell[0]])
+        new_tiling = tiling
         row_cells = new_tiling.cells_in_row(self.cell[1])
         row_obs = [
             ob
@@ -121,15 +121,15 @@ class PointUnplacement:
             ]
             if new_req_list:
                 row_reqs.append(new_req_list)
-        base_tiling = Tiling(row_obs, row_reqs, tiling.dimensions)
+        base_tiling = Tiling(row_obs, row_reqs, new_tiling.dimensions)
         reduced_tiling = new_tiling.delete_rows_and_columns(
-            [self.cell[0]], [self.cell[1], self.cell[1] + 1]
+            [self.cell[0], self.cell[0] + 1], [self.cell[1], self.cell[1] + 1]
         )
         col_map, row_map = {}, {}
         for i in range(tiling.dimensions[0]):
             col_map[i] = self.cell_correction((i, 0))[0]
         for j in range(tiling.dimensions[1]):
-            row_map[i] = self.cell_correction((0, j))[1]
+            row_map[j] = self.cell_correction((0, j))[1]
         backmap = RowColMap(col_map, row_map)
         base_tiling = base_tiling.add_obstructions(
             backmap.preimage_of_obstructions(reduced_tiling.obstructions)
@@ -137,4 +137,6 @@ class PointUnplacement:
         base_tiling = base_tiling.add_requirements(
             backmap.preimage_of_requirements(reduced_tiling.requirements)
         )
-        return base_tiling == tiling
+        return base_tiling.delete_columns([self.cell[0]]) == tiling.delete_columns(
+            [self.cell[0]]
+        )

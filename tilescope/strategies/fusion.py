@@ -10,7 +10,7 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     """Strategy that fuses two rows or columns of a tiling together."""
 
-    def __init__(self, direction: int, index: int, tracked: bool = False):
+    def __init__(self, direction: bool, index: int, tracked: bool = False):
         self.direction = direction
         self.index = index
         self.tracked = tracked
@@ -143,7 +143,7 @@ class FusionFactory(StrategyFactory[Tiling]):
 
     def __call__(self, comb_class: Tiling):
         # print("Trying fusion")
-        for direction in [1, 0]:
+        for direction in [True, False]:
             for index in range(comb_class.dimensions[direction] - 1):
                 if comb_class.is_fusable(direction, index):
                     yield FusionStrategy(direction, index)

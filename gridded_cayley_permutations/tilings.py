@@ -371,11 +371,9 @@ class Tiling(CombinatorialClass):
 
     # Fusion methods
 
-    def fuse(self, direction: bool, index: int) -> "Tiling":
-        """If direction = 0 then tries to fuse together the columns
-        at the given indices, else if direction = 1 then tries to fuse the rows.
-        If successful returns the new tiling, else returns None."""
-        if direction == 0:
+    def fuse(self, fuse_rows: bool, index: int) -> "Tiling":
+        """If fuse_rows, tries to fuse rows, otherwise, tries to fuse cols."""
+        if fuse_rows == 0:
             return self.delete_columns([index])
         return self.delete_rows([index])
 
@@ -387,23 +385,24 @@ class Tiling(CombinatorialClass):
         """Returns true if row at index is fusable"""
         return self.is_fusable(False, index)
 
-    def is_fusable(self, direction: bool, index: int) -> bool:
-        """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
-        if so returns the obstructions and requirements else returns None."""
-        if direction == 0:
-            test_tiling = self.delete_rows_and_columns([index], [])
+    def is_fusable(self, fuse_rows: bool, index: int) -> bool:
+        """If fuse rows, checks if the rows at index and index+1 are fuseable,
+        otherwise does the same for cols at index and index+1."""
+        if fuse_rows:
+            test_tiling = self.delete_rows([index])
         else:
-            test_tiling = self.delete_rows_and_columns([], [index])
-        test_tiling = test_tiling.split_row_or_col(direction, index)
+            test_tiling = self.delete_columns([index])
+        test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
         return test_tiling == self
 
-    def split_row_or_col(self, direction: bool, index: int) -> "Tiling":
-        """Unfuses a row or col at index without simplifying the Tiling."""
+    def split_row_or_col(self, unfuse_rows: bool, index: int) -> "Tiling":
+        """Unfuses a row (if unfuse_rows) or col (otherwise)
+        at index without simplifying the Tiling."""
         direction_map = {
-            i: i - int(i > index) for i in range(self.dimensions[direction] + 1)
+            i: i - int(i > index) for i in range(self.dimensions[unfuse_rows] + 1)
         }
-        identity_map = {i: i for i in range(self.dimensions[not direction])}
-        if direction:
+        identity_map = {i: i for i in range(self.dimensions[not unfuse_rows])}
+        if unfuse_rows:
             new_map = RowColMap(identity_map, direction_map)
             new_dimensions = (self.dimensions[0], self.dimensions[1] + 1)
         else:

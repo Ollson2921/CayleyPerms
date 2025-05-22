@@ -371,15 +371,23 @@ class Tiling(CombinatorialClass):
 
     # Fusion methods
 
-    def fuse(self, direction: int, index: int) -> "Tiling":
+    def fuse(self, direction: bool, index: int) -> "Tiling":
         """If direction = 0 then tries to fuse together the columns
         at the given indices, else if direction = 1 then tries to fuse the rows.
         If successful returns the new tiling, else returns None."""
         if direction == 0:
-            return self.delete_rows_and_columns([index], [])
-        return self.delete_rows_and_columns([], [index])
+            return self.delete_columns([index])
+        return self.delete_rows([index])
 
-    def is_fusable(self, direction: int, index: int) -> bool:
+    def can_fuse_row(self, index: int) -> bool:
+        """Returns true if row at index is fusable"""
+        return self.is_fusable(True, index)
+
+    def can_fuse_col(self, index: int) -> bool:
+        """Returns true if row at index is fusable"""
+        return self.is_fusable(False, index)
+
+    def is_fusable(self, direction: bool, index: int) -> bool:
         """Checks if the columns (direction = 0) or rows (direction = 1) are fuseable,
         if so returns the obstructions and requirements else returns None."""
         if direction == 0:
@@ -389,54 +397,23 @@ class Tiling(CombinatorialClass):
         test_tiling = test_tiling.split_row_or_col(direction, index)
         return test_tiling == self
 
-    @staticmethod
-    def split_gcps_in_list(
-        gcps: Iterable[GriddedCayleyPerm], direction: int, index: int
-    ) -> tuple[GriddedCayleyPerm, ...]:
-        """Returns the result of unfusing a tiling at index in direction for gcps"""
-        new_gcps = []
-        for gcp in gcps:
-            relevant_positions = tuple(zip(*gcp.positions))
-            if index in relevant_positions[direction]:
-                gcp_shifts = list(gcp.shifts(direction, index))
-                new_gcps += gcp_shifts
-                continue
-            new_relevant_positions = (
-                pos + int(pos > index) for pos in relevant_positions[direction]
-            )
-            if direction == 0:
-                new_positions = tuple(
-                    zip(new_relevant_positions, relevant_positions[1])
-                )
-            else:
-                new_positions = tuple(
-                    zip(relevant_positions[0], new_relevant_positions)
-                )
-            new_gcps.append(GriddedCayleyPerm(gcp.pattern, new_positions))
-        return tuple(sorted(new_gcps))
-
-    def split_row_or_col(self, direction: int, index: int) -> "Tiling":
+    def split_row_or_col(self, direction: bool, index: int) -> "Tiling":
         """Unfuses a row or col at index without simplifying the Tiling."""
-        new_obstructions = Tiling.split_gcps_in_list(
-            self.obstructions, direction, index
+        direction_map = {
+            i: i - int(i > index) for i in range(self.dimensions[direction] + 1)
+        }
+        identity_map = {i: i for i in range(self.dimensions[not direction])}
+        if direction:
+            new_map = RowColMap(identity_map, direction_map)
+            new_dimensions = (self.dimensions[0], self.dimensions[1] + 1)
+        else:
+            new_map = RowColMap(identity_map, direction_map)
+            new_dimensions = (self.dimensions[0], self.dimensions[1] + 1)
+        new_obstructions = new_map.preimage_of_obstructions(self.obstructions)
+        new_requirements = new_map.preimage_of_requirements(self.requirements)
+        return Tiling(
+            new_obstructions, new_requirements, new_dimensions, simplify=False
         )
-        new_requirements = tuple(
-            sorted(
-                [
-                    Tiling.split_gcps_in_list(req_list, direction, index)
-                    for req_list in self.requirements
-                ]
-            )
-        )
-        new_dimensions = list(self.dimensions)
-        new_dimensions[direction] += 1
-        new_tiling = Tiling(
-            new_obstructions,
-            new_requirements,
-            (new_dimensions[0], new_dimensions[1]),
-            simplify=False,
-        )
-        return new_tiling
 
     # Construction methods
 

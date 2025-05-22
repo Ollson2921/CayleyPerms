@@ -4,6 +4,7 @@ cayley_permutations/__pycache__/
 gridded_cayley_permutations/__pycache__/
 *.py[cod]
 *$py.class
+.tox/
 
 # Distribution / packaging
 .Python

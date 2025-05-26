@@ -326,34 +326,6 @@ class GriddedCayleyPerm(CombinatorialObject):
             for indices in combinations(range(len(self)), size)
         )
 
-    def shifts(self, direction: int, index: int) -> Iterator["GriddedCayleyPerm"]:
-        """Returns all ways to shift points in a Cayley permutation between two rows or columns"""
-        if direction == 0:  # Column Shift
-            indices = sorted(
-                self.indices_in_col(index) + self.indices_in_col(index + 1)
-            )
-            cutoff = indices[-1] + 1
-            for p in indices + [cutoff]:
-                new_positions = list(self.positions)
-                new_positions[indices[0] : cutoff] = [
-                    (index + int(q >= p), self.positions[q][1]) for q in indices
-                ]
-                yield GriddedCayleyPerm(self.pattern, new_positions)
-        if direction == 1:  # Row Shift
-            values = list(
-                set(self.values_in_row(index) + self.values_in_row(index + 1))
-            )
-            cutoff = values[-1] + 1
-            pointer: dict[int, list[int]] = {value: [] for value in values}
-            for i in self.indices_in_row(index) + self.indices_in_row(index + 1):
-                pointer[self.pattern[i]].append(i)
-            for p in values + [cutoff]:
-                new_positions = list(self.positions)
-                for q in values:
-                    for i in pointer[q]:
-                        new_positions[i] = (self.positions[i][0], index + int(q >= p))
-                yield GriddedCayleyPerm(self.pattern, new_positions)
-
     def to_jsonable(self) -> dict:
         """Returns a jsonable dictionary of the gridded Cayley permutation."""
         return {"pattern": self.pattern.to_jsonable(), "positions": self.positions}

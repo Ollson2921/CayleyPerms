@@ -10,12 +10,10 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     """Strategy that fuses two rows or columns of a tiling together."""
 
-    def __init__(self, direction: bool, index: int, tracked: bool = False):
-        self.direction = direction
+    def __init__(self, fuse_rows: bool, index: int, tracked: bool = False):
+        self.fuse_rows = fuse_rows
         self.index = index
         self.tracked = tracked
-        if direction not in [1, 0]:
-            raise ValueError("Direction must be 1 or 0")
         if index < 0:
             raise ValueError("Index must be non-negative")
         super().__init__(
@@ -23,7 +21,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         )
 
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling]:
-        return (comb_class.fuse(self.direction, self.index),)
+        return (comb_class.fuse(self.fuse_rows, self.index),)
 
     def can_be_equivalent(self) -> bool:
         return False
@@ -48,9 +46,9 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
             # constructor only enumerates when tracked.
             raise NotImplementedError("The fusion strategy was not tracked.")
         # Need to recompute some info to count, so ignoring passed in children
-        if not comb_class.is_fusable(self.direction, self.index):
+        if not comb_class.is_fusable(self.fuse_rows, self.index):
             raise StrategyDoesNotApply("Strategy does not apply")
-        child = comb_class.fuse(self.direction, self.index)
+        child = comb_class.fuse(self.fuse_rows, self.index)
         assert children is None or children == (child,)
         raise NotImplementedError
 
@@ -77,7 +75,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         raise NotImplementedError
 
     def formal_step(self) -> str:
-        fusing = "rows" if self.direction == 1 else "columns"
+        fusing = "rows" if self.fuse_rows else "columns"
         idx = self.index
         return f"Fuse {fusing} {idx} and {idx+1}"
 
@@ -113,7 +111,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
         d.pop("inferrable")
         d.pop("possibly_empty")
         d.pop("workable")
-        d["direction"] = self.direction
+        d["fuse_rows"] = self.fuse_rows
         d["index"] = self.index
         d["tracked"] = self.tracked
         return d
@@ -133,7 +131,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def __repr__(self) -> str:
         return (
             self.__class__.__name__
-            + f"(direction={self.direction}, index={self.index}, "
+            + f"(fuse_rows={self.fuse_rows}, index={self.index}, "
             f"tracked={self.tracked})"
         )
 

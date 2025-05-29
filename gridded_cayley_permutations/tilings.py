@@ -406,8 +406,8 @@ class Tiling(CombinatorialClass):
             new_map = RowColMap(identity_map, direction_map)
             new_dimensions = (self.dimensions[0], self.dimensions[1] + 1)
         else:
-            new_map = RowColMap(identity_map, direction_map)
-            new_dimensions = (self.dimensions[0], self.dimensions[1] + 1)
+            new_map = RowColMap(direction_map, identity_map)
+            new_dimensions = (self.dimensions[0] + 1, self.dimensions[1])
         new_obstructions = new_map.preimage_of_obstructions(self.obstructions)
         new_requirements = new_map.preimage_of_requirements(self.requirements)
         return Tiling(

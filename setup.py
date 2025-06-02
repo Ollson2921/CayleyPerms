@@ -7,13 +7,6 @@ setup(
     author="Reed Acton, Christian Bean, and Abigail Ollson",
     author_email="c.n.bean@keele.ac.uk",
     packages=find_namespace_packages(),
-    # [
-    #     "cayley_permutations",
-    #     "gridded_cayley_permutations",
-    #     "mesh_patterns",
-    #     "tilescope",
-    #     "decorated_patterns",
-    # ],
     install_requires=[
         "comb_spec_searcher",
         "tqdm",

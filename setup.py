@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_namespace_packages
 
 setup(
     name="cayley_perms",
@@ -6,13 +6,7 @@ setup(
     description="A module for using Cayley permutations.",
     author="Reed Acton, Christian Bean, and Abigail Ollson",
     author_email="c.n.bean@keele.ac.uk",
-    packages=[
-        "cayley_permutations",
-        "gridded_cayley_permutations",
-        "mesh_patterns",
-        "tilescope",
-        "decorated_patterns",
-    ],
+    packages=find_namespace_packages(),
     install_requires=[
         "comb_spec_searcher",
         "tqdm",

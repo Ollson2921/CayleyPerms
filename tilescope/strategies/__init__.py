@@ -21,3 +21,23 @@ from .row_column_separation import (
 )
 
 from .fusion import FusionFactory, FusionStrategy
+
+__all__ = (
+    "RequirementInsertionStrategy",
+    "InsertionEncodingRequirementInsertionFactory",
+    "CellInsertionFactory",
+    "RequirementPlacementStrategy",
+    "InsertionEncodingPlacementFactory",
+    "PointPlacementFactory",
+    "PartialRequirementPlacementStrategy",
+    "RowInsertionFactory",
+    "CellInsertionFactory",
+    "ColInsertionFactory",
+    "RemoveEmptyRowsAndColumnsStrategy",
+    "FactorStrategy",
+    "ShuffleFactorStrategy",
+    "LessThanOrEqualRowColSeparationStrategy",
+    "LessThanRowColSeparationStrategy",
+    "FusionFactory",
+    "FusionStrategy",
+)

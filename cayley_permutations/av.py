@@ -48,7 +48,7 @@ class Av:
         """
         if size == 0:
             return [CayleyPermutation([])]
-        cperms = [CayleyPermutation([1])]
+        cperms = [CayleyPermutation([0])]
         count = 1
         next_cperms: list[CayleyPermutation] = []
         while count < size:

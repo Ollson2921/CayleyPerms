@@ -243,7 +243,7 @@ class MeshPattern:
             j2 = values[row_idx] + 1
         else:
             # even, so on a row with many values
-            j1 = 0 if row_idx == 0 else values[row_idx - 1]
+            j1 = 0 if row_idx == 0 else values[row_idx - 1] + 1
             j2 = values[-1] + 1 if row_idx == len(values) else values[row_idx]
         return (i1, i2), (j1, j2)
 

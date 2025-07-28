@@ -640,9 +640,6 @@ class Tiling(CombinatorialClass):
     def __hash__(self) -> int:
         return hash((self.obstructions, self.requirements, self.dimensions))
 
-    def __bool__(self) -> bool:
-        return self == Tiling.empty_tiling()
-
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Tiling):
             return NotImplemented

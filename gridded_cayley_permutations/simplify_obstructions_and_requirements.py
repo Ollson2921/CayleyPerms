@@ -71,10 +71,15 @@ class SimplifyObstructionsAndRequirements:
         """Remove requirements lists that are implied by other requirements lists."""
         indices = []
         for i, req_list_1 in enumerate(self.requirements):
-            for j, req_list_2 in enumerate(self.requirements):
-                if i != j and j not in indices:
-                    if any(req.contains(req_list_2) for req in req_list_1):
-                        indices.append(i)
+            if all(
+                any(
+                    self.implied_by_requirement(req, req_list_2)
+                    for j, req_list_2 in enumerate(self.requirements)
+                    if i != j and j not in indices
+                )
+                for req in req_list_1
+            ):
+                indices.append(i)
         self.requirements = tuple(
             req for i, req in enumerate(self.requirements) if i not in indices
         )

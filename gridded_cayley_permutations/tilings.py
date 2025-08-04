@@ -19,8 +19,7 @@ from cayley_permutations import CayleyPermutation
 from .gridded_cayley_perms import GriddedCayleyPerm
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
 from .row_col_map import RowColMap
-from .simplify_obstructions_and_requirements import \
-    SimplifyObstructionsAndRequirements
+from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 
 
 def binomial(x: int, y: int) -> int:

@@ -8,7 +8,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 from collections import defaultdict
 from copy import copy
 from functools import cached_property
-from itertools import product, chain
+from itertools import chain, product
 from math import factorial
 from typing import Iterable, Iterator
 
@@ -19,7 +19,8 @@ from cayley_permutations import CayleyPermutation
 from .gridded_cayley_perms import GriddedCayleyPerm
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
 from .row_col_map import RowColMap
-from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
+from .simplify_obstructions_and_requirements import \
+    SimplifyObstructionsAndRequirements
 
 
 def binomial(x: int, y: int) -> int:

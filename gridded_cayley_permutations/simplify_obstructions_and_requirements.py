@@ -71,13 +71,13 @@ class SimplifyObstructionsAndRequirements:
         """Remove requirements lists that are implied by other requirements lists."""
         indices = []
         for i, req_list_1 in enumerate(self.requirements):
-            if all(
-                any(
-                    self.implied_by_requirement(req, req_list_2)
+            if self.requirement_implied_by_some_requirement(
+                req_list_1,
+                [
+                    req_list_2
                     for j, req_list_2 in enumerate(self.requirements)
                     if i != j and j not in indices
-                )
-                for req in req_list_1
+                ],
             ):
                 indices.append(i)
         self.requirements = tuple(
@@ -169,6 +169,28 @@ class SimplifyObstructionsAndRequirements:
             if len(ob) == 1:
                 active_cells.discard(ob.positions[0])
         return active_cells
+
+    @staticmethod
+    def requirement_implied_by_requirement(
+        requirement: tuple["GriddedCayleyPerm", ...],
+        other_requirement: tuple["GriddedCayleyPerm", ...],
+    ) -> bool:
+        """Check if the containment of other implies containment of requirement."""
+        return all(
+            any(other_gcp.contains_gridded_cperm(gcp) for gcp in requirement)
+            for other_gcp in other_requirement
+        )
+
+    def requirement_implied_by_some_requirement(
+        self,
+        requirement: tuple["GriddedCayleyPerm", ...],
+        requirements: Iterable[tuple["GriddedCayleyPerm", ...]],
+    ) -> bool:
+        """Check if one of the requirements implies the containment of requirement."""
+        return any(
+            self.requirement_implied_by_requirement(requirement, req)
+            for req in requirements
+        )
 
     def implied_by_requirement(
         self, gcp: "GriddedCayleyPerm", req_list: Iterable["GriddedCayleyPerm"]

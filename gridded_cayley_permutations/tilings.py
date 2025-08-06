@@ -562,7 +562,7 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
         if self.dimensions == (0, 0):
-            return "+---+\n|\u03b5|\n+---+\n"
+            return "+-+\n|\u03b5|\n+-+\n"
         crossing_string = "Crossing obstructions: \n"
         point_rows = self.point_rows
 

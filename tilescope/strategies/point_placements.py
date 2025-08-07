@@ -64,7 +64,7 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
     def formal_step(self):
         return (
             f"Placed the point of the requirement {self.gcps} "
-            + "at indices {self.indices} in direction {self.direction}"
+            + f"at indices {self.indices} in direction {self.direction}"
         )
 
     def backward_map(

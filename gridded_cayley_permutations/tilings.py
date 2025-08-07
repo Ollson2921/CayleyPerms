@@ -8,7 +8,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 from collections import defaultdict
 from copy import copy
 from functools import cached_property
-from itertools import product, chain
+from itertools import chain, product
 from math import factorial
 from typing import Iterable, Iterator
 

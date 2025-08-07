@@ -306,7 +306,7 @@ class RowColMap:
         return f"RowColMap({repr(self.col_map)}, {repr(self.row_map)})"
 
     def __str__(self) -> str:
-        return f"RowColMap({self.col_map}, {self.row_map})"
+        return f"RowColMap({self.col_map},\n {self.row_map})"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, RowColMap):

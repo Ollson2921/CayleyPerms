@@ -7,13 +7,11 @@ which must be contained.
 from collections import defaultdict
 from itertools import product
 from math import factorial
-from typing import TYPE_CHECKING, Iterable
+from typing import Iterable
 
 from cayley_permutations import CayleyPermutation
 
-if TYPE_CHECKING:
-    # pylint: disable=all
-    from gridded_cayley_permutations import GriddedCayleyPerm
+from .gridded_cayley_perms import GriddedCayleyPerm
 
 
 def binomial(x: int, y: int) -> int:
@@ -89,6 +87,10 @@ class SimplifyObstructionsAndRequirements:
         curr_obs = None
         curr_reqs = None
         while curr_obs != self.obstructions or curr_reqs != self.requirements:
+            if not all(self.requirements):
+                self.obstructions = (GriddedCayleyPerm(CayleyPermutation([]), tuple()),)
+                self.requirements = tuple()
+                break
             curr_obs = self.obstructions
             curr_reqs = self.requirements
             self.simplify_once()

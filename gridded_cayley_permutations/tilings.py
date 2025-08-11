@@ -111,13 +111,9 @@ class Tiling(CombinatorialClass):
     def active_cells(self) -> set[tuple[int, int]]:
         """Returns the set of active cells in the tiling.
         (Cells are active if they do not contain a point obstruction.)"""
-        active_cells = set(
-            product(range(self.dimensions[0]), range(self.dimensions[1]))
-        )
-        for ob in self.obstructions:
-            if len(ob) == 1:
-                active_cells.discard(ob.positions[0])
-        return active_cells
+        return SimplifyObstructionsAndRequirements(
+            self.obstructions, self.requirements, self.dimensions
+        ).active_cells()
 
     def positive_cells(self) -> set[tuple[int, int]]:
         """Returns a set of cells that are positive in the tiling.
@@ -333,17 +329,9 @@ class Tiling(CombinatorialClass):
     @cached_property
     def point_rows(self) -> set[int]:
         """Returns the set of rows which only contain points of the same value."""
-        point_rows = set()
-        counter_dict: dict[int, int] = defaultdict(int)
-        for ob in self.obstructions:
-            if ob.pattern in (CayleyPermutation([0, 1]), CayleyPermutation([1, 0])):
-                if ob.positions[0][1] == ob.positions[1][1]:
-                    counter_dict[ob.positions[0][1]] += 1
-        for row, count in counter_dict.items():
-            n = len(self.cells_in_row(row))
-            if 2 * binomial(n, 2) + 2 * n == count:
-                point_rows.add(row)
-        return point_rows
+        return SimplifyObstructionsAndRequirements(
+            self.obstructions, self.requirements, self.dimensions
+        ).point_rows()
 
     def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""

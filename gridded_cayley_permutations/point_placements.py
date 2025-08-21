@@ -4,7 +4,8 @@ which includes methods for placing point of a tiling and adding
 obstructions and requirements to make the placements unique.
 """
 
-from itertools import combinations
+from itertools import combinations, chain
+from typing import Iterable
 
 from cayley_permutations import CayleyPermutation
 
@@ -27,6 +28,8 @@ Directions = [
     DIR_LEFT_BOT,
     DIR_RIGHT_BOT,
 ]
+
+Cell = tuple[int, int]
 
 
 class MultiplexMap(RowColMap):
@@ -252,21 +255,114 @@ class PointPlacement:
             self.tiling.dimensions[1] + 2,
         )
 
-    def directionless_point_placement(self, cell: tuple[int, int]) -> Tiling:
+    def directionless_point_placement(self, cell: Cell) -> Tiling:
         """
         Return the tiling obtained by placing the point in the given cell.
         As this is directionless, the placed point is not necessarily unique.
         """
-        multiplex_map = self.multiplex_map(cell)
-        multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
-        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
-        obstructions = multiplex_obs + point_obs
-        requirements = multiplex_reqs + point_reqs
-        return Tiling(
-            obstructions,
-            requirements,
-            self.new_dimensions(),
+        new_obstructions = tuple(
+            chain.from_iterable(
+                (self.expand_gcp(ob, cell, False)) for ob in self.tiling.obstructions
+            )
         )
+        new_requirements = tuple(
+            tuple(
+                chain.from_iterable(
+                    (self.expand_gcp(req, cell, True)) for req in req_list
+                )
+            )
+            for req_list in self.tiling.requirements
+        )
+        return Tiling(
+            new_obstructions,
+            new_requirements,
+            (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2),
+        )
+
+    def expand_gcp(
+        self, gcp: GriddedCayleyPerm, cell: Cell, expanding_reqs: bool
+    ) -> Iterable[GriddedCayleyPerm]:
+        """
+        case 1: no intersection with point row or col, just move the points
+        case 2: has positions in row/col but not in cell
+        case 3: has positions in cell
+        """
+        if len(gcp) == 1 and gcp.positions[0] == cell:
+            return {GriddedCayleyPerm(gcp.pattern, [(cell[0] + 1, cell[1] + 1)])}
+
+        positions = tuple(
+            (pos[0] + 2 * (int(pos[0] > cell[0])), pos[1] + 2 * int(pos[1] > cell[1]))
+            for pos in gcp.positions
+        )
+        # Row unfusion
+        working_gcps = set()
+        working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
+        row_intersections = sorted(
+            list(
+                gcp.pattern[key]
+                for key, value in enumerate(gcp.positions)
+                if value[1] == cell[1]
+            )
+        )
+        for j in reversed(row_intersections):
+            working_gcps.add(working_gcp)
+            all_occurences = [i for i, x in enumerate(working_gcp.pattern) if x == j]
+            new_positions1 = list(working_gcp.positions)
+            new_positions2 = list(working_gcp.positions)
+            for index in all_occurences:
+                new_positions1[index] = (
+                    new_positions1[index][0],
+                    new_positions1[index][1] + 1,
+                )
+                new_positions2[index] = (
+                    new_positions1[index][0],
+                    new_positions1[index][1] + 1,
+                )
+            working_gcps.add(GriddedCayleyPerm(working_gcp.pattern, new_positions1))
+            working_gcp = GriddedCayleyPerm(working_gcp.pattern, new_positions2)
+        working_gcps.add(working_gcp)
+
+        # col unfusion
+        final_gcps = set()
+        col_intersections = [
+            i for i in range(len(positions)) if positions[i][0] == cell[0]
+        ]
+        if not col_intersections:
+            return working_gcps
+        for gcp in working_gcps:
+            final_gcps.add(gcp)
+            working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
+            for j in reversed(col_intersections):
+                if not expanding_reqs:
+                    final_gcps.add(working_gcp)
+                new_positions = list(working_gcp.positions)
+                new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
+                working_gcp = GriddedCayleyPerm(gcp.pattern, new_positions)
+                if new_positions[j][1] == cell[1]:
+                    new_pattern = list(working_gcp.pattern)
+                    new_pattern.pop(j)
+                    new_positions.pop(j)
+                    final_gcps.add(GriddedCayleyPerm(new_pattern, new_positions))
+            if not expanding_reqs:
+                final_gcps.add(working_gcp)
+
+        return final_gcps
+
+    # def directionless_point_placement(self, cell: tuple[int, int]) -> Tiling:
+    #     """
+    #     Return the tiling obtained by placing the point in the given cell.
+    #     As this is directionless, the placed point is not necessarily unique.
+    #     """
+    #     multiplex_map = self.multiplex_map(cell)
+    #     multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
+    #     point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
+    #     obstructions = multiplex_obs + point_obs
+    #     requirements = multiplex_reqs + point_reqs
+    #     return Tiling(
+    #         obstructions,
+    #         requirements,
+    #         self.new_dimensions(),
+    #     )
 
 
 class PartialPointPlacements(PointPlacement):

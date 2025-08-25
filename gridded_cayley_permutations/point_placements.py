@@ -280,7 +280,7 @@ class PointPlacement:
         )
 
     def expand_gcp(
-        self, gcp: GriddedCayleyPerm, cell: Cell, expanding_reqs: bool
+        self, gcp: GriddedCayleyPerm, cell: Cell
     ) -> Iterable[GriddedCayleyPerm]:
         """
         case 1: no intersection with point row or col, just move the points
@@ -330,20 +330,27 @@ class PointPlacement:
         if not col_intersections:
             return working_gcps
         for gcp in working_gcps:
+            found_smaller = False
             final_gcps.add(gcp)
             working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
             for j in reversed(col_intersections):
-                if not expanding_reqs:
+                if not found_smaller:
                     final_gcps.add(working_gcp)
+                    found_smaller = False
                 new_positions = list(working_gcp.positions)
                 new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
                 working_gcp = GriddedCayleyPerm(gcp.pattern, new_positions)
                 if new_positions[j][1] == cell[1]:
+                    found_smaller = True
                     new_pattern = list(working_gcp.pattern)
                     new_pattern.pop(j)
                     new_positions.pop(j)
-                    final_gcps.add(GriddedCayleyPerm(new_pattern, new_positions))
-            if not expanding_reqs:
+                    final_gcps.add(
+                        GriddedCayleyPerm(
+                            CayleyPermutation.standardise(new_pattern), new_positions
+                        )
+                    )
+            if not found_smaller:
                 final_gcps.add(working_gcp)
 
         return final_gcps

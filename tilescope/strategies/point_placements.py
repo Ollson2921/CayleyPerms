@@ -12,7 +12,6 @@ from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations.point_placements import (
     PointPlacement,
-    PartialPointPlacements,
     Directions,
     DIR_RIGHT,
     DIR_RIGHT_TOP,
@@ -140,8 +139,6 @@ class PointPlacementFactory(StrategyFactory[Tiling]):
                 gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)
                 indices = (0,)
                 yield RequirementPlacementStrategy(gcps, indices, direction)
-                if direction in PartialRequirementPlacementStrategy.DIRECTIONS:
-                    yield PartialRequirementPlacementStrategy(gcps, indices, direction)
 
     @classmethod
     def from_dict(cls, d: dict) -> "PointPlacementFactory":
@@ -152,21 +149,6 @@ class PointPlacementFactory(StrategyFactory[Tiling]):
 
     def __str__(self) -> str:
         return "Point placement"
-
-
-class PartialRequirementPlacementStrategy(RequirementPlacementStrategy):
-    """Partially places points in a tiling."""
-
-    DIRECTIONS = [DIR_LEFT, DIR_RIGHT]
-
-    def algorithm(self, tiling: Tiling) -> PointPlacement:
-        return PartialPointPlacements(tiling)
-
-    def formal_step(self):
-        return (
-            f"Partially placed the point of the requirement {self.gcps} "
-            + "at indices {self.indices} in direction {self.direction}"
-        )
 
 
 class RowInsertionFactory(StrategyFactory[Tiling]):

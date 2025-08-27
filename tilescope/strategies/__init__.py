@@ -9,7 +9,6 @@ from .point_placements import (
     RequirementPlacementStrategy,
     InsertionEncodingPlacementFactory,
     PointPlacementFactory,
-    PartialRequirementPlacementStrategy,
     RowInsertionFactory,
     ColInsertionFactory,
 )
@@ -29,7 +28,6 @@ __all__ = (
     "RequirementPlacementStrategy",
     "InsertionEncodingPlacementFactory",
     "PointPlacementFactory",
-    "PartialRequirementPlacementStrategy",
     "RowInsertionFactory",
     "CellInsertionFactory",
     "ColInsertionFactory",

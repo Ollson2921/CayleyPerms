@@ -59,7 +59,8 @@ class Tiling(CombinatorialClass):
         Generating gridded Cayley permutations of size 'size'.
         """
         if size == 0:
-            yield GriddedCayleyPerm(CayleyPermutation([]), [])
+            if not GriddedCayleyPerm(CayleyPermutation([]), []) in self.obstructions:
+                yield GriddedCayleyPerm(CayleyPermutation([]), [])
             return
         for gcp in self._gridded_cayley_permutations(size - 1):
             next_ins = gcp.next_insertions(self.dimensions)

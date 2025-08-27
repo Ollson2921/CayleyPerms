@@ -266,13 +266,19 @@ class RowColMap:
         new_row_map = {key_map[key]: value_map[self.row_map[key]] for key in keys}
         return self.__class__(new_col_map, new_row_map)
 
+    def gcp_has_preimage(self, gcp: GriddedCayleyPerm) -> bool:
+        """Check if the given GriddedCayleyPerm has a preimage."""
+        return set(gcp.positions).issubset(self.image_cells)
+
     def preimage_of_obstructions(
         self, obstructions: Iterable[GriddedCayleyPerm]
     ) -> OBSTRUCTIONS:
         """Return the preimages of the obstructions."""
         return tuple(
             chain.from_iterable(
-                self.preimage_of_gridded_cperm(ob) for ob in obstructions
+                self.preimage_of_gridded_cperm(ob)
+                for ob in obstructions
+                if self.gcp_has_preimage(ob)
             )
         )
 
@@ -280,7 +286,11 @@ class RowColMap:
         self, requirements: Iterable[Iterable[GriddedCayleyPerm]]
     ) -> REQUIREMENTS:
         """Return the preimages of the requirements."""
-        return tuple(self.preimage_of_obstructions(req) for req in requirements)
+        return tuple(
+            self.preimage_of_obstructions(req)
+            for req in requirements
+            if all(self.gcp_has_preimage(ob) for ob in req)
+        )
 
     def preimage_of_tiling(self, tiling: "Tiling") -> tuple[OBSTRUCTIONS, REQUIREMENTS]:
         """Return the preimage of the tiling."""

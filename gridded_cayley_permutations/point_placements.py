@@ -119,6 +119,7 @@ class PointPlacement:
 
     def __init__(self, tiling: Tiling) -> None:
         self.tiling = tiling
+        self.directionless_dict: dict[Cell, Tiling] = dict()
 
     def point_obstructions_and_requirements(
         self, cell: tuple[int, int]
@@ -128,7 +129,7 @@ class PointPlacement:
         its own row and columns, and that the middle row contains only one value.
         """
         cell = self.placed_cell(cell)
-        x, y = self.new_dimensions()
+        x, y = self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2
         col_obs = [
             GriddedCayleyPerm(CayleyPermutation([0]), [(cell[0], i)])
             for i in range(y)
@@ -238,46 +239,40 @@ class PointPlacement:
         Return the tiling which has placed the point in cell with respect to the given
         requirement_list and indices.
         """
-        multiplex_map = self.multiplex_map(cell)
-        multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
         point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
         forced_obs = self.forced_obstructions(
             cell, requirement_list, indices, direction
         )
-        obstructions = multiplex_obs + point_obs + forced_obs
-        requirements = multiplex_reqs + point_reqs
-        return Tiling(obstructions, requirements, self.new_dimensions())
-
-    def new_dimensions(self) -> tuple[int, int]:
-        """The dimensions of a placed tiling."""
-        return (
-            self.tiling.dimensions[0] + 2,
-            self.tiling.dimensions[1] + 2,
-        )
+        directionless = self.directionless_point_placement(cell)
+        new_obs = directionless.obstructions + point_obs + forced_obs
+        new_reqs = directionless.requirements + point_reqs
+        return Tiling(new_obs, new_reqs, directionless.dimensions)
 
     def directionless_point_placement(self, cell: Cell) -> Tiling:
         """
         Return the tiling obtained by placing the point in the given cell.
         As this is directionless, the placed point is not necessarily unique.
         """
-        new_obstructions = tuple(
-            chain.from_iterable(
-                (self.expand_gcp(ob, cell, False)) for ob in self.tiling.obstructions
-            )
-        )
-        new_requirements = tuple(
-            tuple(
+        if cell not in self.directionless_dict:
+            new_obstructions = tuple(
                 chain.from_iterable(
-                    (self.expand_gcp(req, cell, True)) for req in req_list
+                    (self.expand_gcp(ob, cell)) for ob in self.tiling.obstructions
                 )
             )
-            for req_list in self.tiling.requirements
-        )
-        return Tiling(
-            new_obstructions,
-            new_requirements,
-            (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2),
-        )
+            new_requirements = tuple(
+                tuple(
+                    chain.from_iterable(
+                        (self.expand_gcp(req, cell)) for req in req_list
+                    )
+                )
+                for req_list in self.tiling.requirements
+            )
+            self.directionless_dict[cell] = Tiling(
+                new_obstructions,
+                new_requirements,
+                (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2),
+            )
+        return self.directionless_dict[cell]
 
     def expand_gcp(
         self, gcp: GriddedCayleyPerm, cell: Cell
@@ -354,22 +349,6 @@ class PointPlacement:
                 final_gcps.add(working_gcp)
 
         return final_gcps
-
-    # def directionless_point_placement(self, cell: tuple[int, int]) -> Tiling:
-    #     """
-    #     Return the tiling obtained by placing the point in the given cell.
-    #     As this is directionless, the placed point is not necessarily unique.
-    #     """
-    #     multiplex_map = self.multiplex_map(cell)
-    #     multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
-    #     point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
-    #     obstructions = multiplex_obs + point_obs
-    #     requirements = multiplex_reqs + point_reqs
-    #     return Tiling(
-    #         obstructions,
-    #         requirements,
-    #         self.new_dimensions(),
-    #     )
 
 
 class PartialPointPlacements(PointPlacement):

@@ -119,7 +119,7 @@ class PointPlacement:
 
     def __init__(self, tiling: Tiling) -> None:
         self.tiling = tiling
-        self.directionless_dict: dict[Cell, Tiling] = dict()
+        self.directionless_dict = dict[Cell, Tiling]()
 
     def point_obstructions_and_requirements(
         self, cell: tuple[int, int]
@@ -282,6 +282,7 @@ class PointPlacement:
         case 2: has positions in row/col but not in cell
         case 3: has positions in cell
         """
+        # pylint: disable=too-many-locals
         if len(gcp) == 1 and gcp.positions[0] == cell:
             return {GriddedCayleyPerm(gcp.pattern, [(cell[0] + 1, cell[1] + 1)])}
 
@@ -324,17 +325,17 @@ class PointPlacement:
         ]
         if not col_intersections:
             return working_gcps
-        for gcp in working_gcps:
+        for gcp1 in working_gcps:
             found_smaller = False
-            final_gcps.add(gcp)
-            working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
+            final_gcps.add(gcp1)
+            working_gcp = GriddedCayleyPerm(gcp1.pattern, positions)
             for j in reversed(col_intersections):
                 if not found_smaller:
                     final_gcps.add(working_gcp)
                     found_smaller = False
                 new_positions = list(working_gcp.positions)
                 new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
-                working_gcp = GriddedCayleyPerm(gcp.pattern, new_positions)
+                working_gcp = GriddedCayleyPerm(gcp1.pattern, new_positions)
                 if new_positions[j][1] == cell[1]:
                     found_smaller = True
                     new_pattern = list(working_gcp.pattern)
@@ -390,4 +391,5 @@ class PartialPointPlacements(PointPlacement):
         return PartialMultiplexMap(cell, self.tiling.dimensions)
 
     def new_dimensions(self):
-        return (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1])
+        """The new dimensions of the tiling after placement."""
+        return (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2)

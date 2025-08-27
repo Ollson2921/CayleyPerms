@@ -4,7 +4,8 @@ which includes methods for placing point of a tiling and adding
 obstructions and requirements to make the placements unique.
 """
 
-from itertools import combinations
+from itertools import combinations, chain
+from typing import Iterable
 
 from cayley_permutations import CayleyPermutation
 
@@ -27,6 +28,8 @@ Directions = [
     DIR_LEFT_BOT,
     DIR_RIGHT_BOT,
 ]
+
+Cell = tuple[int, int]
 
 
 class MultiplexMap(RowColMap):
@@ -116,6 +119,7 @@ class PointPlacement:
 
     def __init__(self, tiling: Tiling) -> None:
         self.tiling = tiling
+        self.directionless_dict = dict[Cell, Tiling]()
 
     def point_obstructions_and_requirements(
         self, cell: tuple[int, int]
@@ -125,7 +129,7 @@ class PointPlacement:
         its own row and columns, and that the middle row contains only one value.
         """
         cell = self.placed_cell(cell)
-        x, y = self.new_dimensions()
+        x, y = self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2
         col_obs = [
             GriddedCayleyPerm(CayleyPermutation([0]), [(cell[0], i)])
             for i in range(y)
@@ -235,77 +239,114 @@ class PointPlacement:
         Return the tiling which has placed the point in cell with respect to the given
         requirement_list and indices.
         """
-        multiplex_map = self.multiplex_map(cell)
-        multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
         point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
         forced_obs = self.forced_obstructions(
             cell, requirement_list, indices, direction
         )
-        obstructions = multiplex_obs + point_obs + forced_obs
-        requirements = multiplex_reqs + point_reqs
-        return Tiling(obstructions, requirements, self.new_dimensions())
+        directionless = self.directionless_point_placement(cell)
+        new_obs = directionless.obstructions + point_obs + forced_obs
+        new_reqs = directionless.requirements + point_reqs
+        return Tiling(new_obs, new_reqs, directionless.dimensions)
 
-    def new_dimensions(self) -> tuple[int, int]:
-        """The dimensions of a placed tiling."""
-        return (
-            self.tiling.dimensions[0] + 2,
-            self.tiling.dimensions[1] + 2,
-        )
-
-    def directionless_point_placement(self, cell: tuple[int, int]) -> Tiling:
+    def directionless_point_placement(self, cell: Cell) -> Tiling:
         """
         Return the tiling obtained by placing the point in the given cell.
         As this is directionless, the placed point is not necessarily unique.
         """
-        multiplex_map = self.multiplex_map(cell)
-        multiplex_obs, multiplex_reqs = multiplex_map.preimage_of_tiling(self.tiling)
-        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
-        obstructions = multiplex_obs + point_obs
-        requirements = multiplex_reqs + point_reqs
-        return Tiling(
-            obstructions,
-            requirements,
-            self.new_dimensions(),
-        )
-
-
-class PartialPointPlacements(PointPlacement):
-    """
-    A class for partially placing points in a tiling
-    + - +   + - + - + - +
-    | A | = | A | o | A |
-    + - +   + - + - + - +
-    Obstruction and requirements are added to ensure that a unique
-    point is placed onto its own column.
-    """
-
-    DIRECTIONS = [DIR_LEFT, DIR_RIGHT]
-
-    def point_obstructions_and_requirements(
-        self, cell: tuple[int, int]
-    ) -> tuple[OBSTRUCTIONS, REQUIREMENTS]:
-        cell = self.placed_cell(cell)
-        _, y = self.new_dimensions()
-        col_obs = tuple(
-            GriddedCayleyPerm(CayleyPermutation([0]), [(cell[0], i)])
-            for i in range(y)
-            if i != cell[1]
-        )
-        return (
-            (
-                GriddedCayleyPerm(CayleyPermutation((0, 1)), [cell, cell]),
-                GriddedCayleyPerm(CayleyPermutation((0, 0)), [cell, cell]),
-                GriddedCayleyPerm(CayleyPermutation((1, 0)), [cell, cell]),
+        if cell not in self.directionless_dict:
+            new_obstructions = tuple(
+                chain.from_iterable(
+                    (self.expand_gcp(ob, cell)) for ob in self.tiling.obstructions
+                )
             )
-            + col_obs,
-            ((GriddedCayleyPerm(CayleyPermutation([0]), [cell]),),),
+            new_requirements = tuple(
+                tuple(
+                    chain.from_iterable(
+                        (self.expand_gcp(req, cell)) for req in req_list
+                    )
+                )
+                for req_list in self.tiling.requirements
+            )
+            self.directionless_dict[cell] = Tiling(
+                new_obstructions,
+                new_requirements,
+                (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1] + 2),
+            )
+        return self.directionless_dict[cell]
+
+    def expand_gcp(
+        self, gcp: GriddedCayleyPerm, cell: Cell
+    ) -> Iterable[GriddedCayleyPerm]:
+        """
+        case 1: no intersection with point row or col, just move the points
+        case 2: has positions in row/col but not in cell
+        case 3: has positions in cell
+        """
+        # pylint: disable=too-many-locals
+        if len(gcp) == 1 and gcp.positions[0] == cell:
+            return {GriddedCayleyPerm(gcp.pattern, [(cell[0] + 1, cell[1] + 1)])}
+
+        positions = tuple(
+            (pos[0] + 2 * (int(pos[0] > cell[0])), pos[1] + 2 * int(pos[1] > cell[1]))
+            for pos in gcp.positions
         )
+        # Row unfusion
+        working_gcps = set()
+        working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
+        row_intersections = sorted(
+            list(
+                gcp.pattern[key]
+                for key, value in enumerate(gcp.positions)
+                if value[1] == cell[1]
+            )
+        )
+        for j in reversed(row_intersections):
+            working_gcps.add(working_gcp)
+            all_occurences = [i for i, x in enumerate(working_gcp.pattern) if x == j]
+            new_positions1 = list(working_gcp.positions)
+            new_positions2 = list(working_gcp.positions)
+            for index in all_occurences:
+                new_positions1[index] = (
+                    new_positions1[index][0],
+                    new_positions1[index][1] + 1,
+                )
+                new_positions2[index] = (
+                    new_positions1[index][0],
+                    new_positions1[index][1] + 1,
+                )
+            working_gcps.add(GriddedCayleyPerm(working_gcp.pattern, new_positions1))
+            working_gcp = GriddedCayleyPerm(working_gcp.pattern, new_positions2)
+        working_gcps.add(working_gcp)
 
-    def placed_cell(self, cell: tuple[int, int]) -> tuple[int, int]:
-        return (cell[0] + 1, cell[1])
+        # col unfusion
+        final_gcps = set()
+        col_intersections = [
+            i for i in range(len(positions)) if positions[i][0] == cell[0]
+        ]
+        if not col_intersections:
+            return working_gcps
+        for gcp1 in working_gcps:
+            found_smaller = False
+            final_gcps.add(gcp1)
+            working_gcp = GriddedCayleyPerm(gcp1.pattern, positions)
+            for j in reversed(col_intersections):
+                if not found_smaller:
+                    final_gcps.add(working_gcp)
+                    found_smaller = False
+                new_positions = list(working_gcp.positions)
+                new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
+                working_gcp = GriddedCayleyPerm(gcp1.pattern, new_positions)
+                if new_positions[j][1] == cell[1]:
+                    found_smaller = True
+                    new_pattern = list(working_gcp.pattern)
+                    new_pattern.pop(j)
+                    new_positions.pop(j)
+                    final_gcps.add(
+                        GriddedCayleyPerm(
+                            CayleyPermutation.standardise(new_pattern), new_positions
+                        )
+                    )
+            if not found_smaller:
+                final_gcps.add(working_gcp)
 
-    def multiplex_map(self, cell: tuple[int, int]) -> MultiplexMap:
-        return PartialMultiplexMap(cell, self.tiling.dimensions)
-
-    def new_dimensions(self):
-        return (self.tiling.dimensions[0] + 2, self.tiling.dimensions[1])
+        return final_gcps

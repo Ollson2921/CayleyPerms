@@ -333,7 +333,7 @@ class PointPlacement:
                 new_positions = list(working_gcp.positions)
                 new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
                 working_gcp = GriddedCayleyPerm(gcp1.pattern, new_positions)
-                if new_positions[j][1] == cell[1]+1:
+                if new_positions[j][1] == cell[1] + 1:
                     new_pattern = list(working_gcp.pattern)
                     new_pattern.pop(j)
                     new_positions.pop(j)

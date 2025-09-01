@@ -38,8 +38,8 @@ class PointUnplacement:
         """Makes sure we're not unplacing a boundary point."""
         if (
             0 in self.cell
-            or self.tiling.dimensions[0] == self.cell[0]
-            or self.tiling.dimensions[1] == self.cell[1]
+            or self.tiling.dimensions[0] - 1 == self.cell[0]
+            or self.tiling.dimensions[1] - 1 == self.cell[1]
         ):
             return False
         return True

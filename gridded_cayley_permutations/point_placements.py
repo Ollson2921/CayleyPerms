@@ -291,10 +291,10 @@ class PointPlacement:
             for pos in gcp.positions
         )
         # Row unfusion
-        working_gcps = set()
+        working_gcps = set[GriddedCayleyPerm]()
         working_gcp = GriddedCayleyPerm(gcp.pattern, positions)
         row_intersections = sorted(
-            list(
+            set(
                 gcp.pattern[key]
                 for key, value in enumerate(gcp.positions)
                 if value[1] == cell[1]
@@ -326,18 +326,14 @@ class PointPlacement:
         if not col_intersections:
             return working_gcps
         for gcp1 in working_gcps:
-            found_smaller = False
             final_gcps.add(gcp1)
-            working_gcp = GriddedCayleyPerm(gcp1.pattern, positions)
+            working_gcp = gcp1
             for j in reversed(col_intersections):
-                if not found_smaller:
-                    final_gcps.add(working_gcp)
-                    found_smaller = False
+                final_gcps.add(working_gcp)
                 new_positions = list(working_gcp.positions)
                 new_positions[j] = (new_positions[j][0] + 2, new_positions[j][1])
                 working_gcp = GriddedCayleyPerm(gcp1.pattern, new_positions)
-                if new_positions[j][1] == cell[1]:
-                    found_smaller = True
+                if new_positions[j][1] == cell[1]+1:
                     new_pattern = list(working_gcp.pattern)
                     new_pattern.pop(j)
                     new_positions.pop(j)
@@ -346,7 +342,6 @@ class PointPlacement:
                             CayleyPermutation.standardise(new_pattern), new_positions
                         )
                     )
-            if not found_smaller:
-                final_gcps.add(working_gcp)
+            final_gcps.add(working_gcp)
 
         return final_gcps

@@ -34,17 +34,23 @@ class PointUnplacement:
                 found_lists = found_lists + (req_list,)
         return found_lists
 
+    def cell_in_valid_region(self) -> bool:
+        """Makes sure we're not unplacing a boundary point."""
+        if (
+            0 in self.cell
+            or self.tiling.dimensions[0] == self.cell[0]
+            or self.tiling.dimensions[1] == self.cell[1]
+        ):
+            return False
+        return True
+
     def point_can_be_unplaced(
         self, check_reqs: tuple[tuple[GriddedCayleyPerm, ...], ...]
     ) -> bool:
         """Checks if the point can be unplaced
         doesn't fully check fusability across the point row"""
         new_tiling = self.tiling
-        if (
-            0 in self.cell
-            or self.tiling.dimensions[0] == self.cell[0]
-            or self.tiling.dimensions[1] == self.cell[1]
-        ):
+        if not self.cell_in_valid_region():
             return False
         if check_reqs:
             if len(check_reqs) > 1:

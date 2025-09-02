@@ -145,6 +145,8 @@ class Tiling(CombinatorialClass):
 
     def not_blank_cells(self) -> set[tuple[int, int]]:
         """Returns the set of cells that are a position for some ob or req."""
+        if not self.obstructions and not self.requirements:
+            return tuple(), tuple()
         combined_obs_and_reqs = self.obstructions + tuple(chain(*self.requirements))
         return set(chain(*(gcp.positions for gcp in combined_obs_and_reqs)))
 
@@ -242,6 +244,8 @@ class Tiling(CombinatorialClass):
         a list of the indices of blank rows."""
         if self.dimensions == (0, 0):
             return tuple(), tuple()
+        if not self.obstructions and not self.requirements:
+            return tuple(range(self.dimensions[0])), tuple(range(self.dimensions[1]))
         not_blank_cols, not_blank_rows = zip(*self.not_blank_cells())
         blank_cols = tuple(set(range(self.dimensions[0])) - set(not_blank_cols))
         blank_rows = tuple(set(range(self.dimensions[1])) - set(not_blank_rows))

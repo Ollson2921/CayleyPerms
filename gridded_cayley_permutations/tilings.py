@@ -508,7 +508,6 @@ class Tiling(CombinatorialClass):
         else:
             yield GriddedCayleyPerm(CayleyPermutation([]), [])
 
-    # def is_atom(self) -> bool:
     #     return self.dimensions == (0, 0) or (
     #         # is there a better way to do this?
     #         self.dimensions == (1, 1)

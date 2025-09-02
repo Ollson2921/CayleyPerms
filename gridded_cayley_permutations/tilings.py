@@ -508,17 +508,6 @@ class Tiling(CombinatorialClass):
         else:
             yield GriddedCayleyPerm(CayleyPermutation([]), [])
 
-    #         # is there a better way to do this?
-    #         self.dimensions == (1, 1)
-    #         and (0, 0) in self.positive_cells()
-    #         and GriddedCayleyPerm(CayleyPermutation([0, 1]), [(0, 0), (0, 0)])
-    #         in self.obstructions
-    #         and GriddedCayleyPerm(CayleyPermutation([1, 0]), [(0, 0), (0, 0)])
-    #         in self.obstructions
-    #         and GriddedCayleyPerm(CayleyPermutation([0, 0]), [(0, 0), (0, 0)])
-    #         in self.obstructions
-    #     )
-
     def is_atom(self) -> bool:
         """Return True if tiling is a single gridded permutation."""
         return (
@@ -532,6 +521,7 @@ class Tiling(CombinatorialClass):
         seen_col: list[int] = []
         point_rows = self.point_rows
         for i, j in self.active_cells:
+            if i in seen_col or j not in point_rows:
                 return False
             seen_col.append(i)
         return True

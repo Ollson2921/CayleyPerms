@@ -508,7 +508,6 @@ class Tiling(CombinatorialClass):
         else:
             yield GriddedCayleyPerm(CayleyPermutation([]), [])
 
-    #     return self.dimensions == (0, 0) or (
     #         # is there a better way to do this?
     #         self.dimensions == (1, 1)
     #         and (0, 0) in self.positive_cells()
@@ -530,13 +529,11 @@ class Tiling(CombinatorialClass):
 
     def fully_isolated(self) -> bool:
         """Check if all cells are isolated on their rows and columns."""
-        seen_row: list[int] = []
         seen_col: list[int] = []
+        point_rows = self.point_rows
         for i, j in self.active_cells:
-            if i in seen_col or j in seen_row:
                 return False
             seen_col.append(i)
-            seen_row.append(j)
         return True
 
     def minimum_size_of_object(self) -> int:

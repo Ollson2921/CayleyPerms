@@ -509,17 +509,22 @@ class Tiling(CombinatorialClass):
             yield GriddedCayleyPerm(CayleyPermutation([]), [])
 
     def is_atom(self) -> bool:
-        return self.dimensions == (0, 0) or (
-            # is there a better way to do this?
-            self.dimensions == (1, 1)
-            and (0, 0) in self.positive_cells()
-            and GriddedCayleyPerm(CayleyPermutation([0, 1]), [(0, 0), (0, 0)])
-            in self.obstructions
-            and GriddedCayleyPerm(CayleyPermutation([1, 0]), [(0, 0), (0, 0)])
-            in self.obstructions
-            and GriddedCayleyPerm(CayleyPermutation([0, 0]), [(0, 0), (0, 0)])
-            in self.obstructions
+        """Return True if tiling is a single gridded permutation."""
+        return (
+            (self.active_cells == self.point_cells())
+            and self.fully_isolated()
+            and not any(len(ob.positions) == 0 for ob in self.obstructions)
         )
+
+    def fully_isolated(self) -> bool:
+        """Check if all cells are isolated on their rows and columns."""
+        seen_col: list[int] = []
+        point_rows = self.point_rows
+        for i, j in self.active_cells:
+            if i in seen_col or j not in point_rows:
+                return False
+            seen_col.append(i)
+        return True
 
     def minimum_size_of_object(self) -> int:
         assert not self.is_empty()

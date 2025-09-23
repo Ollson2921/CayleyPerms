@@ -55,12 +55,15 @@ class AbstractPatternFinder(abc.ABC):
         """
         return frozenset().union(*(self.universe_of_size(i) for i in range(n + 1)))
 
-    def all_avoiders(self, start: int = 0) -> frozenset[tuple[int, ...]]:
+    def all_avoiders(self, start: int = 0) -> list[tuple[int, ...]]:
         """
         Returns all avoiders of size greater than or equal to start.
         """
-        return frozenset().union(
-            *(self.avoiders[i] for i in range(start, max(self.avoiders.keys()) + 1))
+        return sorted(
+            frozenset().union(
+                *(self.avoiders[i] for i in range(start, max(self.avoiders.keys()) + 1))
+            ),
+            key=len,
         )
 
     def all_containers(self) -> frozenset[tuple[int, ...]]:
@@ -238,9 +241,9 @@ class MeshPatternFinder(AbstractPatternFinder):
         """
         # pylint: disable=too-many-nested-blocks
         logger.info("Computing maximal shadded patterns contained")
-        contained_patterns: dict[
-            CayleyPermutation, set[frozenset[tuple[int, int]]]
-        ] = defaultdict(set)
+        contained_patterns: dict[CayleyPermutation, set[frozenset[tuple[int, int]]]] = (
+            defaultdict(set)
+        )
         for i in range(self.max_patt_size + 1):
             logger.info("Computing size %s patterns", i)
             for word in tqdm(self.all_avoiders(i)):

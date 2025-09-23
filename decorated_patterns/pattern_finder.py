@@ -4,7 +4,7 @@ Output: a set of Cayley decorated patterns P such that Av(P) = S
 """
 
 from collections import defaultdict
-from itertools import combinations
+from itertools import chain, combinations
 from typing import Iterable, Iterator, Optional
 
 from tqdm import tqdm  # type: ignore
@@ -64,7 +64,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
 
         label_to_patt: dict[int, DecoratedPattern] = {}
         subsets_left = []
-        for patt in tqdm(patts, desc="Cmoputing container sets"):
+        for patt in tqdm(patts, desc="Computing container sets"):
             # do in parallel?
             label = len(label_to_patt)
             label_to_patt[label] = patt
@@ -83,23 +83,31 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         """
         Compute the minimal set of patterns to those contained in avoiders
         """
-        maximal_obstruction_sets = self.find_maximal_contained_gridded_cperms()
+        maximal_obstruction_sets, classical = (
+            self.find_maximal_contained_gridded_cperms()
+        )
 
-        for patt in (
-            self.universe_up_to_size(self.max_patt_size)
-            - maximal_obstruction_sets.keys()
-        ):
+        for patt in classical:
             yield DecoratedPattern(patt, [])
-
         for patt, obstructions in tqdm(
             maximal_obstruction_sets.items(), desc="Computing minimal patterns avoided"
         ):
-            # do in parallel?
+            # Do in parallel?
+            ob_sets = [
+                frozenset(
+                    chain.from_iterable(
+                        ob.sub_gridded_cayley_perms(i)
+                        for i in range(self.max_patt_size + 1)
+                    )
+                )
+                for ob in obstructions
+            ]
+
             vertices = set()
             edges = set()
             gp_label: dict[GriddedCayleyPerm, int] = {}
             label_gp: dict[int, GriddedCayleyPerm] = {}
-            for ob_set in obstructions:
+            for ob_set in ob_sets:
                 edge = []
                 for gp in ob_set:
                     if gp not in gp_label:
@@ -114,35 +122,37 @@ class DecoratedPatternFinder(AbstractPatternFinder):
 
     def find_maximal_contained_gridded_cperms(
         self,
-    ) -> dict[CayleyPermutation, set[frozenset[GriddedCayleyPerm]]]:
+    ) -> tuple[
+        defaultdict[CayleyPermutation, set[GriddedCayleyPerm]],
+        set[tuple[int, ...]],
+    ]:
         """
         Return the maximal sets of obstructions contained in the avoiders, sorted
         by the underlying patterns.
         """
         contained_obstructions: defaultdict[
-            CayleyPermutation, set[frozenset[GriddedCayleyPerm]]
+            CayleyPermutation, set[GriddedCayleyPerm]
         ] = defaultdict(set)
+        classical_patterns = set(self.universe_up_to_size(self.max_patt_size))
+        ignore = set()
         for word in tqdm(self.all_avoiders(), desc="computing candidate patterns"):
             # do in parallel? Inner loop handled in parent process.
             for cperm, obstructions in self.find_contained_gridded_perms(word).items():
-                sets_to_remove = set()
-                to_add = True
-                for other_obstructions in contained_obstructions[cperm]:
-                    if self.requirement_implies_requirement(
-                        other_obstructions, obstructions
-                    ):
-                        # containing other_obstructions implies containing obstructions
-                        to_add = False
-                        break
-                    if self.requirement_implies_requirement(
-                        obstructions, other_obstructions
-                    ):
-                        # containing obstructions implies containing other_obstructions
-                        sets_to_remove.add(other_obstructions)
-                if to_add:
-                    contained_obstructions[cperm] -= sets_to_remove
-                    contained_obstructions[cperm].add(frozenset(obstructions))
-        return contained_obstructions
+                if cperm in classical_patterns:
+                    classical_patterns.remove(cperm)
+                if cperm in ignore:
+                    continue
+
+                if obstructions == frozenset([GriddedCayleyPerm([], [])]):
+                    ignore.add(cperm)
+                    if cperm in contained_obstructions:
+                        contained_obstructions.pop(cperm)
+                    continue
+
+                for gp in obstructions:
+                    if gp.avoids(contained_obstructions[cperm]):
+                        contained_obstructions[cperm].add(gp)
+        return contained_obstructions, classical_patterns
 
     @staticmethod
     def requirement_implies_requirement(
@@ -173,8 +183,8 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                     cell for idx, cell in enumerate(gridding) if idx not in indices
                 ]
                 gcp = GriddedCayleyPerm(complement_cperm, complement_gridding)
-                for k in range(1, self.max_obstruction_size + 1):
-                    res[cperm] |= gcp.sub_gridded_cayley_perms(k)
+                if gcp.avoids(res[cperm]):
+                    res[cperm].add(gcp)
         return res
 
 

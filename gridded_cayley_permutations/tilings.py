@@ -362,6 +362,13 @@ class Tiling(CombinatorialClass):
         )
         return self.add_obstructions(req_list).is_empty()
 
+    def row_is_positive(self, row: int):
+        req_list = tuple(
+            GriddedCayleyPerm(CayleyPermutation([0]), [cell])
+            for cell in self.cells_in_row(row)
+        )
+        return self.add_obstructions(req_list).is_empty()
+
     # Fusion methods
 
     def fuse(self, fuse_rows: bool, index: int) -> "Tiling":

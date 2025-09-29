@@ -362,7 +362,8 @@ class Tiling(CombinatorialClass):
         )
         return self.add_obstructions(req_list).is_empty()
 
-    def row_is_positive(self, row: int):
+    def row_is_positive(self, row: int) -> bool:
+        """Return true if the row must contain at least one point."""
         req_list = tuple(
             GriddedCayleyPerm(CayleyPermutation([0]), [cell])
             for cell in self.cells_in_row(row)

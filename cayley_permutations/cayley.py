@@ -703,18 +703,18 @@ class CayleyPermutation(tuple[int, ...]):
             return True
         return False
 
-    def is_canonical(self) -> bool:
-        """Returns true if the Cayley permutation is canonical.
-        To be in canonical form, any number in the Cayley permutation must have
+    def is_rgf(self) -> bool:
+        """Returns true if the Cayley permutation is an RGF.
+        To be an RGF, any number in the Cayley permutation must have
         every number smaller than it at smaller indices.
 
         Example:
-        >>> CayleyPermutation([0, 1, 2, 1, 0]).is_canonical()
+        >>> CayleyPermutation([0, 1, 2, 1, 0]).is_rgf()
         True
-        >>> CayleyPermutation([1, 2, 1, 0]).is_canonical()
+        >>> CayleyPermutation([1, 2, 1, 0]).is_rgf()
         False
         """
-        if len(self) == 0:
+        if len(self) == 0 or len(self) == 1:
             return True
         max_val = max(self)
         for i in range(max_val + 1):
@@ -723,6 +723,18 @@ class CayleyPermutation(tuple[int, ...]):
                     return False
                 if val == i:
                     break
+        return True
+
+    def is_rgf_of_matching(self) -> bool:
+        """Returns true if the Cayley permutations is an RGF
+        of a matching - if every numjber appears exactly twice."""
+        if len(self) == 0:
+            return True
+        if not self.is_rgf():
+            return False
+        for i in range(max(self) + 1):
+            if self.count(i) != 2:
+                return False
         return True
 
     def as_canonical(self) -> Iterator["CayleyPermutation"]:

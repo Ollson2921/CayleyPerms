@@ -91,9 +91,18 @@ class DecoratedPatternFinder(AbstractPatternFinder):
 
         return [patt_list[idx] for idx in basis_indices]
 
-    def find_minimal_patterns_avoided(self) -> Iterator[DecoratedPattern]:
+    def find_minimal_patterns_avoided(
+        self, max_workers: Optional[int] = None
+    ) -> Iterator[DecoratedPattern]:
         """
-        Compute the minimal set of patterns to those contained in avoiders
+        Compute the minimal set of patterns to those contained in avoiders.
+
+        This function initializes a ProcessPoolExecutor instance.
+
+        Args:
+            max_workers: The maximum number of processes that can be used to
+                execute the given calls. If None or not given then as many
+                worker processes will be created as the machine has processors.
         """
         maximal_obstruction_sets, classical = (
             self.find_maximal_contained_gridded_cperms()
@@ -102,7 +111,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         for patt in classical:
             yield DecoratedPattern(patt, [])
 
-        with ProcessPoolExecutor(max_workers=8) as executor:
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
             futures = [
                 executor.submit(self._process_pattern, patt, obstructions)
                 for patt, obstructions in maximal_obstruction_sets.items()

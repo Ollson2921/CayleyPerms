@@ -22,6 +22,8 @@ from mesh_patterns.bisc import (
 
 from .decorated_pattern import DecoratedPattern
 
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
 
 class DecoratedPatternFinder(AbstractPatternFinder):
     """
@@ -75,11 +77,11 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                     gridding = DecoratedPattern.gridding_of_occurrence(word, occ)
                     occ_patt = CayleyPermutation.standardise(word[i] for i in occ)
                     for patt_idx in patt_indices:
+                        if idx in subsets_left[patt_idx]:
+                            continue
                         patt = patt_list[patt_idx]
-                        if (
-                            patt.cperm == occ_patt
-                            and idx not in subsets_left[patt_idx]
-                            and patt._avoids_obstructions(word, gridding)
+                        if patt.cperm == occ_patt and patt._avoids_obstructions(
+                            word, gridding
                         ):
                             subsets_left[patt_idx].add(idx)
 
@@ -99,10 +101,22 @@ class DecoratedPatternFinder(AbstractPatternFinder):
 
         for patt in classical:
             yield DecoratedPattern(patt, [])
-        for patt, obstructions in tqdm(
-            maximal_obstruction_sets.items(), desc="Computing minimal patterns avoided"
-        ):
-            # Do in parallel?
+
+        with ProcessPoolExecutor(max_workers=8) as executor:
+            futures = [
+                executor.submit(self._process_pattern, patt, obstructions)
+                for patt, obstructions in maximal_obstruction_sets.items()
+            ]
+            for future in tqdm(
+                as_completed(futures),
+                total=len(maximal_obstruction_sets),
+                desc="Computing minimal patterns avoided",
+            ):
+                for result in future.result():
+                    yield result
+
+    def _process_pattern(self, patt, obstructions):
+        def process_pattern(patt, obstructions) -> Iterator[DecoratedPattern]:
             ob_sets = [
                 frozenset(
                     chain.from_iterable(
@@ -130,6 +144,8 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                 obs = [label_gp[v] for v in gp_labels]
                 yield DecoratedPattern(patt, obs)
 
+        return list(process_pattern(patt, obstructions))
+
     def find_maximal_contained_gridded_cperms(
         self,
     ) -> tuple[
@@ -145,7 +161,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         ] = defaultdict(set)
         classical_patterns = set(self.universe_up_to_size(self.max_patt_size))
         ignore = set()
-        for word in tqdm(self.all_avoiders(), desc="computing candidate patterns"):
+        for word in tqdm(self.all_avoiders(), desc="Computing candidate patterns"):
             # do in parallel? Inner loop handled in parent process.
             for cperm, obstructions in self.find_contained_gridded_perms(word).items():
                 if cperm in classical_patterns:

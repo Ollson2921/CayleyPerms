@@ -57,27 +57,37 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         minimal_patterns_not_contained = self.find_minimal_patterns_avoided()
         patts = self.minimal_patterns(minimal_patterns_not_contained)
 
-        containers = self.all_containers()
-        container_labels: dict[tuple[int, ...], int] = {}
-        for word in containers:
-            container_labels[word] = len(container_labels)
+        containers = list(self.all_containers())
+        patt_list = list(patts)
+        subsets_left: list[set[int]] = [set() for _ in range(len(patt_list))]
 
-        label_to_patt: dict[int, DecoratedPattern] = {}
-        subsets_left = []
-        for patt in tqdm(patts, desc="Computing container sets"):
-            # do in parallel?
-            label = len(label_to_patt)
-            label_to_patt[label] = patt
-            patt_containers = set(
-                container_labels[word]
-                for word in containers
-                if patt.contained_by_word(word)
-            )
-            subsets_left.append((label, patt_containers))
+        patt_by_size: defaultdict[int, list[int]] = defaultdict(list)
+        for idx, patt in enumerate(patt_list):
+            patt_by_size[len(patt)].append(idx)
 
-        basis_labels = self.set_cover(container_labels.values(), subsets_left)
+        for idx, word in tqdm(
+            enumerate(containers),
+            desc="Computing container sets",
+            total=len(containers),
+        ):
+            for size, patt_indices in patt_by_size.items():
+                for occ in combinations(range(len(word)), size):
+                    gridding = DecoratedPattern.gridding_of_occurrence(word, occ)
+                    occ_patt = CayleyPermutation.standardise(word[i] for i in occ)
+                    for patt_idx in patt_indices:
+                        patt = patt_list[patt_idx]
+                        if (
+                            patt.cperm == occ_patt
+                            and idx not in subsets_left[patt_idx]
+                            and patt._avoids_obstructions(word, gridding)
+                        ):
+                            subsets_left[patt_idx].add(idx)
 
-        return [label_to_patt[label] for label in basis_labels]
+        basis_indices = self.set_cover(
+            list(range(len(containers))), list(enumerate(subsets_left))
+        )
+
+        return [patt_list[idx] for idx in basis_indices]
 
     def find_minimal_patterns_avoided(self) -> Iterator[DecoratedPattern]:
         """

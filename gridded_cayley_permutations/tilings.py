@@ -539,7 +539,9 @@ class Tiling(CombinatorialClass):
         return True
 
     def minimum_size_of_object(self) -> int:
-        assert not self.is_empty()
+        """Or a lower bound."""
+        if self.is_empty():
+            return 0
         i = 0
         while True:
             for _ in self.objects_of_size(i):

@@ -1,6 +1,7 @@
 """This module contains the class Av which
 generates Cayley permutations avoiding a given basis."""
 
+from typing import Iterable
 from .cayley import CayleyPermutation
 
 
@@ -9,7 +10,7 @@ class Av:
     Generates Cayley permutations avoiding the input.
     """
 
-    def __init__(self, basis: list[CayleyPermutation]):
+    def __init__(self, basis: Iterable[CayleyPermutation]):
         """Cache is a list of dictionaries. The nth dictionary contains the Cayley
         permutations of size n which avoid the basis and a tuple of lists.
         The  first list is the indices where a new maximum can be inserted

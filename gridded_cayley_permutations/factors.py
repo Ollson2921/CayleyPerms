@@ -79,6 +79,13 @@ class Factors:
             self.tiling.sub_tiling(factor, simplify=False) for factor in factors
         )
 
+    def rgf_find_factors(self):
+        """Find factors for RGF."""
+        for cell in self.tiling.active_cells() - self.tiling.point_cells():
+            for cell2 in self.tiling.active_cells() - self.tiling.point_cells():
+                self.combine_cells(cell, cell2)
+        return self.find_factors()
+
     def find_factors_as_cells(self) -> tuple[tuple[tuple[int, int], ...], ...]:
         """Return the factors of the tiling as cells."""
         self.combine_cells_in_row_or_col()

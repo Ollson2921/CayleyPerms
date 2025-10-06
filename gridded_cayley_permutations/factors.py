@@ -81,8 +81,8 @@ class Factors:
 
     def rgf_find_factors(self):
         """Find factors for RGF."""
-        for cell in self.tiling.active_cells() - self.tiling.point_cells():
-            for cell2 in self.tiling.active_cells() - self.tiling.point_cells():
+        for cell in self.tiling.active_cells - self.tiling.point_cells():
+            for cell2 in self.tiling.active_cells - self.tiling.point_cells():
                 self.combine_cells(cell, cell2)
         return self.find_factors()
 

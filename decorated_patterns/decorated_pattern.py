@@ -27,10 +27,12 @@ class DecoratedPattern:
 
     def __init__(self, cperm: Iterable[int], obstructions: Iterable[GriddedCayleyPerm]):
         self.cperm = CayleyPermutation(cperm)
+        new_obs = tuple(obstructions)
         self.tiling = Tiling(
-            self._obs_to_add.union(obstructions),
+            self._obs_to_add.union(new_obs),
             self._reqs_to_add,
             self.dimensions,
+            simplify=bool(new_obs),
         )
 
     @cached_property

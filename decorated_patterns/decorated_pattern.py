@@ -27,10 +27,12 @@ class DecoratedPattern:
 
     def __init__(self, cperm: Iterable[int], obstructions: Iterable[GriddedCayleyPerm]):
         self.cperm = CayleyPermutation(cperm)
+        new_obs = tuple(obstructions)
         self.tiling = Tiling(
-            self._obs_to_add.union(obstructions),
+            self._obs_to_add.union(new_obs),
             self._reqs_to_add,
             self.dimensions,
+            simplify=bool(new_obs),
         )
 
     @cached_property
@@ -87,7 +89,7 @@ class DecoratedPattern:
         """
         for occ in self.cperm.occurrences_in(word):
             gridding = self.gridding_of_occurrence(word, occ)
-            if self._avoids_obstructions(word, gridding):
+            if self.avoids_obstructions(word, gridding):
                 yield occ
 
     def contained_by_word(self, word: tuple[int, ...]) -> bool:
@@ -104,9 +106,10 @@ class DecoratedPattern:
         """
         return not self.contained_by_word(word)
 
-    def _avoids_obstructions(
+    def avoids_obstructions(
         self, word: tuple[int, ...], gridding: tuple[tuple[int, int], ...]
     ) -> bool:
+        """Return True if the gridded word avoids the patterns obstructions"""
         return all(self._avoids_ob(ob, word, gridding) for ob in self.obstructions)
 
     @staticmethod
@@ -200,11 +203,19 @@ class DecoratedPattern:
         """The underlying tilings requirements"""
         return self.requirements
 
+    def __hash__(self):
+        return hash((self.cperm, self.obstructions))
+
+    def __eq__(self, other):
+        if isinstance(other, DecoratedPattern):
+            return self.cperm == other.cperm and self.obstructions == other.obstructions
+        return NotImplemented
+
     def __len__(self):
         return len(self.cperm)
 
     def __repr__(self):
-        return f"DecoratedTiling({repr(self.cperm)}, {repr(tuple(sorted(self.extra_obs)))})"
+        return f"DecoratedPattern({repr(self.cperm)}, {repr(tuple(sorted(self.extra_obs)))})"
 
     def __str__(self):
         res = self.cperm.ascii_plot()

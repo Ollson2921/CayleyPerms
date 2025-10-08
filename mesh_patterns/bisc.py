@@ -55,12 +55,15 @@ class AbstractPatternFinder(abc.ABC):
         """
         return frozenset().union(*(self.universe_of_size(i) for i in range(n + 1)))
 
-    def all_avoiders(self, start: int = 0) -> frozenset[tuple[int, ...]]:
+    def all_avoiders(self, start: int = 0) -> list[tuple[int, ...]]:
         """
         Returns all avoiders of size greater than or equal to start.
         """
-        return frozenset().union(
-            *(self.avoiders[i] for i in range(start, max(self.avoiders.keys()) + 1))
+        return sorted(
+            frozenset().union(
+                *(self.avoiders[i] for i in range(start, max(self.avoiders.keys()) + 1))
+            ),
+            key=len,
         )
 
     def all_containers(self) -> frozenset[tuple[int, ...]]:

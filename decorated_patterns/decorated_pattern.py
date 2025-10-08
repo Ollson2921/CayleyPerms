@@ -203,11 +203,20 @@ class DecoratedPattern:
         """The underlying tilings requirements"""
         return self.requirements
 
+    def __hash__(self):
+        return hash((self.cperm, self.obstructions))
+
+    def __eq__(self, other):
+        if isinstance(other, DecoratedPattern):
+            return self.cperm == other.cperm and self.obstructions == other.obstructions
+        else:
+            return NotImplemented
+
     def __len__(self):
         return len(self.cperm)
 
     def __repr__(self):
-        return f"DecoratedTiling({repr(self.cperm)}, {repr(tuple(sorted(self.extra_obs)))})"
+        return f"DecoratedPattern({repr(self.cperm)}, {repr(tuple(sorted(self.extra_obs)))})"
 
     def __str__(self):
         res = self.cperm.ascii_plot()

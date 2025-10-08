@@ -87,7 +87,7 @@ class DecoratedPattern:
         """
         for occ in self.cperm.occurrences_in(word):
             gridding = self.gridding_of_occurrence(word, occ)
-            if self._avoids_obstructions(word, gridding):
+            if self.avoids_obstructions(word, gridding):
                 yield occ
 
     def contained_by_word(self, word: tuple[int, ...]) -> bool:
@@ -104,9 +104,10 @@ class DecoratedPattern:
         """
         return not self.contained_by_word(word)
 
-    def _avoids_obstructions(
+    def avoids_obstructions(
         self, word: tuple[int, ...], gridding: tuple[tuple[int, int], ...]
     ) -> bool:
+        """Return True if the gridded word avoids the patterns obstructions"""
         return all(self._avoids_ob(ob, word, gridding) for ob in self.obstructions)
 
     @staticmethod

@@ -6,6 +6,7 @@ Output: a set of Cayley decorated patterns P such that Av(P) = S
 from collections import defaultdict
 from itertools import chain, combinations
 from typing import Iterable, Iterator, Optional
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from tqdm import tqdm  # type: ignore
 
@@ -21,8 +22,6 @@ from mesh_patterns.bisc import (
 )
 
 from .decorated_pattern import DecoratedPattern
-
-from concurrent.futures import ProcessPoolExecutor, as_completed
 
 
 class DecoratedPatternFinder(AbstractPatternFinder):
@@ -56,15 +55,13 @@ class DecoratedPatternFinder(AbstractPatternFinder):
         """
         Return a list of decorated patterns P such that Av(P) = avoiders
         """
-        minimal_patterns_not_contained = self.find_minimal_patterns_avoided()
-        patts = self.minimal_patterns(minimal_patterns_not_contained)
+        patts = list(self.minimal_patterns(self.find_minimal_patterns_avoided()))
 
         containers = list(self.all_containers())
-        patt_list = list(patts)
-        subsets_left: list[set[int]] = [set() for _ in range(len(patt_list))]
+        subsets_left: list[set[int]] = [set() for _ in range(len(patts))]
 
         patt_by_size: defaultdict[int, list[int]] = defaultdict(list)
-        for idx, patt in enumerate(patt_list):
+        for idx, patt in enumerate(patts):
             patt_by_size[len(patt)].append(idx)
 
         for idx, word in tqdm(
@@ -79,8 +76,8 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                     for patt_idx in patt_indices:
                         if idx in subsets_left[patt_idx]:
                             continue
-                        patt = patt_list[patt_idx]
-                        if patt.cperm == occ_patt and patt._avoids_obstructions(
+                        patt = patts[patt_idx]
+                        if patt.cperm == occ_patt and patt.avoids_obstructions(
                             word, gridding
                         ):
                             subsets_left[patt_idx].add(idx)
@@ -89,7 +86,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
             list(range(len(containers))), list(enumerate(subsets_left))
         )
 
-        return [patt_list[idx] for idx in basis_indices]
+        return [patts[idx] for idx in basis_indices]
 
     def find_minimal_patterns_avoided(
         self, max_workers: Optional[int] = None
@@ -121,8 +118,7 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                 total=len(maximal_obstruction_sets),
                 desc="Computing minimal patterns avoided",
             ):
-                for result in future.result():
-                    yield result
+                yield from future.result()
 
     def _process_pattern(self, patt, obstructions):
         def process_pattern(patt, obstructions) -> Iterator[DecoratedPattern]:

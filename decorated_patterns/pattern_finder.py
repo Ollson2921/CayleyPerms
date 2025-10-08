@@ -101,9 +101,10 @@ class DecoratedPatternFinder(AbstractPatternFinder):
                 execute the given calls. If None or not given then as many
                 worker processes will be created as the machine has processors.
         """
-        maximal_obstruction_sets, classical = (
-            self.find_maximal_contained_gridded_cperms()
-        )
+        (
+            maximal_obstruction_sets,
+            classical,
+        ) = self.find_maximal_contained_gridded_cperms()
 
         for patt in classical:
             yield DecoratedPattern(patt, [])

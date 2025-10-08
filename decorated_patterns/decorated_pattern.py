@@ -209,8 +209,7 @@ class DecoratedPattern:
     def __eq__(self, other):
         if isinstance(other, DecoratedPattern):
             return self.cperm == other.cperm and self.obstructions == other.obstructions
-        else:
-            return NotImplemented
+        return NotImplemented
 
     def __len__(self):
         return len(self.cperm)

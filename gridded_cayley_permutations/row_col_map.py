@@ -312,6 +312,20 @@ class RowColMap:
         """Return the preimage of the cells."""
         return list(chain.from_iterable(self.preimage_of_cell(cell) for cell in cells))
 
+    def to_jsonable(self) -> dict:
+        return {
+            "row_map": list(self.row_map.items()),
+            "col_map": list(self.col_map.items()),
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "RowColMap":
+        print(d)
+        return RowColMap(
+            col_map={x: y for x, y in d["col_map"]},
+            row_map={x: y for x, y in d["row_map"]},
+        )
+
     def __repr__(self) -> str:
         return f"RowColMap({repr(self.col_map)}, {repr(self.row_map)})"
 

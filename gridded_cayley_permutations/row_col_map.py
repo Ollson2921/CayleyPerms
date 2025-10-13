@@ -320,7 +320,6 @@ class RowColMap:
 
     @classmethod
     def from_dict(cls, d: dict) -> "RowColMap":
-        print(d)
         return RowColMap(
             col_map={x: y for x, y in d["col_map"]},
             row_map={x: y for x, y in d["row_map"]},

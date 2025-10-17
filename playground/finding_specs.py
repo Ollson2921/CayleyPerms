@@ -36,6 +36,8 @@ for basis in bases:
         (1, 1),
     )
     for pack in all_packs:
+        if tuple(basis) in counted:
+            break
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
             spec = searcher.auto_search(max_expansion_time=30)  # increase maxtime

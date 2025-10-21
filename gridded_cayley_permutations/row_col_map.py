@@ -32,6 +32,11 @@ class RowColMap:
         self.row_map = dict(sorted(row_map.items(), key=lambda item: item[1]))
         self.col_map = dict(sorted(col_map.items(), key=lambda item: item[1]))
 
+    def is_identity(self) -> bool:
+        return all(x == y for x, y in self.row_map.items()) and all(
+            x == y for x, y in self.col_map.items()
+        )
+
     def map_gridded_cperm(self, gcp: GriddedCayleyPerm) -> GriddedCayleyPerm:
         """
         Map a gridded Cayley permutation according to the row and column maps.

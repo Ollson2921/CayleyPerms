@@ -413,6 +413,9 @@ class LessThanRowColSeparation:
             yield self.tiling
             return
         row_col_map = self.row_col_map
+        if row_col_map.is_identity():
+            yield self.tiling
+            return
         new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
         new_dimensions = self.new_dimensions
         new_obstructions += self.new_obstructions

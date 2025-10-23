@@ -81,6 +81,30 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
+    def point_placement_initial_place_points(cls):
+        """Point placements strategy pack, place points initially."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+                PointPlacementFactory(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Point Placement initially place points",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
     def point_placement_initial_cell_insertion(cls):
         """Point placements strategy pack with cell insertion
         as an initial strategy."""
@@ -162,10 +186,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    # CellInsertionFactory(),
-                    # PointPlacementFactory(),
+                    CellInsertionFactory(),
                     RowInsertionFactory(),
-                    # ColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[AtomStrategy()],  # Iterable[Strategy]
@@ -188,9 +210,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    # CellInsertionFactory(),
-                    # PointPlacementFactory(),
-                    # RowInsertionFactory(),
+                    CellInsertionFactory(),
                     ColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
@@ -214,8 +234,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    # CellInsertionFactory(),
-                    # PointPlacementFactory(),
+                    CellInsertionFactory(),
                     RowInsertionFactory(),
                     ColInsertionFactory(),
                 ]
@@ -248,6 +267,109 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[AtomStrategy()],  # Iterable[Strategy]
             name="Point, Row and Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def row_placement_initial_cell_insertion(cls):
+        """Row placements strategy pack with cell insertion
+        as an initial strategy."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+                CellInsertionFactory(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    RowInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Row Placement with Cell Insertion initially",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def col_placement_initial_cell_insertion(cls):
+        """Column placements strategy pack with cell insertion
+        as an initial strategy."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+                CellInsertionFactory(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Column Placement with Cell Insertion initially",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def row_and_col_placement_initial_cell_insertion(cls):
+        """Point placements strategy pack with cell insertion
+        as an initial strategy."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+                CellInsertionFactory(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    RowInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Row and Column Placement with Cell Insertion initially",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def point_row_and_col_placement_initial_cell_insertion(cls):
+        """Point, row and column placements strategy pack with cell insertion
+        as an initial strategy."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+                CellInsertionFactory(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    PointPlacementFactory(),
+                    RowInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Point, Row and Column Placement with Cell Insertion initially",
             symmetries=[],
             iterative=False,
         )

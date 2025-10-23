@@ -13,6 +13,8 @@ from .strategies import (
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
+    RowInsertionFactory,
+    ColInsertionFactory,
 )
 
 
@@ -246,6 +248,23 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[AtomStrategy()],  # Iterable[Strategy]
             name="Point, Row and Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def cell_insertion(cls):
+        """Cell insertion strategy pack."""
+        return TileScopePack(
+            inferral_strats=[],  # Iterable[Strategy]
+            initial_strats=[],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Cell Insertion",
             symmetries=[],
             iterative=False,
         )

@@ -21,8 +21,8 @@ all_packs = [
     TileScopePack.point_placements_shuffle(),
 ]
 
-# The file containing bases to run
-with open("to_run.txt", "r") as f:
+# The to_run folder contains files with bases to run
+with open("to_run/to_run_3.txt", "r") as f:
     bases = eval(f.readline())
 
 counted = set()

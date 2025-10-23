@@ -5,8 +5,10 @@ from .strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
     FactorStrategy,
     ShuffleFactorStrategy,
-    InsertionEncodingRequirementInsertionFactory,
-    InsertionEncodingPlacementFactory,
+    VerticalInsertionEncodingPlacementFactory,
+    VerticalInsertionEncodingRequirementInsertionFactory,
+    HorizontalInsertionEncodingPlacementFactory,
+    HorizontalInsertionEncodingRequirementInsertionFactory,
     CellInsertionFactory,
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
@@ -21,19 +23,33 @@ class TileScopePack(StrategyPack):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def insertion_encoding(cls):
-        """Insertion encoding strategy pack."""
+    def vertical_insertion_encoding(self):
+        """Vertical insertion encoding strategy pack."""
         return TileScopePack(
             initial_strats=[
                 FactorStrategy(),
-                InsertionEncodingRequirementInsertionFactory(),
-            ],  # Iterable[Strategy]
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],  # Iterable[Strategy]
-            expansion_strats=[
-                [InsertionEncodingPlacementFactory()]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
-            name="Insertion Encoding",
+                VerticalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[VerticalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="Vertical Insertion Encoding",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def horizontal_insertion_encoding(self):
+        """Horizontal insertion encoding strategy pack."""
+        return TileScopePack(
+            initial_strats=[
+                FactorStrategy(),
+                HorizontalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[HorizontalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="Horizontal Insertion Encoding",
             symmetries=[],
             iterative=False,
         )

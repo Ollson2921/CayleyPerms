@@ -25,7 +25,7 @@ class TileScopePack(StrategyPack):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def vertical_insertion_encoding(self):
+    def vertical_insertion_encoding(cls):
         """Vertical insertion encoding strategy pack."""
         return TileScopePack(
             initial_strats=[
@@ -41,7 +41,7 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
-    def horizontal_insertion_encoding(self):
+    def horizontal_insertion_encoding(cls):
         """Horizontal insertion encoding strategy pack."""
         return TileScopePack(
             initial_strats=[

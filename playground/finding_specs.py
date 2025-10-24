@@ -14,11 +14,18 @@ import json
 # All packs to try
 all_packs = [
     TileScopePack.point_placement(),
+    TileScopePack.point_placement_initial_place_points(),
+    TileScopePack.point_placement_initial_cell_insertion(),
+    TileScopePack.point_placements_shuffle(),
+    TileScopePack.point_placements_shuffle_initial_cell_insertion(),
     TileScopePack.row_placement(),
     TileScopePack.col_placement(),
     TileScopePack.row_and_col_placement(),
     TileScopePack.point_row_and_col_placement(),
-    TileScopePack.point_placements_shuffle(),
+    TileScopePack.row_placement_initial_cell_insertion(),
+    TileScopePack.col_placement_initial_cell_insertion(),
+    TileScopePack.row_and_col_placement_initial_cell_insertion(),
+    TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
 ]
 
 # The to_run folder contains files with bases to run
@@ -40,7 +47,7 @@ for basis in bases:
             break
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
-            spec = searcher.auto_search(max_expansion_time=30)  # increase maxtime
+            spec = searcher.auto_search(max_expansion_time=36000)  # set maxtime
             spec_count = [spec.count_objects_of_size(n) for n in range(10)]
             brute_force_count = Av(basis).counter(9)
             json_spec = json.dumps(spec.to_jsonable())
@@ -69,4 +76,7 @@ with open("wrong_counts.txt", "w") as f:
 with open("didnt_compute.txt", "w") as f:
     f.write(repr(didnt_compute))
 
-print(len(counted), "basis computed correctly.")
+"""Makes a file with a list of bases which did compute with any pack."""
+with open("did_compute.txt", "w") as f:
+    f.write(repr(counted))
+    f.write(f"Basis computed correctly: {len(counted)}")

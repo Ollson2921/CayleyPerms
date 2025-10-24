@@ -130,6 +130,110 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
+    def row_placement(cls):
+        """Row placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    # CellInsertionFactory(),
+                    # PointPlacementFactory(),
+                    RowInsertionFactory(),
+                    # ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Row Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def col_placement(cls):
+        """Column placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    # CellInsertionFactory(),
+                    # PointPlacementFactory(),
+                    # RowInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def row_and_col_placement(cls):
+        """Point placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    # CellInsertionFactory(),
+                    # PointPlacementFactory(),
+                    RowInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Row and Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def point_row_and_col_placement(cls):
+        """Point, row and column placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                    PointPlacementFactory(),
+                    RowInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            name="Point, Row and Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
     def point_placements_shuffle(cls):
         """Point placements with shuffle strategy pack."""
         return TileScopePack(

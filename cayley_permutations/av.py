@@ -42,10 +42,10 @@ class Av:
 
         Examples:
         >>> Av([CayleyPermutation([0, 1]), CayleyPermutation([1, 0])]).generate_cperms(3)
-        [000]
+        [CayleyPermutation((0, 0, 0))]
 
         >>> Av([CayleyPermutation([0, 0]), CayleyPermutation([1, 0])]).generate_cperms(4)
-        [0123]
+        [CayleyPermutation((0, 1, 2, 3))]
         """
         if size == 0:
             return [CayleyPermutation([])]
@@ -100,7 +100,7 @@ class CanonicalAv(Av):
 
         Example:
         >>> print(CanonicalAv([CayleyPermutation([1, 0])]).get_canonical_basis())
-        [010]
+        [CayleyPermutation((0, 1, 0))]
         """
         basis: set[CayleyPermutation] = set()
         for cperm in self.basis:

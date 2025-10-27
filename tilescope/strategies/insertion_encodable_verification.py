@@ -1,4 +1,4 @@
-"""Strategy for verifying when a tiling has no parameters."""
+"""Strategy for verifying when a tiling is insertion encodable."""
 
 from typing import Optional, Type, TypeVar
 from comb_spec_searcher import VerificationStrategy
@@ -28,10 +28,10 @@ class HorizontalInsertionEncodableVerificationStrategy(
 
     def __init__(
         self,
-        rootmt: Optional[Tiling] = None,
+        root: Optional[Tiling] = None,
         ignore_parent: bool = False,
     ):
-        self._rootmt: Optional[Tiling] = rootmt
+        self._root: Optional[Tiling] = root
         super().__init__(ignore_parent=ignore_parent)
 
     def change_root(
@@ -45,9 +45,9 @@ class HorizontalInsertionEncodableVerificationStrategy(
         return self.__class__(tiling, self.ignore_parent)
 
     @property
-    def rootmt(self) -> Optional[Tiling]:
+    def root(self) -> Optional[Tiling]:
         """The root tiling."""
-        return self._rootmt
+        return self._root
 
     def pack(self, comb_class):
         # pylint: disable=import-outside-toplevel
@@ -73,24 +73,24 @@ class HorizontalInsertionEncodableVerificationStrategy(
 
     def to_jsonable(self) -> dict:
         d: dict = super().to_jsonable()
-        if self._rootmt is not None:
-            d["rootmt"] = self._rootmt.to_jsonable()
+        if self._root is not None:
+            d["root"] = self._root.to_jsonable()
         return d
 
     @classmethod
     def from_dict(
         cls: Type[HorizontalInsertionEncodableVerificationStrategyT], d: dict
     ) -> HorizontalInsertionEncodableVerificationStrategyT:
-        if "rootmt" in d and d["rootmt"] is not None:
-            rootmt: Optional[Tiling] = Tiling.from_dict(d.pop("rootmt"))
+        if "root" in d and d["root"] is not None:
+            root: Optional[Tiling] = Tiling.from_dict(d.pop("root"))
         else:
-            rootmt = d.pop("rootmt", None)
-        return cls(rootmt=rootmt, **d)
+            root = d.pop("root", None)
+        return cls(root=root, **d)
 
     def __repr__(self) -> str:
         args = ", ".join(
             [
-                f"root tiling={self._rootmt}",
+                f"root tiling={self._root}",
                 f"ignore_parent={self.ignore_parent}",
             ]
         )

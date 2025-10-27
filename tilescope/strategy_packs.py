@@ -11,7 +11,9 @@ from .strategies import (
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
+    SubclassVerificationStrategy,
 )
+from gridded_cayley_permutations import Tiling
 
 
 class TileScopePack(StrategyPack):
@@ -58,7 +60,38 @@ class TileScopePack(StrategyPack):
                     # ColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+            ver_strats=[
+                AtomStrategy(),
+            ],  # Iterable[Strategy]
+            name="Point Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def point_placement_subclass_ver_strat(cls, root: Tiling):
+        """Point placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                    PointPlacementFactory(),
+                    # RowInsertionFactory(),
+                    # ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[
+                AtomStrategy(),
+                SubclassVerificationStrategy(root),
+            ],  # Iterable[Strategy]
             name="Point Placement",
             symmetries=[],
             iterative=False,

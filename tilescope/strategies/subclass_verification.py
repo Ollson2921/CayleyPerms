@@ -38,7 +38,7 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
         """The root tiling."""
         return self._root
 
-    def pack(self):
+    def pack(self, comb_class):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack
@@ -46,9 +46,8 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
         return TileScopePack.point_placement()
 
     def verified(self, comb_class: Tiling) -> bool:
-        if (
-            comb_class.dimensions[0] == 1 == comb_class.dimensions[1]
-            and comb_class.obstructions != self.root.obstructions
+        if comb_class.dimensions[0] == 1 == comb_class.dimensions[1] and (
+            self.root is not None and comb_class.obstructions != self.root.obstructions
         ):
             return True
         return False

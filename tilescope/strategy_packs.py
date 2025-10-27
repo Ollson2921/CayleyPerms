@@ -1,6 +1,7 @@
 """Module containing various strategy packs for running TileScope."""
 
 from comb_spec_searcher import StrategyPack, AtomStrategy
+from gridded_cayley_permutations import Tiling
 from .strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
     FactorStrategy,
@@ -13,7 +14,6 @@ from .strategies import (
     LessThanOrEqualRowColSeparationStrategy,
     SubclassVerificationStrategy,
 )
-from gridded_cayley_permutations import Tiling
 
 
 class TileScopePack(StrategyPack):

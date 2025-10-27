@@ -69,7 +69,7 @@ class HorizontalInsertionEncodableVerificationStrategy(
         return False
 
     def formal_step(self):
-        return "The tiling is horizontal insertion encodable."
+        return "The tiling is horizontal insertion encodable"
 
     def to_jsonable(self) -> dict:
         d: dict = super().to_jsonable()
@@ -124,4 +124,4 @@ class VerticalInsertionEncodableVerificationStrategy(
         return False
 
     def formal_step(self):
-        return "The tiling is vertical insertion encodable."
+        return "The tiling is vertical insertion encodable"

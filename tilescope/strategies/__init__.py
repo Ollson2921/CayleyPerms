@@ -22,6 +22,10 @@ from .row_column_separation import (
 )
 
 from .fusion import FusionFactory, FusionStrategy
+from .insertion_encodable_verification import (
+    HorizontalInsertionEncodableVerificationStrategy,
+    VerticalInsertionEncodableVerificationStrategy,
+)
 
 __all__ = (
     "RequirementInsertionStrategy",
@@ -42,4 +46,6 @@ __all__ = (
     "LessThanRowColSeparationStrategy",
     "FusionFactory",
     "FusionStrategy",
+    "HorizontalInsertionEncodableVerificationStrategy",
+    "VerticalInsertionEncodableVerificationStrategy",
 )

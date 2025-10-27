@@ -2,12 +2,14 @@
 
 from .requirement_insertions import (
     RequirementInsertionStrategy,
-    InsertionEncodingRequirementInsertionFactory,
+    VerticalInsertionEncodingRequirementInsertionFactory,
+    HorizontalInsertionEncodingRequirementInsertionFactory,
     CellInsertionFactory,
 )
 from .point_placements import (
     RequirementPlacementStrategy,
-    InsertionEncodingPlacementFactory,
+    VerticalInsertionEncodingPlacementFactory,
+    HorizontalInsertionEncodingPlacementFactory,
     PointPlacementFactory,
     RowInsertionFactory,
     ColInsertionFactory,
@@ -20,13 +22,19 @@ from .row_column_separation import (
 )
 
 from .fusion import FusionFactory, FusionStrategy
+from .insertion_encodable_verification import (
+    HorizontalInsertionEncodableVerificationStrategy,
+    VerticalInsertionEncodableVerificationStrategy,
+)
 
 __all__ = (
     "RequirementInsertionStrategy",
-    "InsertionEncodingRequirementInsertionFactory",
+    "VerticalInsertionEncodingRequirementInsertionFactory",
+    "HorizontalInsertionEncodingRequirementInsertionFactory",
     "CellInsertionFactory",
     "RequirementPlacementStrategy",
-    "InsertionEncodingPlacementFactory",
+    "VerticalInsertionEncodingPlacementFactory",
+    "HorizontalInsertionEncodingPlacementFactory",
     "PointPlacementFactory",
     "RowInsertionFactory",
     "CellInsertionFactory",
@@ -38,4 +46,6 @@ __all__ = (
     "LessThanRowColSeparationStrategy",
     "FusionFactory",
     "FusionStrategy",
+    "HorizontalInsertionEncodableVerificationStrategy",
+    "VerticalInsertionEncodableVerificationStrategy",
 )

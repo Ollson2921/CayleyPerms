@@ -12,31 +12,40 @@ from tilescope import TileScopePack
 import json
 
 # All packs to try
+# all_packs = [
+#     TileScopePack.point_placement(),
+#     TileScopePack.point_placement_initial_place_points(),
+#     TileScopePack.point_placement_initial_cell_insertion(),
+#     TileScopePack.point_placements_shuffle(),
+#     TileScopePack.point_placements_shuffle_initial_cell_insertion(),
+#     TileScopePack.row_placement(),
+#     TileScopePack.col_placement(),
+#     TileScopePack.row_and_col_placement(),
+#     TileScopePack.point_row_and_col_placement(),
+#     TileScopePack.row_placement_initial_cell_insertion(),
+#     TileScopePack.col_placement_initial_cell_insertion(),
+#     TileScopePack.row_and_col_placement_initial_cell_insertion(),
+#     TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
+# ]
 all_packs = [
     TileScopePack.point_placement(),
-    TileScopePack.point_placement_initial_place_points(),
-    TileScopePack.point_placement_initial_cell_insertion(),
-    TileScopePack.point_placements_shuffle(),
-    TileScopePack.point_placements_shuffle_initial_cell_insertion(),
-    TileScopePack.row_placement(),
-    TileScopePack.col_placement(),
-    TileScopePack.row_and_col_placement(),
-    TileScopePack.point_row_and_col_placement(),
-    TileScopePack.row_placement_initial_cell_insertion(),
-    TileScopePack.col_placement_initial_cell_insertion(),
-    TileScopePack.row_and_col_placement_initial_cell_insertion(),
-    TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
 ]
 
+basis_desc = "4x1" # change descriptor to change file
+
 # The to_run folder contains files with bases to run
-with open("to_run/to_run_3.txt", "r") as f:
+with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
+
+bases_to_run = bases # can take a subset of the bases in the file
 
 counted = set()
 wrong_counts = []
 didnt_compute = []
+total = len(bases_to_run)
+n = 0
 
-for basis in bases:
+for basis in bases_to_run:
     tiling = Tiling(
         [GriddedCayleyPerm(p, [(0, 0) for _ in p]) for p in basis],
         [],
@@ -47,17 +56,17 @@ for basis in bases:
             break
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
-            spec = searcher.auto_search(max_expansion_time=36000)  # set maxtime
+            spec = searcher.auto_search(max_expansion_time=1800)  # set maxtime
             spec_count = [spec.count_objects_of_size(n) for n in range(10)]
             brute_force_count = Av(basis).counter(9)
             json_spec = json.dumps(spec.to_jsonable())
             if spec_count == brute_force_count:
                 counted.add(tuple(basis))
-                with open(f"specs/{basis}_{pack.name}.json", "w") as f:
+                with open(f"specs/{basis_desc}/{basis}_{pack.name}.json", "w") as f:
                     f.write(json_spec)
             else:
                 wrong_counts.append((basis, pack.name))
-                with open(f"wrong_counts/{basis}_{pack.name}.json", "w") as f:
+                with open(f"wrong_counts/{basis_desc}/{basis}_{pack.name}.json", "w") as f:
                     f.write(json_spec)
         except Exception as e:
             print(f"Didn't compute {basis} with {pack.name}: {e}")
@@ -65,18 +74,23 @@ for basis in bases:
     basis = tuple(basis)
     if basis not in counted:
         didnt_compute.append(basis)
+    n+=1
+    print(f"Computed {n}/{total}")
+    print(f"Counted: {len(counted)}")
+    print(f"Didn't compute: {len(didnt_compute)}")
 
 """Makes a file with a list of tuples where each tuple has a basis and a pack which
 failed to count correctly. Each of these should have a corresponding json spec in
 the wrong_counts folder."""
-with open("wrong_counts.txt", "w") as f:
+with open(f"summaries/wrong_counts_{basis_desc}.txt", "w") as f:
     f.write(repr(wrong_counts))
 
 """Makes a file with a list of bases which didn't compute with any pack."""
-with open("didnt_compute.txt", "w") as f:
+with open(f"summaries/didnt_compute_{basis_desc}.txt", "w") as f:
     f.write(repr(didnt_compute))
+    f.write(f"Basis didn't compute: {len(didnt_compute)}")
 
 """Makes a file with a list of bases which did compute with any pack."""
-with open("did_compute.txt", "w") as f:
+with open(f"summaries/did_compute_{basis_desc}.txt", "w") as f:
     f.write(repr(counted))
     f.write(f"Basis computed correctly: {len(counted)}")

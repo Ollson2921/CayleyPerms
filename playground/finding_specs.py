@@ -37,8 +37,8 @@ basis_desc = "3s_4x1" # change descriptor to change file
 with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-bases_to_run = bases[2800:3000] # can take a subset of the bases in the file
-part = 22
+bases_to_run = bases[2000:2200] # can take a subset of the bases in the file
+part = 18
 
 counted = set()
 wrong_counts = []
@@ -57,7 +57,7 @@ for basis in bases_to_run:
             break
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
-            spec = searcher.auto_search(max_expansion_time=600)  # set maxtime
+            spec = searcher.auto_search(max_expansion_time=1800)  # set maxtime
             spec_count = [spec.count_objects_of_size(n) for n in range(10)]
             brute_force_count = Av(basis).counter(9)
             json_spec = json.dumps(spec.to_jsonable())

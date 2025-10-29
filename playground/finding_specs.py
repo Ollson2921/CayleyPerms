@@ -37,8 +37,8 @@ basis_desc = "3s_4x1" # change descriptor to change file
 with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-bases_to_run = bases[4500:5000] # can take a subset of the bases in the file
-part = 29
+bases_to_run = bases[2800:3000] # can take a subset of the bases in the file
+part = 22
 
 counted = set()
 wrong_counts = []
@@ -89,9 +89,9 @@ with open(f"summaries/wrong_counts_{basis_desc}_part_{part}.txt", "w") as f:
 """Makes a file with a list of bases which didn't compute with any pack."""
 with open(f"summaries/didnt_compute_{basis_desc}_part_{part}.txt", "w") as f:
     f.write(repr(didnt_compute))
-    f.write(f"Basis didn't compute: {len(didnt_compute)}")
+    f.write(f"\nBasis didn't compute: {len(didnt_compute)}")
 
 """Makes a file with a list of bases which did compute with any pack."""
 with open(f"summaries/did_compute_{basis_desc}_part_{part}.txt", "w") as f:
     f.write(repr(counted))
-    f.write(f"Basis computed correctly: {len(counted)}")
+    f.write(f"\nBasis computed correctly: {len(counted)}")

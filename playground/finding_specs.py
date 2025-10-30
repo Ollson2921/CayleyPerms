@@ -37,8 +37,8 @@ basis_desc = "3s_4x1" # change descriptor to change file
 with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-bases_to_run = bases[400:500] # can take a subset of the bases in the file
-part = 7
+bases_to_run = bases[150:200] # can take a subset of the bases in the file
+part = 4
 
 counted = set()
 wrong_counts = []
@@ -77,6 +77,7 @@ for basis in bases_to_run:
     if basis not in counted:
         didnt_compute.append(basis)
     n+=1
+    print(f"Running {basis_desc}, part {part}")
     print(f"Tried {n}/{total}")
     print(f"Counted: {len(counted)}")
     print(f"Didn't compute: {len(didnt_compute)}")

@@ -193,9 +193,7 @@ class CayleyPermutation(tuple[int, ...]):
         >>> for p in cperm.simple_decomposition():
         ...     print(p)
         010
-        0
-        010
-        0
+        (CayleyPermutation((0,)), CayleyPermutation((0, 1, 0)), CayleyPermutation((0,)))
         """
         blocks = self.block_decomposition()
         simple_cperm = self.standardisation_of_block()
@@ -804,12 +802,12 @@ class CayleyPermutation(tuple[int, ...]):
         Example:
         >>> for shuff in CayleyPermutation.shuffle([1, 2], [3, 4]):
         ...     print(shuff)
-        [1, 2, 3, 4]
-        [1, 3, 2, 4]
-        [1, 3, 4, 2]
-        [3, 1, 2, 4]
-        [3, 1, 4, 2]
-        [3, 4, 1, 2]
+        (1, 2, 3, 4)
+        (1, 3, 2, 4)
+        (1, 3, 4, 2)
+        (3, 1, 2, 4)
+        (3, 1, 4, 2)
+        (3, 4, 1, 2)
         """
         length_a = len(list_a)
         length_b = len(list_b)

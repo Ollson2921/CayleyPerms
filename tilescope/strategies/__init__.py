@@ -20,6 +20,7 @@ from .row_column_separation import (
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
 )
+from .subclass_verification import SubclassVerificationStrategy
 
 from .fusion import FusionFactory, FusionStrategy
 
@@ -42,4 +43,5 @@ __all__ = (
     "LessThanRowColSeparationStrategy",
     "FusionFactory",
     "FusionStrategy",
+    "SubclassVerificationStrategy",
 )

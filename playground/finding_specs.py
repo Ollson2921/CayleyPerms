@@ -37,8 +37,8 @@ basis_desc = "3s_4x1" # change descriptor to change file
 with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-bases_to_run = bases[100:150] # can take a subset of the bases in the file
-part = 3
+bases_to_run = bases[:50] # can take a subset of the bases in the file
+part = 1
 
 counted = set()
 wrong_counts = []

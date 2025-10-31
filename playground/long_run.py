@@ -29,7 +29,7 @@ all_packs = [
 ]
 
 basis_desc = "3s_4x1" # change descriptor to change file
-files_to_run = [27, 26]
+files_to_run = [23]
 
 counted = set()
 wrong_counts = []

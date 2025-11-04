@@ -1,6 +1,7 @@
 """Module containing various strategy packs for running TileScope."""
 
 from comb_spec_searcher import StrategyPack, AtomStrategy
+from gridded_cayley_permutations import Tiling
 from .strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
     FactorStrategy,
@@ -17,6 +18,7 @@ from .strategies import (
     ColInsertionFactory,
     VerticalInsertionEncodableVerificationStrategy,
     HorizontalInsertionEncodableVerificationStrategy,
+    SubclassVerificationStrategy,
 )
 
 
@@ -82,6 +84,37 @@ class TileScopePack(StrategyPack):
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="Point Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def point_placement_subclass_ver_strat(cls, root: Tiling):
+        """Point placements strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                    PointPlacementFactory(),
+                    # RowInsertionFactory(),
+                    # ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[
+                AtomStrategy(),
+                SubclassVerificationStrategy(root),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
+            ],  # Iterable[Strategy]
+            name="Point Placement with subclass verification",
             symmetries=[],
             iterative=False,
         )

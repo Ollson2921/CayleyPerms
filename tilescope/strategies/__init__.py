@@ -20,6 +20,7 @@ from .row_column_separation import (
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
 )
+from .subclass_verification import SubclassVerificationStrategy
 
 from .fusion import FusionFactory, FusionStrategy
 from .insertion_encodable_verification import (
@@ -48,4 +49,5 @@ __all__ = (
     "FusionStrategy",
     "HorizontalInsertionEncodableVerificationStrategy",
     "VerticalInsertionEncodableVerificationStrategy",
+    "SubclassVerificationStrategy",
 )

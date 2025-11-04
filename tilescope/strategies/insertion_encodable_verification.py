@@ -3,10 +3,6 @@
 from typing import Optional, Type, TypeVar
 from comb_spec_searcher import VerificationStrategy
 from gridded_cayley_permutations import GriddedCayleyPerm, Tiling
-from check_regular_ins_enc import (
-    regular_horizontal_insertion_encoding,
-    regular_vertical_insertion_encoding,
-)
 
 HorizontalInsertionEncodableVerificationStrategyT = TypeVar(
     "HorizontalInsertionEncodableVerificationStrategyT",
@@ -57,16 +53,7 @@ class HorizontalInsertionEncodableVerificationStrategy(
         return TileScopePack.horizontal_insertion_encoding()
 
     def verified(self, comb_class: Tiling) -> bool:
-        if comb_class.dimensions[1] == 1:
-            for cell in comb_class.active_cells:
-                patterns_in_cell = tuple(
-                    gcp.pattern
-                    for gcp in comb_class.obstructions
-                    if all(c[1] == cell[1] for c in gcp.positions)
-                )
-                if regular_horizontal_insertion_encoding(patterns_in_cell):
-                    return True
-        return False
+        return comb_class.is_horizontal_insertion_encodable()
 
     def formal_step(self):
         return "The tiling is horizontal insertion encodable"
@@ -112,16 +99,7 @@ class VerticalInsertionEncodableVerificationStrategy(
         return TileScopePack.vertical_insertion_encoding()
 
     def verified(self, comb_class: Tiling) -> bool:
-        if comb_class.dimensions[0] == 1:
-            for cell in comb_class.active_cells:
-                patterns_in_cell = tuple(
-                    gcp.pattern
-                    for gcp in comb_class.obstructions
-                    if all(c[1] == cell[1] for c in gcp.positions)
-                )
-                if regular_vertical_insertion_encoding(patterns_in_cell):
-                    return True
-        return False
+        return comb_class.is_vertical_insertion_encodable()
 
     def formal_step(self):
         return "The tiling is vertical insertion encodable"

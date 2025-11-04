@@ -2,9 +2,9 @@
 CayleyPerms
 ###############################
 
-CayleyPerms is a repository for working with Cayley permutations which contains 5 python libraries; `cayley_permutations`, `decorated_patterns`, `gridded_cayley_permutations`, `mesh_patterns` and `tilescope`.
+CayleyPerms is a repository for working with Cayley permutations which contains 5 python libraries; ``cayley_permutations``, ``decorated_patterns``, ``gridded_cayley_permutations``, ``mesh_patterns`` and ``tilescope``.
 
-A Cayley permutation is a word `π ∈ ℕ*` such that every number between 1 and the maximum value of `π` appears at least once. Cayley permutations can be seen as a generalisation of permutations where repeated values are allowed. Definitions of pattern containment and Cayley permutation classes follow the same ideas as defined for permutations where the patterns contained are also Cayley permutations, so the Cayley permutation class Av(11) describes all permutations. Cayley permutations are in bijection with ordered set partitions.
+A Cayley permutation is a word ``π ∈ ℕ*`` such that every number between 1 and the maximum value of ``π`` appears at least once. Cayley permutations can be seen as a generalisation of permutations where repeated values are allowed. Definitions of pattern containment and Cayley permutation classes follow the same ideas as defined for permutations where the patterns contained are also Cayley permutations, so the Cayley permutation class Av(11) describes all permutations. Cayley permutations are in bijection with ordered set partitions.
  
 If you need support, you can join us in our `Discord support server`_.
 
@@ -32,7 +32,7 @@ source code, in which case you run the following after cloning the repository:
 Using CayleyPerms
 ========================
 
-The `cayley_permutations` module can be used to create Cayley permutations, avoidance classes and fully simplified bases from a string. The input to `CayleyPermutation` is a zero-based Cayley permutation and can be created using any iterable. Printing Cayley permutations creates a zero-based string or the function `ascii_plot` creates a plot. A basis is an iterable of Cayley permutations. A basis can also be created using the function `string_to_basis` which takes a string of zero-based or one-based Cayley permutations separated by anything and creates a tuple of `CayleyPermutation`.
+The ``cayley_permutations`` module can be used to create Cayley permutations, avoidance classes and fully simplified bases from a string. The input to ``CayleyPermutation`` is a zero-based Cayley permutation and can be created using any iterable. Printing Cayley permutations creates a zero-based string or the function ``ascii_plot`` creates a plot. A basis is an iterable of Cayley permutations. A basis can also be created using the function ``string_to_basis`` which takes a string of zero-based or one-based Cayley permutations separated by anything and creates a tuple of ``CayleyPermutation``.
 
 .. code-block:: python
 
@@ -73,7 +73,7 @@ A basis can be used to check if a Cayley permutation contains or avoids it. Alte
     >>> print(Av(basis).counter(10))
     [1, 1, 3, 11, 41, 145, 483, 1531, 4677, 13925, 40775]
     
-The modules `gridded_cayley_permutations` and `tilescope` are used to find generating functions for Cayley permutation classes using the `comb_cpeac_searcher` module.
+The modules ``gridded_cayley_permutations`` and ``tilescope`` are used to find generating functions for Cayley permutation classes using the ``comb_spec_searcher`` module. By changing the basis in the following code the searcher will try to find a combinatorial specification for the corresponding Cayley permutation class. Note that not all classes can be counted with the following code and the argument ``max_expansion_time`` can be used to set the maximum amount of time the algorithm is run for. It is currently set to 10 minutes.
 
 .. code-block:: python
 
@@ -82,16 +82,15 @@ The modules `gridded_cayley_permutations` and `tilescope` are used to find gener
     >>> from comb_spec_searcher import (
     >>>     CombinatorialSpecificationSearcher,
     >>> )
-    >>> from tilescope import TileScopePack 
-    >>> # Input basis
-    >>> basis = "120,201,1010"
+    >>> from tilescope import TileScopePack
+    >>> basis = "120,201,1010"  # Input basis
     >>> start_class = Tiling(
     >>>     [GriddedCayleyPerm(p, [(0, 0) for _ in p]) for p in string_to_basis(basis)],
     >>>     [],
     >>>     (1, 1),
     >>> )
     >>> searcher = CombinatorialSpecificationSearcher(start_class, TileScopePack.point_placement())
-    >>> spec = searcher.auto_search()
+    >>> spec = searcher.auto_search(max_expansion_time=600) # Set max time to run the algorithm
     [I 251104 12:30:01 comb_spec_searcher:515] Auto search started
         Initialising CombSpecSearcher for the combinatorial class:
         +-+
@@ -158,8 +157,8 @@ The modules `gridded_cayley_permutations` and `tilescope` are used to find gener
             ------------  --------
         Specification found has 35 rules
 
-The specification returned is a `CombinatorialSpecification` from the `comb_spec_searcher` module. To view a `CombinatorialSpecification` you can use `print(spec)` for a string representation or use `spec.show()` to see the specification in a proof tree format.
-There are many useful functions on `CombinatorialSpecification`, in particular from a specification a generating function can be found as well as a faster method for counting the number of Cayley permutations in the class.
+The specification returned is a ``CombinatorialSpecification`` from the ``comb_spec_searcher`` module. To view a ``CombinatorialSpecification`` you can use ``print(spec)`` for a string representation or use ``spec.show()`` to see the specification in a proof tree format.
+There are many useful functions on ``CombinatorialSpecification``, in particular from a specification a generating function can be found as well as a faster method for counting the number of Cayley permutations in the class.
 
 .. code-block:: python
 

@@ -66,6 +66,7 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
     def from_dict(
         cls: Type[SubclassVerificationStrategyT], d: dict
     ) -> SubclassVerificationStrategyT:
+        # pylint: disable=duplicate-code
         if "root" in d and d["root"] is not None:
             root: Optional[Tiling] = Tiling.from_dict(d.pop("root"))
         else:

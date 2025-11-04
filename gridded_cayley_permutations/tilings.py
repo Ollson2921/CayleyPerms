@@ -15,7 +15,10 @@ from typing import Iterable, Iterator
 from comb_spec_searcher import CombinatorialClass
 
 from cayley_permutations import CayleyPermutation
-from check_regular_ins_enc import regular_vertical_insertion_encoding, regular_horizontal_insertion_encoding
+from check_regular_ins_enc import (
+    regular_vertical_insertion_encoding,
+    regular_horizontal_insertion_encoding,
+)
 
 from .gridded_cayley_perms import GriddedCayleyPerm
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm

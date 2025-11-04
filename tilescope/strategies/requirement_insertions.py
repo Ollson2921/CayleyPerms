@@ -65,14 +65,15 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         return cls(gcps=gcps, **d)
 
 
-class InsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
-    """Factory for doing vertical insertion encoding point placements."""
+class VerticalInsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for creating RequirementInsertionStrategy to make columns positive
+    for the vertical insertion encoding."""
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
         for col in range(comb_class.dimensions[0]):
             if not comb_class.col_is_positive(col):
                 gcps = tuple(
-                    GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
+                    GriddedCayleyPerm(CayleyPermutation([0]), [cell])
                     for cell in comb_class.cells_in_col(col)
                 )
                 strategy = RequirementInsertionStrategy(gcps, ignore_parent=True)
@@ -80,7 +81,9 @@ class InsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
                 return
 
     @classmethod
-    def from_dict(cls, d: dict) -> "InsertionEncodingRequirementInsertionFactory":
+    def from_dict(
+        cls, d: dict
+    ) -> "VerticalInsertionEncodingRequirementInsertionFactory":
         return cls(**d)
 
     def __repr__(self) -> str:
@@ -88,6 +91,33 @@ class InsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
 
     def __str__(self) -> str:
         return "Make columns positive"
+
+
+class HorizontalInsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
+    """Factory for creating RequirementInsertionStrategy to make rows positive
+    for the horizontal insertion encoding."""
+
+    def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
+        for row in range(comb_class.dimensions[1]):
+            if not comb_class.row_is_positive(row):
+                gcps = tuple(
+                    GriddedCayleyPerm(CayleyPermutation([0]), [cell])
+                    for cell in comb_class.cells_in_row(row)
+                )
+                strategy = RequirementInsertionStrategy(gcps, ignore_parent=True)
+                yield strategy
+
+    @classmethod
+    def from_dict(
+        cls, d: dict
+    ) -> "HorizontalInsertionEncodingRequirementInsertionFactory":
+        return cls(**d)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
+    def __str__(self) -> str:
+        return "Make rows positive"
 
 
 class CellInsertionFactory(StrategyFactory[Tiling]):

@@ -1,18 +1,25 @@
-"""Strategy for verifying when a tiling is a subclass of the original class."""
+"""Strategy for verifying when a tiling is insertion encodable."""
 
 from typing import Optional, Type, TypeVar
 from comb_spec_searcher import VerificationStrategy
 from gridded_cayley_permutations import GriddedCayleyPerm, Tiling
 
-SubclassVerificationStrategyT = TypeVar(
-    "SubclassVerificationStrategyT",
-    bound="SubclassVerificationStrategy",
+HorizontalInsertionEncodableVerificationStrategyT = TypeVar(
+    "HorizontalInsertionEncodableVerificationStrategyT",
+    bound="HorizontalInsertionEncodableVerificationStrategy",
+)
+
+VerticalInsertionEncodableVerificationStrategyT = TypeVar(
+    "VerticalInsertionEncodableVerificationStrategyT",
+    bound="VerticalInsertionEncodableVerificationStrategy",
 )
 
 
-class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPerm]):
+class HorizontalInsertionEncodableVerificationStrategy(
+    VerificationStrategy[Tiling, GriddedCayleyPerm]
+):
     """
-    A strategy for verifying if a tiling is a subclass of the original class.
+    A strategy for verifying if a tiling is horizontal insertion encodable.
     """
 
     def __init__(
@@ -24,9 +31,9 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
         super().__init__(ignore_parent=ignore_parent)
 
     def change_root(
-        self: SubclassVerificationStrategyT,
+        self: HorizontalInsertionEncodableVerificationStrategyT,
         tiling: Tiling,
-    ) -> SubclassVerificationStrategyT:
+    ) -> HorizontalInsertionEncodableVerificationStrategyT:
         """
         Return a new version of the verification strategy with the given tiling instead
         of the current one.
@@ -43,20 +50,15 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack
 
-        return TileScopePack.point_placement()
+        return TileScopePack.horizontal_insertion_encoding()
 
     def verified(self, comb_class: Tiling) -> bool:
-        if comb_class.dimensions[0] == 1 == comb_class.dimensions[1] and (
-            self.root is not None and comb_class.obstructions != self.root.obstructions
-        ):
-            return True
-        return False
+        return comb_class.is_horizontal_insertion_encodable()
 
     def formal_step(self):
-        return "The tiling is a subclass of the original class"
+        return "The tiling is horizontal insertion encodable"
 
     def to_jsonable(self) -> dict:
-        # pylint: disable=duplicate-code
         d: dict = super().to_jsonable()
         if self._root is not None:
             d["root"] = self._root.to_jsonable()
@@ -64,8 +66,8 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
 
     @classmethod
     def from_dict(
-        cls: Type[SubclassVerificationStrategyT], d: dict
-    ) -> SubclassVerificationStrategyT:
+        cls: Type[HorizontalInsertionEncodableVerificationStrategyT], d: dict
+    ) -> HorizontalInsertionEncodableVerificationStrategyT:
         # pylint: disable=duplicate-code
         if "root" in d and d["root"] is not None:
             root: Optional[Tiling] = Tiling.from_dict(d.pop("root"))
@@ -81,3 +83,24 @@ class SubclassVerificationStrategy(VerificationStrategy[Tiling, GriddedCayleyPer
             ]
         )
         return f"{self.__class__.__name__}({args})"
+
+
+class VerticalInsertionEncodableVerificationStrategy(
+    HorizontalInsertionEncodableVerificationStrategy
+):
+    """
+    A strategy for verifying if a tiling is vertical insertion encodable.
+    """
+
+    def pack(self, comb_class):
+        # pylint: disable=import-outside-toplevel
+        # pylint: disable=cyclic-import
+        from tilescope.strategy_packs import TileScopePack
+
+        return TileScopePack.vertical_insertion_encoding()
+
+    def verified(self, comb_class: Tiling) -> bool:
+        return comb_class.is_vertical_insertion_encodable()
+
+    def formal_step(self):
+        return "The tiling is vertical insertion encodable"

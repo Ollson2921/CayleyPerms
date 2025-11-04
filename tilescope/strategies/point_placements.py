@@ -107,20 +107,45 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         return cls(gcps=gcps, **d)
 
 
-class InsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
-    """Factory for doing vertical insertion encoding point placements."""
+class VerticalInsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
+    """Factory for creating RequirementPlacementStrategy to place points
+    for the vertical insertion encoding."""
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
-        cells = comb_class.active_cells - comb_class.point_cells()
+        cells = comb_class.active_cells
         gcps = tuple(
-            GriddedCayleyPerm(CayleyPermutation([0]), (cell,)) for cell in cells
+            GriddedCayleyPerm(CayleyPermutation([0]), [cell]) for cell in cells
         )
         indices = tuple(0 for _ in gcps)
-        direction = DIR_RIGHT_BOT
+        direction = DIR_LEFT_BOT
         yield RequirementPlacementStrategy(gcps, indices, direction)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "InsertionEncodingPlacementFactory":
+    def from_dict(cls, d: dict) -> "VerticalInsertionEncodingPlacementFactory":
+        return cls(**d)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
+    def __str__(self) -> str:
+        return "Place next point of insertion encoding"
+
+
+class HorizontalInsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
+    """Factory for creating RequirementPlacementStrategy to place points
+    for the horizontal insertion encoding."""
+
+    def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
+        cells = comb_class.active_cells
+        gcps = tuple(
+            GriddedCayleyPerm(CayleyPermutation([0]), [cell]) for cell in cells
+        )
+        indices = tuple(0 for _ in gcps)
+        direction = DIR_LEFT
+        yield RequirementPlacementStrategy(gcps, indices, direction)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "HorizontalInsertionEncodingPlacementFactory":
         return cls(**d)
 
     def __repr__(self) -> str:

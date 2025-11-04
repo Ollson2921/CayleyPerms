@@ -88,7 +88,7 @@ class Av:
 
 
 class CanonicalAv(Av):
-    """Generates canonical Cayley permutations avoiding the basis."""
+    """Generates restricted growth functions avoiding the basis."""
 
     def in_class(self, cperm: CayleyPermutation, require_last: int = 0) -> bool:
         return (

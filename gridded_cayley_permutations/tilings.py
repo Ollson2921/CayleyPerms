@@ -15,6 +15,7 @@ from typing import Iterable, Iterator
 from comb_spec_searcher import CombinatorialClass
 
 from cayley_permutations import CayleyPermutation
+from check_regular_ins_enc import regular_vertical_insertion_encoding, regular_horizontal_insertion_encoding
 
 from .gridded_cayley_perms import GriddedCayleyPerm
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
@@ -499,6 +500,32 @@ class Tiling(CombinatorialClass):
         for _ in self.minimal_gridded_cperms():
             return False
         return True
+
+    def is_horizontal_insertion_encodable(self) -> bool:
+        """Returns True if the tiling has a horizontal insertion encoding."""
+        if self.dimensions[1] == 1:
+            for cell in self.active_cells:
+                patterns_in_cell = tuple(
+                    gcp.pattern
+                    for gcp in self.obstructions
+                    if all(c[1] == cell[1] for c in gcp.positions)
+                )
+                if regular_horizontal_insertion_encoding(patterns_in_cell):
+                    return True
+        return False
+
+    def is_vertical_insertion_encodable(self) -> bool:
+        """Returns True if the tiling has a vertical insertion encoding."""
+        if self.dimensions[0] == 1:
+            for cell in self.active_cells:
+                patterns_in_cell = tuple(
+                    gcp.pattern
+                    for gcp in self.obstructions
+                    if all(c[1] == cell[1] for c in gcp.positions)
+                )
+                if regular_vertical_insertion_encoding(patterns_in_cell):
+                    return True
+        return False
 
     def is_subset(self, other: "Tiling") -> bool:
         """

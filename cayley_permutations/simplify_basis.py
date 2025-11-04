@@ -23,7 +23,7 @@ def as_zero_based(
                 all_cperms.append(one_based_cperm)
             else:
                 raise ValueError(f"The input {cperm} is not a Cayley permutation")
-    return all_cperms
+    return tuple(all_cperms)
 
 
 def string_to_cperms(patts: str) -> tuple[CayleyPermutation, ...]:

@@ -31,13 +31,13 @@ all_packs = [
     TileScopePack.point_placement(),
 ]
 
-basis_desc = "3s_4x1" # change descriptor to change file
+basis_desc = "3s_4x1"  # change descriptor to change file
 
 # The to_run folder contains files with bases to run
 with open(f"to_run/to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-bases_to_run = bases[:50] # can take a subset of the bases in the file
+bases_to_run = bases[:50]  # can take a subset of the bases in the file
 part = 1
 
 counted = set()
@@ -58,7 +58,7 @@ for basis in bases_to_run:
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
             spec = searcher.auto_search(max_expansion_time=1800)  # set maxtime
-            print('checking counts')
+            print("checking counts")
             spec_count = [spec.count_objects_of_size(n) for n in range(10)]
             brute_force_count = Av(basis).counter(9)
             json_spec = json.dumps(spec.to_jsonable())
@@ -68,7 +68,9 @@ for basis in bases_to_run:
                     f.write(json_spec)
             else:
                 wrong_counts.append((basis, pack.name))
-                with open(f"wrong_counts/{basis_desc}/{Av(basis)}_{pack.name}.json", "w") as f:
+                with open(
+                    f"wrong_counts/{basis_desc}/{Av(basis)}_{pack.name}.json", "w"
+                ) as f:
                     f.write(json_spec)
         except Exception as e:
             print(f"Didn't compute {Av(basis)} with {pack.name}: {e}")
@@ -76,7 +78,7 @@ for basis in bases_to_run:
     basis = tuple(basis)
     if basis not in counted:
         didnt_compute.append(basis)
-    n+=1
+    n += 1
     print(f"Running {basis_desc}, part {part}")
     print(f"Tried {n}/{total}")
     print(f"Counted: {len(counted)}")

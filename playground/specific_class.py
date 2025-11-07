@@ -1,7 +1,7 @@
 """Finds the generating function for a Cayley permutation class
 with a given basis. A basis is input as a string.
 
-'spec' has the same functions as in the insertion encoding repo so 
+'spec' has the same functions as in the insertion encoding repo so
 you can create specifications, print the counts etc. in the same way.
 
 I've set the pack to point_placement, this is generally the best one
@@ -24,8 +24,7 @@ start_class = Tiling(
     [],
     (1, 1),
 )
-pack = TileScopePack.point_placement() # pack can be changed
-searcher = CombinatorialSpecificationSearcher(start_class, pack, debug=False)
+searcher = CombinatorialSpecificationSearcher(start_class, TileScopePack.point_placement())
 spec = searcher.auto_search()
-
-spec.get_genf()
+# spec.get_genf()
+print([spec.count_objects_of_size(i) for i in range(10)])

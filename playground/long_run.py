@@ -28,18 +28,18 @@ all_packs = [
     TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
 ]
 
-basis_desc = "3s_4x1" # change descriptor to change file
-files_to_run = [16]
+basis_desc = "3s_4x1"  # change descriptor to change file
+files_to_run = [5,6,7]
 
 counted = set()
 wrong_counts = []
 didnt_compute = []
 
 n = 0
-m= 0
+m = 0
 num_files = len(files_to_run)
 for part in files_to_run:
-    m+=1
+    m += 1
     with open(f"summaries/didnt_compute_{basis_desc}_part_{part}.txt", "r") as f:
         bases = eval(f.readline())
 
@@ -56,7 +56,7 @@ for part in files_to_run:
             searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
             try:
                 spec = searcher.auto_search(max_expansion_time=7200)  # set maxtime
-                print('checking counts')
+                print("checking counts")
                 spec_count = [spec.count_objects_of_size(n) for n in range(10)]
                 brute_force_count = Av(basis).counter(9)
                 json_spec = json.dumps(spec.to_jsonable())
@@ -74,7 +74,7 @@ for part in files_to_run:
         basis = tuple(basis)
         if basis not in counted:
             didnt_compute.append(basis)
-        n+=1
+        n += 1
         print(f"Running {basis_desc}, part {part}")
         print(f"Tried {n}/{total}")
         print(f"File {m} out of {num_files}")

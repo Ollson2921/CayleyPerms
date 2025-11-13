@@ -3,6 +3,7 @@ This module contains the Factors class, which contains methods for finding the f
 """
 
 from itertools import chain, combinations
+from functools import cached_property
 
 from cayley_permutations import CayleyPermutation
 from gridded_cayley_permutations import GriddedCayleyPerm
@@ -74,7 +75,7 @@ class Factors:
 
     def find_factors(self) -> tuple[Tiling, ...]:
         """Return the factors of the tiling."""
-        factors = self.find_factors_as_cells()
+        factors = self.find_factors_as_cells
         return tuple(
             self.tiling.sub_tiling(factor, simplify=False) for factor in factors
         )
@@ -86,6 +87,7 @@ class Factors:
                 self.combine_cells(cell, cell2)
         return self.find_factors()
 
+    @cached_property
     def find_factors_as_cells(self) -> tuple[tuple[tuple[int, int], ...], ...]:
         """Return the factors of the tiling as cells."""
         self.combine_cells_in_row_or_col()

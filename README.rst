@@ -18,14 +18,14 @@ To install CayleyPerms on your system, run the following after cloning the repos
 
 .. code-block:: bash
 
-    ./pip install .
+    pip install .
 
 It is also possible to install in development mode to work on the
 source code, in which case you run the following after cloning the repository:
 
 .. code-block:: bash
 
-    ./pip install -e .
+    pip install -e .
     
 
 ========================

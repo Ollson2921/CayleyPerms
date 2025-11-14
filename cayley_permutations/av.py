@@ -14,12 +14,11 @@ class Av:
     def __init__(self, basis: Iterable[CayleyPermutation] | str):
         """Input can be a list of Cayley permutations or a string of zero-based
         or one-based Cayley permutations separated by anything.
-        
         Cache is a list of dictionaries. The nth dictionary contains the Cayley
         permutations of size n which avoid the basis and a tuple of lists.
         The  first list is the indices where a new maximum can be inserted
         and the second is the indices where the same maximum can be inserted."""
-        if is_instance(basis, str):
+        if isinstance(basis, str):
             basis = string_to_basis(basis)
         self.basis = basis
         self.cache: list[dict[CayleyPermutation, tuple[list[int], list[int]]]] = [

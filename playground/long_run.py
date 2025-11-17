@@ -14,22 +14,22 @@ import json
 # All packs to try
 all_packs = [
     TileScopePack.point_placement(),
-    TileScopePack.point_placement_initial_place_points(),
-    TileScopePack.point_placement_initial_cell_insertion(),
-    # TileScopePack.point_placements_shuffle(),
-    # TileScopePack.point_placements_shuffle_initial_cell_insertion(),
-    # TileScopePack.row_placement(),
-    # TileScopePack.col_placement(),
-    TileScopePack.row_and_col_placement(),
-    TileScopePack.point_row_and_col_placement(),
-    # TileScopePack.row_placement_initial_cell_insertion(),
-    # TileScopePack.col_placement_initial_cell_insertion(),
-    TileScopePack.row_and_col_placement_initial_cell_insertion(),
-    TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
+    # TileScopePack.point_placement_initial_place_points(),
+    # TileScopePack.point_placement_initial_cell_insertion(),
+    # # TileScopePack.point_placements_shuffle(),
+    # # TileScopePack.point_placements_shuffle_initial_cell_insertion(),
+    # # TileScopePack.row_placement(),
+    # # TileScopePack.col_placement(),
+    # TileScopePack.row_and_col_placement(),
+    # TileScopePack.point_row_and_col_placement(),
+    # # TileScopePack.row_placement_initial_cell_insertion(),
+    # # TileScopePack.col_placement_initial_cell_insertion(),
+    # TileScopePack.row_and_col_placement_initial_cell_insertion(),
+    # TileScopePack.point_row_and_col_placement_initial_cell_insertion(),
 ]
 
 basis_desc = "3s_4x1"  # change descriptor to change file
-files_to_run = [5,6,7]
+files_to_run = [1]
 
 counted = set()
 wrong_counts = []
@@ -42,7 +42,7 @@ for part in files_to_run:
     m += 1
     with open(f"summaries/didnt_compute_{basis_desc}_part_{part}.txt", "r") as f:
         bases = eval(f.readline())
-
+    # bases = bases[7:]
     total = len(bases)
     for basis in bases:
         tiling = Tiling(

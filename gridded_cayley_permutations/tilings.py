@@ -425,6 +425,8 @@ class Tiling(CombinatorialClass):
         adjacent_values: Iterable[int] = [],
         adjacent_indices: Iterable[int] = [],
     ) -> "Tiling":
+        # pylint:disable=dangerous-default-value
+        # pylint:disable=too-many-locals
         """
         Creates a tiling where the points in the Cayley permutation
         are point cells in the tiling. Input must be 0 based and cperm can

@@ -14,12 +14,14 @@ from typing import Iterable, Iterator
 
 from comb_spec_searcher import CombinatorialClass
 
-from cayley_permutations import CayleyPermutation
+from cayley_permutations import CayleyPermutation, string_to_basis
 
 from .gridded_cayley_perms import GriddedCayleyPerm
 from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
 from .row_col_map import RowColMap
 from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
+
+Cell = tuple[int, int]
 
 
 def binomial(x: int, y: int) -> int:
@@ -418,10 +420,184 @@ class Tiling(CombinatorialClass):
     # Construction methods
 
     @staticmethod
-    def from_vincular(cperm: CayleyPermutation, adjacencies: Iterable[int]) -> "Tiling":
+    def create_vincular_or_bivincular(
+        cperm: CayleyPermutation | str,
+        adjacent_values: Iterable[int] = [],
+        adjacent_indices: Iterable[int] = [],
+    ) -> "Tiling":
+        """
+        Creates a tiling where the points in the Cayley permutation
+        are point cells in the tiling. Input must be 0 based and cperm can
+        be a Cayley permutation or a string.
+
+        For creating a vincular pattern:
+        Input an iterable of indices of the Cayley permutation which must be
+        adjacent to adjacent_indices. Value i in adjacent_indices means positions
+        i and i+1 must be adjacent. Indices must be 0 based.
+
+        For creating a bivincular pattern:
+        Input an iterable of values of the Cayley permutation which must be
+        adjacent to adjacent_values. Value i in adjacent_values means values i and
+        i+1 must be adjacent. Values must be 0 based.
+
+        Note: Both adjacent_values and adjacent_indices can be used in conjunction
+        or can both be left empty and for a Cayley permutation length n with maximum value m:
+        - -1 in adjacent values implies there are no values below the smallest one
+        - m in adjacent values implies there are no values above the largest one
+        - -1 in adjacent indices implies there are no values to the left of the leftmost one
+        - n in adjacent indices implies there are no values to the right of the rightmost one
+
+        Example:
+        >>> cperm = "012"
+        >>> til = MappedTiling.create_vincular_or_bivincular(cperm, adjacent_indices=[0])
+        >>> print(til)
+        +-+-+-+-+-+-+
+        | |#|#| |#| |
+        +-+-+-+-+-+-+
+        |0|#|#|0|●|0|*
+        +-+-+-+-+-+-+
+        | |#|#| |#| |
+        +-+-+-+-+-+-+
+        |0|#|●|0|#|0|*
+        +-+-+-+-+-+-+
+        | |#|#| |#| |
+        +-+-+-+-+-+-+
+        |0|●|#|0|#|0|*
+        +-+-+-+-+-+-+
+        | |#|#| |#| |
+        +-+-+-+-+-+-+
+        Key:
+        0: Av(01,10)
+        Crossing obstructions:
+        Requirements 0:
+        0: (1, 1)
+        Requirements 1:
+        0: (2, 3)
+        Requirements 2:
+        0: (4, 5)
+        """
+        if isinstance(cperm, str):
+            cperm = string_to_basis(cperm)[0]
+        dimensions = (len(cperm), max(cperm) + 1)
+        perm_cells = [(2 * k + 1, 2 * cperm[k] + 1) for k in range(dimensions[0])]
+        all_obs, all_reqs = [], []
+        cols, rows = [2 * i + 1 for i in range(dimensions[0])], [
+            2 * i + 1 for i in range(dimensions[1])
+        ]
+        col_cells = [
+            cell
+            for cell in product(cols, range(2 * dimensions[1] + 1))
+            if cell not in perm_cells
+        ]  # this is all the cells that will have point obstructions
+        for cell in col_cells:
+            all_obs.append(GriddedCayleyPerm(CayleyPermutation([0]), [cell]))
+        for i in rows:  # this puts the 01,10 obstructions across each row
+            for j in range(2 * dimensions[0] + 1):
+                cell1 = (j, i)
+                if cell1 not in col_cells:
+                    for k in range(j, 2 * dimensions[0] + 1):
+                        cell2 = (k, i)
+                        if cell2 not in col_cells:
+                            all_obs.append(
+                                GriddedCayleyPerm(
+                                    CayleyPermutation([0, 1]), [cell1, cell2]
+                                )
+                            )
+                            all_obs.append(
+                                GriddedCayleyPerm(
+                                    CayleyPermutation([1, 0]), [cell1, cell2]
+                                )
+                            )
+        for (
+            cell
+        ) in (
+            perm_cells
+        ):  # this puts the point requirement and the 00 obstruction according to the permutation
+            all_reqs.append([GriddedCayleyPerm(CayleyPermutation([0]), [cell])])
+            all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
+        return Tiling(
+            all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1)
+        ).delete_rows_and_columns(
+            cols=[i * 2 + 2 for i in adjacent_indices],
+            rows=[i * 2 + 2 for i in adjacent_values],
+        )
+
+    def create_mesh_pattern(
+        self,
+        shaded_regions: Iterable[tuple[Cell, Cell] | tuple[Cell]],
+    ) -> "Tiling":
+        """Creates a mesh pattern from a tiling and an input of cells or
+        tuples of two cells such that the area between each pair of cells must be empty.
+        A cell is a tuple of two integers, everything must be 0 based.
+
+        The function Tiling.from_vincular_or_bivincular(cperm) can be used to create
+        a tiling from cperm, a Cayley permutation from which the 0 based cells
+        can be read off.
+
+        Example:
+        >>> cperm = CayleyPermutation([0, 1, 2])
+        >>> til = MappedTiling.create_vincular_or_bivincular()
+        >>> print(til.create_mesh_pattern([[(0, 2), (2, 4)]]))
+        +-+-+-+-+-+-+-+
+        | |#| |#| |#| |
+        +-+-+-+-+-+-+-+
+        |0|#|0|#|0|●|0|*
+        +-+-+-+-+-+-+-+
+        |#|#|#|#| |#| |
+        +-+-+-+-+-+-+-+
+        |#|#|#|●|0|#|0|*
+        +-+-+-+-+-+-+-+
+        |#|#|#|#| |#| |
+        +-+-+-+-+-+-+-+
+        |0|●|0|#|0|#|0|*
+        +-+-+-+-+-+-+-+
+        | |#| |#| |#| |
+        +-+-+-+-+-+-+-+
+        Key:
+        0: Av(01,10)
+        Crossing obstructions:
+        Requirements 0:
+        0: (1, 1)
+        Requirements 1:
+        0: (3, 3)
+        Requirements 2:
+        0: (5, 5)
+        """
+        dim_n, dim_m = self.dimensions
+        gcps = []
+        for cells in shaded_regions:
+            if len(cells) == 1:
+                cell = cells[0]
+                if cell[0] > dim_n or cell[1] > dim_m:
+                    raise ValueError(
+                        "Cells must be at most the dimensions of the tiling"
+                    )
+                gcps.append(GriddedCayleyPerm(CayleyPermutation([0]), cells))
+            elif len(cells) == 2:
+                max_n = max(cells[0][0], cells[1][0])
+                max_m = max(cells[0][1], cells[1][1])
+                if max_n > dim_n or max_m > dim_m:
+                    raise ValueError(
+                        "Cells must be at most the dimensions of the tiling"
+                    )
+                for n in range(min(cells[0][0], cells[1][0]), max_n + 1):
+                    for m in range(min(cells[0][1], cells[1][1]), max_m + 1):
+                        gcps.append(GriddedCayleyPerm(CayleyPermutation([0]), [(n, m)]))
+            else:
+                raise ValueError(
+                    "Input to shaded_regions must be either cells or tuples of two cells such that "
+                    + "the shaded region is between the two cells."
+                )
+        return self.add_obstructions(gcps)
+
+    @staticmethod
+    def from_vincular_with_obs(
+        cperm: CayleyPermutation, adjacencies: Iterable[int]
+    ) -> "Tiling":
         """
         Both cperm and adjacencies must be 0 based. Creates a tiling from a
-        vincular pattern. Adjacencies is a list of positions where i in
+        vincular pattern such that the adjacent columns have obstructions.
+        Adjacencies is a list of positions where i in
         adjacencies means positions i and i+1 must be adjacent.
         """
         dimensions = (len(cperm), max(cperm) + 1)

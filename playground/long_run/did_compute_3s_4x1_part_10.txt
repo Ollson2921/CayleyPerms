@@ -1,0 +1,2 @@
+{(CayleyPermutation((0, 0, 0)), CayleyPermutation((1, 2, 0)), CayleyPermutation((1, 0, 3, 2)))}
+Basis computed correctly: 1

@@ -159,6 +159,13 @@ class Tiling(CombinatorialClass):
             - self.not_blank_cells()
         )
 
+    def empty_cells(self) -> set[Cell]:
+        empty = set()
+        for ob in self.obstructions:
+            if len(ob) == 1:
+                empty.add(ob.positions[0])
+        return empty
+
     def delete_columns(self, cols: Iterable[int]) -> "Tiling":
         """
         Deletes columns at indices specified
@@ -592,10 +599,24 @@ class Tiling(CombinatorialClass):
         resdict = {cell: (obdict[cell], reqdict[cell]) for cell in all_cells}
         return resdict
 
-    def to_html_representation(self, show_empty: bool = True) -> str:
+    def _html_shade_empty(self, result: list[str], style) -> list[str]:
+        """There has to be an easeier way to do this..."""
+        color = "#4B4B4B6C"
+        if not self.empty_cells():
+            return result
+        for cell in self.empty_cells():
+            i, j = cell
+            dim_i, dim_j = self.dimensions
+            index = (dim_j - j - 1) * (3 * dim_i + 2) + i * 3 + 2
+            background_image = "background-image: linear-gradient(180deg"
+            background_image += f""",{color} {i * 24}px,{color} {(i + 1) * 24}px"""
+            background_image += ");"
+            result[index] = f'<th style="{background_image}{style}">'
+        return result
+
+    def to_html_representation(self, shade_empty=True) -> str:
         """Returns an html representation of the tilings object
         Mimics code from original tilings"""
-
         # pylint: disable=too-many-locals
         # stylesheet for tiling
         style = """
@@ -618,8 +639,6 @@ class Tiling(CombinatorialClass):
         result.append("</table>")
         labels: dict[tuple[tuple[CayleyPermutation, ...], bool], str] = {}
 
-        # Put the sets in the tiles
-
         # How many characters are in a row in the grid
         row_width = 3 * dim_i + 2
         curr_label = 1
@@ -631,9 +650,10 @@ class Tiling(CombinatorialClass):
             block = (tuple(basis), cell in self.positive_cells())
             label = labels.get(block)
             if label is None:
+
                 match basis:
-                    case [CayleyPermutation((0,))] if show_empty:
-                        label = "\u00d7"
+                    case [CayleyPermutation((0,))]:
+                        label = " "
                     case [
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
@@ -643,6 +663,11 @@ class Tiling(CombinatorialClass):
                             label = "\u25cf"
                         else:
                             label = "\u25cb"
+                    case [
+                        CayleyPermutation((0, 1)),
+                        CayleyPermutation((1, 0)),
+                    ]:
+                        label = "=="
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:
@@ -650,14 +675,19 @@ class Tiling(CombinatorialClass):
                     case [CayleyPermutation((0, 0))]:
                         label = "-"
                     case _:
-                        label = str(curr_label)
-                        curr_label += 1
+                        if cell in self.point_cells():
+                            label = "\u25cf"
+                        else:
+                            label = chr(ord("`") + curr_label)
+                            curr_label += 1
                 labels[block] = label
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
             result[index] = label
 
-        # adds background color in cells where assumption happens
+        # adds background color to empty cells
+        if shade_empty:
+            result = self._html_shade_empty(result, style)
         return "".join(result)
 
     @classmethod

@@ -613,6 +613,7 @@ class Tiling(CombinatorialClass):
             width: 24px;
             height: 24px;
             text-align: center;
+            background-color : white;
             """
         empty_style = """
             border: 1px solid;
@@ -620,12 +621,6 @@ class Tiling(CombinatorialClass):
             height: 24px;
             text-align: center;
             background-color : grey;
-            """
-        rc_style = """
-            border: 0;
-            width: 24px;
-            height: 24px;
-            text-align: center;
             """
         dim_i, dim_j = self.dimensions
         result = []
@@ -640,19 +635,12 @@ class Tiling(CombinatorialClass):
                     result.append(f"<th style='{style}'>")
                 result.append(" ")
                 result.append("</th>")
-            result.append(f"<th style='{rc_style}'>")
-            result.append(" ")
-            result.append("</th>")
             result.append("</tr>")
-        for _ in range(dim_i + 1):
-            result.append(f"<th style='{rc_style}'>")
-            result.append(" ")
-            result.append("</th>")
         result.append("</table>")
         labels: dict[tuple[tuple[CayleyPermutation, ...], bool], str] = {}
 
         # How many characters are in a row in the grid
-        row_width = 3 * (dim_i + 1) + 2
+        row_width = 3 * dim_i + 2
         curr_label = 1
         for cell, gridded_perms in sorted(self.cell_basis.items()):
             obstructions, _ = gridded_perms
@@ -676,26 +664,26 @@ class Tiling(CombinatorialClass):
                             label = "\u25cf"
                         else:
                             label = "\u25cb"
+                        # if cell[1] in self.point_rows:
+                        #     label = "-" + label + "-"
                     case [
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
                     ]:
-                        label = '<p style="color:black;">__</p>'
-
+                        label = "\u2014" * (1 + int(cell[1] in self.point_rows))
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:
                         label = "/"
                     case [CayleyPermutation((0, 0))]:
-                        label = '<p style="color:red;">__</p>'
+                        label = "="
                     case _:
-                        label = chr(ord("`") + curr_label)
+                        label = chr(ord("@") + curr_label)
                         curr_label += 1
                 labels[block] = label
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
             result[index] = label
-
         return result
 
     def to_html_representation(self):

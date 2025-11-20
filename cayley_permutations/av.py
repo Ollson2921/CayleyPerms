@@ -3,6 +3,7 @@ generates Cayley permutations avoiding a given basis."""
 
 from typing import Iterable
 from .cayley import CayleyPermutation
+from .simplify_basis import string_to_basis
 
 
 class Av:
@@ -10,11 +11,15 @@ class Av:
     Generates Cayley permutations avoiding the input.
     """
 
-    def __init__(self, basis: Iterable[CayleyPermutation]):
-        """Cache is a list of dictionaries. The nth dictionary contains the Cayley
+    def __init__(self, basis: Iterable[CayleyPermutation] | str):
+        """Input can be a list of Cayley permutations or a string of zero-based
+        or one-based Cayley permutations separated by anything.
+        Cache is a list of dictionaries. The nth dictionary contains the Cayley
         permutations of size n which avoid the basis and a tuple of lists.
         The  first list is the indices where a new maximum can be inserted
         and the second is the indices where the same maximum can be inserted."""
+        if isinstance(basis, str):
+            basis = string_to_basis(basis)
         self.basis = basis
         self.cache: list[dict[CayleyPermutation, tuple[list[int], list[int]]]] = [
             {CayleyPermutation([]): ([0], [])}
@@ -88,7 +93,7 @@ class Av:
 
 
 class CanonicalAv(Av):
-    """Generates canonical Cayley permutations avoiding the basis."""
+    """Generates restricted growth functions avoiding the basis."""
 
     def in_class(self, cperm: CayleyPermutation, require_last: int = 0) -> bool:
         return (

@@ -24,26 +24,10 @@ class HorizontalInsertionEncodableVerificationStrategy(
 
     def __init__(
         self,
-        root: Optional[Tiling] = None,
         ignore_parent: bool = False,
     ):
         self._root: Optional[Tiling] = root
         super().__init__(ignore_parent=ignore_parent)
-
-    def change_root(
-        self: HorizontalInsertionEncodableVerificationStrategyT,
-        tiling: Tiling,
-    ) -> HorizontalInsertionEncodableVerificationStrategyT:
-        """
-        Return a new version of the verification strategy with the given tiling instead
-        of the current one.
-        """
-        return self.__class__(tiling, self.ignore_parent)
-
-    @property
-    def root(self) -> Optional[Tiling]:
-        """The root tiling."""
-        return self._root
 
     def pack(self, comb_class):
         # pylint: disable=import-outside-toplevel
@@ -58,31 +42,16 @@ class HorizontalInsertionEncodableVerificationStrategy(
     def formal_step(self):
         return "The tiling is horizontal insertion encodable"
 
-    def to_jsonable(self) -> dict:
-        d: dict = super().to_jsonable()
-        if self._root is not None:
-            d["root"] = self._root.to_jsonable()
-        return d
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"ignore_parent={self.ignore_parent}, "
+            f"workable={self.workable})"
+        )
 
     @classmethod
-    def from_dict(
-        cls: Type[HorizontalInsertionEncodableVerificationStrategyT], d: dict
-    ) -> HorizontalInsertionEncodableVerificationStrategyT:
-        # pylint: disable=duplicate-code
-        if "root" in d and d["root"] is not None:
-            root: Optional[Tiling] = Tiling.from_dict(d.pop("root"))
-        else:
-            root = d.pop("root", None)
-        return cls(root=root, **d)
-
-    def __repr__(self) -> str:
-        args = ", ".join(
-            [
-                f"root tiling={self._root}",
-                f"ignore_parent={self.ignore_parent}",
-            ]
-        )
-        return f"{self.__class__.__name__}({args})"
+    def from_dict(cls, d: dict) -> "FactorStrategy":
+        return cls(**d)
 
 
 class VerticalInsertionEncodableVerificationStrategy(

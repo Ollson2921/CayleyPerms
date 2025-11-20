@@ -600,48 +600,57 @@ class Tiling(CombinatorialClass):
         resdict = {cell: (obdict[cell], reqdict[cell]) for cell in all_cells}
         return resdict
 
-    def _html_shade_empty(self, result: list[str], style) -> list[str]:
-        """There has to be an easeier way to do this..."""
-        color = "#4B4B4B6C"
-        if not self.empty_cells():
-            return result
-        for cell in self.empty_cells():
-            i, j = cell
-            dim_i, dim_j = self.dimensions
-            index = (dim_j - j - 1) * (3 * dim_i + 2) + i * 3 + 2
-            background_image = "background-image: linear-gradient(180deg"
-            background_image += f""",{color} {i * 24}px,{color} {(i + 1) * 24}px"""
-            background_image += ");"
-            result[index] = f'<th style="{background_image}{style}">'
-        return result
-
-    def to_html_representation(self, shade_empty=True) -> str:
+    def to_html_representation(self) -> str:
         """Returns an html representation of the tilings object
         Mimics code from original tilings"""
         # pylint: disable=too-many-locals
         # stylesheet for tiling
+        empty_cells = self.empty_cells()
         style = """
             border: 1px solid;
             width: 24px;
             height: 24px;
             text-align: center;
             """
+        empty_style = """
+            border: 1px solid;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            background-color : grey;
+            """
+        rc_style = """
+            border: 0;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            """
         dim_i, dim_j = self.dimensions
         result = []
-        # Create tiling html table
+        # Create tiling html table, has one extra row/col for RowColMap
         result.append("<table> ")
-        for _ in range(dim_j):
+        for i in range(dim_j):
             result.append("<tr>")
-            for _ in range(dim_i):
-                result.append(f"<th style='{style}'>")
+            for j in range(dim_i):
+                if (j, dim_j - i - 1) in empty_cells:
+                    result.append(f"<th style='{empty_style}'>")
+                else:
+                    result.append(f"<th style='{style}'>")
                 result.append(" ")
                 result.append("</th>")
+            result.append(f"<th style='{rc_style}'>")
+            result.append(" ")
+            result.append("</th>")
             result.append("</tr>")
+        for _ in range(dim_i + 1):
+            result.append(f"<th style='{rc_style}'>")
+            result.append(" ")
+            result.append("</th>")
         result.append("</table>")
         labels: dict[tuple[tuple[CayleyPermutation, ...], bool], str] = {}
 
         # How many characters are in a row in the grid
-        row_width = 3 * dim_i + 2
+        row_width = 3 * (dim_i + 1) + 2
         curr_label = 1
         for cell, gridded_perms in sorted(self.cell_basis.items()):
             obstructions, _ = gridded_perms
@@ -654,11 +663,12 @@ class Tiling(CombinatorialClass):
 
                 match basis:
                     case [CayleyPermutation((0,))]:
-                        label = " "
+                        label = ""
+                        continue
                     case [
+                        CayleyPermutation((0, 0)),
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
-                        CayleyPermutation((0, 0)),
                     ]:
                         if cell in self.positive_cells():
                             label = "\u25cf"
@@ -668,27 +678,22 @@ class Tiling(CombinatorialClass):
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
                     ]:
-                        label = "=="
+                        label = '<p style="color:black;">__</p>'
+
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:
                         label = "/"
                     case [CayleyPermutation((0, 0))]:
-                        label = "-"
+                        label = '<p style="color:red;">__</p>'
                     case _:
-                        if cell in self.point_cells():
-                            label = "\u25cf"
-                        else:
-                            label = chr(ord("`") + curr_label)
-                            curr_label += 1
+                        label = chr(ord("`") + curr_label)
+                        curr_label += 1
                 labels[block] = label
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
             result[index] = label
 
-        # adds background color to empty cells
-        if shade_empty:
-            result = self._html_shade_empty(result, style)
         return "".join(result)
 
     @classmethod

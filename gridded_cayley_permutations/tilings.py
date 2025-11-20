@@ -600,9 +600,11 @@ class Tiling(CombinatorialClass):
         resdict = {cell: (obdict[cell], reqdict[cell]) for cell in all_cells}
         return resdict
 
-    def to_html_representation(self) -> str:
-        """Returns an html representation of the tilings object
-        Mimics code from original tilings"""
+    # html methods
+
+    def _html_table(self) -> list[str]:
+        """Returns an the list of strings used to make the html representation.
+        There is an invisible row and col to make Mappling html easier."""
         # pylint: disable=too-many-locals
         # stylesheet for tiling
         empty_cells = self.empty_cells()
@@ -694,7 +696,10 @@ class Tiling(CombinatorialClass):
             index = row_index_from_top * row_width + cell[0] * 3 + 3
             result[index] = label
 
-        return "".join(result)
+        return result
+
+    def to_html_representation(self):
+        return "".join(self._html_table())
 
     @classmethod
     def empty_tiling(cls) -> "Tiling":

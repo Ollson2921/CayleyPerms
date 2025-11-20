@@ -160,6 +160,7 @@ class Tiling(CombinatorialClass):
         )
 
     def empty_cells(self) -> set[Cell]:
+        """Returns the set of empty cells"""
         empty = set()
         for ob in self.obstructions:
             if len(ob) == 1:

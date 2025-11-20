@@ -21,6 +21,8 @@ from .minimal_gridded_cperms import MinimalGriddedCayleyPerm
 from .row_col_map import RowColMap
 from .simplify_obstructions_and_requirements import SimplifyObstructionsAndRequirements
 
+Cell = tuple[int, int]
+
 
 def binomial(x: int, y: int) -> int:
     """Return the binomial coefficient x choose y."""
@@ -550,6 +552,113 @@ class Tiling(CombinatorialClass):
 
     def objects_of_size(self, n: int, **parameters: int) -> Iterator[GriddedCayleyPerm]:
         yield from self.gridded_cayley_permutations(n)
+
+    @cached_property
+    def cell_basis(
+        self,
+    ) -> dict[Cell, tuple[list[CayleyPermutation], list[CayleyPermutation]]]:
+        """Returns a dictionary from cells to basis.
+
+        The basis for each cell is a tuple of two lists of permutations.  The
+        first list contains the patterns of the obstructions localized in the
+        cell and the second contains the intersections of requirement lists
+        that are localized in the cell.
+        """
+        obdict: dict[Cell, list[CayleyPermutation]] = defaultdict(list)
+        reqdict: dict[Cell, list[CayleyPermutation]] = defaultdict(list)
+        for ob in self.obstructions:
+            if len(set(ob.positions)) == 1:
+                cell = ob.positions[0]
+                obdict[cell].append(ob.pattern)
+
+        for req_list in self.requirements:
+            for gcp in req_list:
+                for cell in set(gcp.positions):
+                    subgcp = gcp.get_gridded_perm_in_cells([cell])
+                    if subgcp not in reqdict[cell] and all(
+                        r.contains_gridded_cperm(subgcp) for r in req_list
+                    ):
+                        reqdict[cell].append(subgcp.pattern)
+        for cell, contain in reqdict.items():
+            ind_to_remove = set()
+            for i, req in enumerate(contain):
+                if any(req in other for j, other in enumerate(contain) if i != j):
+                    ind_to_remove.add(i)
+            reqdict[cell] = [
+                req for i, req in enumerate(contain) if i not in ind_to_remove
+            ]
+
+        all_cells = product(range(self.dimensions[0]), range(self.dimensions[1]))
+        resdict = {cell: (obdict[cell], reqdict[cell]) for cell in all_cells}
+        return resdict
+
+    def to_html_representation(self, show_empty: bool = True) -> str:
+        """Returns an html representation of the tilings object
+        Mimics code from original tilings"""
+
+        # pylint: disable=too-many-locals
+        # stylesheet for tiling
+        style = """
+            border: 1px solid;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            """
+        dim_i, dim_j = self.dimensions
+        result = []
+        # Create tiling html table
+        result.append("<table> ")
+        for _ in range(dim_j):
+            result.append("<tr>")
+            for _ in range(dim_i):
+                result.append(f"<th style='{style}'>")
+                result.append(" ")
+                result.append("</th>")
+            result.append("</tr>")
+        result.append("</table>")
+        labels: dict[tuple[tuple[CayleyPermutation, ...], bool], str] = {}
+
+        # Put the sets in the tiles
+
+        # How many characters are in a row in the grid
+        row_width = 3 * dim_i + 2
+        curr_label = 1
+        for cell, gridded_perms in sorted(self.cell_basis.items()):
+            obstructions, _ = gridded_perms
+            basis = list(sorted(obstructions))
+
+            # the block, is the basis and whether or not positive
+            block = (tuple(basis), cell in self.positive_cells())
+            label = labels.get(block)
+            if label is None:
+                match basis:
+                    case [CayleyPermutation((0,))] if show_empty:
+                        label = "\u00d7"
+                    case [
+                        CayleyPermutation((0, 1)),
+                        CayleyPermutation((1, 0)),
+                        CayleyPermutation((0, 0)),
+                    ]:
+                        if cell in self.positive_cells():
+                            label = "\u25cf"
+                        else:
+                            label = "\u25cb"
+                    case [CayleyPermutation((0, 1))]:
+                        label = "\\"
+                    case [CayleyPermutation((1, 0))]:
+                        label = "/"
+                    case [CayleyPermutation((0, 0))]:
+                        label = "-"
+                    case _:
+                        label = str(curr_label)
+                        curr_label += 1
+                labels[block] = label
+            row_index_from_top = dim_j - cell[1] - 1
+            index = row_index_from_top * row_width + cell[0] * 3 + 3
+            result[index] = label
+
+        # adds background color in cells where assumption happens
+        return "".join(result)
 
     @classmethod
     def empty_tiling(cls) -> "Tiling":

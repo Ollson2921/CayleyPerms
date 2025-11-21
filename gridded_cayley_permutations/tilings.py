@@ -625,7 +625,7 @@ class Tiling(CombinatorialClass):
         dim_i, dim_j = self.dimensions
         result = []
         # Create tiling html table, has one extra row/col for RowColMap
-        result.append("<table> ")
+        result.append('<table style = "margin-left:auto; margin-right:auto">')
         for i in range(dim_j):
             result.append("<tr>")
             for j in range(dim_i):

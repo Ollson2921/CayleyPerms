@@ -19,12 +19,12 @@ def shuffle(list_a: List[int], list_b: List[int]) -> Iterator[List[int]]:
     Example:
     >>> for shuff in CayleyPermutation.shuffle([1, 2], [3, 4]):
     ...     print(shuff)
-    [1, 2, 3, 4]
-    [1, 3, 2, 4]
-    [1, 3, 4, 2]
-    [3, 1, 2, 4]
-    [3, 1, 4, 2]
-    [3, 4, 1, 2]
+    (1, 2, 3, 4)
+    (1, 3, 2, 4)
+    (1, 3, 4, 2)
+    (3, 1, 2, 4)
+    (3, 1, 4, 2)
+    (3, 4, 1, 2)
     """
     length_a = len(list_a)
     length_b = len(list_b)

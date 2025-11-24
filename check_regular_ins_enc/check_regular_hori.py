@@ -96,7 +96,7 @@ def regular_horizontal_insertion_encoding(
     decreasing | increasing
 
     Example:
-    >>> has_regular_insertion_encoding("012, 210")
+    >>> regular_horizontal_insertion_encoding("012, 210")
     True
     """
     basis = string_to_basis(basis) if isinstance(basis, str) else basis
@@ -118,9 +118,9 @@ def checks_hori_type(cperm: list[int], class_to_check: tuple[int, int]) -> bool:
     1 -> strictly increasing
 
     Examples:
-    >>> checks_type([0, 1, 2], (1, 1))
+    >>> checks_hori_type([0, 1, 2], (1, 1))
     True
-    >>> checks_type([2, 1, 0], (1, 1))
+    >>> checks_hori_type([2, 1, 0], (1, 1))
     False
     """
     if len(cperm) == 0 or len(cperm) == 1:

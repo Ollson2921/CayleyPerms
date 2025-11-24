@@ -507,29 +507,39 @@ class Tiling(CombinatorialClass):
     def is_horizontal_insertion_encodable(self) -> bool:
         """Returns True if the tiling has a horizontal insertion encoding."""
         if self.dimensions[1] == 1:
-            patterns_in_cells: list[tuple[CayleyPermutation]] = []
+            patterns_in_cells: list[tuple[CayleyPermutation, ...]] = []
             for cell in self.active_cells:
-                patterns_in_cells.append(tuple(
-                    gcp.pattern
-                    for gcp in self.obstructions
-                    if all(c[0] == cell[0] for c in gcp.positions)
-                ))
-            if all(regular_horizontal_insertion_encoding(patterns_in_cell) for patterns_in_cell in patterns_in_cells):
-                    return True
+                patterns_in_cells.append(
+                    tuple(
+                        gcp.pattern
+                        for gcp in self.obstructions
+                        if all(c[0] == cell[0] for c in gcp.positions)
+                    )
+                )
+            if all(
+                regular_horizontal_insertion_encoding(patterns_in_cell)
+                for patterns_in_cell in patterns_in_cells
+            ):
+                return True
         return False
 
     def is_vertical_insertion_encodable(self) -> bool:
         """Returns True if the tiling has a vertical insertion encoding."""
         if self.dimensions[0] == 1:
-            patterns_in_cells: list[tuple[CayleyPermutation]] = []
+            patterns_in_cells: list[tuple[CayleyPermutation, ...]] = []
             for cell in self.active_cells:
-                patterns_in_cells.append(tuple(
-                    gcp.pattern
-                    for gcp in self.obstructions
-                    if all(c[1] == cell[1] for c in gcp.positions)
-                ))
-            if all(regular_vertical_insertion_encoding(patterns_in_cell) for patterns_in_cell in patterns_in_cells):
-                    return True
+                patterns_in_cells.append(
+                    tuple(
+                        gcp.pattern
+                        for gcp in self.obstructions
+                        if all(c[1] == cell[1] for c in gcp.positions)
+                    )
+                )
+            if all(
+                regular_vertical_insertion_encoding(patterns_in_cell)
+                for patterns_in_cell in patterns_in_cells
+            ):
+                return True
         return False
 
     def is_subset(self, other: "Tiling") -> bool:

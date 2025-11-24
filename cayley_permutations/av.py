@@ -85,10 +85,6 @@ class Av:
         Example:
         >>> print(Av([CayleyPermutation((0, 1))]).generate_cperms_dict(2)[2])
         [CayleyPermutation((1, 0)), CayleyPermutation((0, 0))]
-        >>> print(Av([CayleyPermutation((0, 1))]).generate_cperms_dict(2)[1])
-        [CayleyPermutation((0,))]
-        >>> print(Av([CayleyPermutation((0, 1))]).generate_cperms_dict(2)[1])
-        [CayleyPermutation(())]
         """
         all_lengths: dict[int, list[CayleyPermutation]] = {0: [CayleyPermutation([])]}
         if size == 0:

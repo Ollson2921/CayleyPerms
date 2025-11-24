@@ -1,11 +1,11 @@
 """Tests the regular horizontal insertion encoding check and vertical juxtapositions."""
+
 from itertools import combinations
 from typing import List, Iterator
 from cayley_permutations import CayleyPermutation, Av
 from check_regular_ins_enc.check_regular_vert import checks_vert_type
 from check_regular_ins_enc import regular_horizontal_insertion_encoding
-from insertion_encoding.check_regular.check_regular_hori import dec_left
-
+from check_regular_ins_enc.check_regular_hori import dec_left
 
 
 decreasing = [CayleyPermutation([0, 0]), CayleyPermutation([0, 1])]
@@ -143,6 +143,7 @@ def test_con_con():
             assert checks_vert_type(
                 cperm, (2, 2)
             ), f"Failed for {cperm} of size {size}, is not con_con vertical jux"
+
 
 def test_hori_regular_check_fail():
     """Test that this class should fail as they are not permutations"""

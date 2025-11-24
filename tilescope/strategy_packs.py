@@ -482,7 +482,7 @@ class TileScopePack(StrategyPack):
             ver_strats=[
                 AtomStrategy(),
                 VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(), 
+                HorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="Point, Row and Column Placement with Cell Insertion initially",

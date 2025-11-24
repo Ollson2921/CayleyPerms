@@ -28,7 +28,7 @@ class HorizontalInsertionEncodableVerificationStrategy(
     ):
         super().__init__(ignore_parent=ignore_parent)
 
-    def pack(self):
+    def pack(self, comb_class: Tiling = None):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack
@@ -56,7 +56,7 @@ class VerticalInsertionEncodableVerificationStrategy(
     A strategy for verifying if a tiling is vertical insertion encodable.
     """
 
-    def pack(self):
+    def pack(self, comb_class: Tiling = None):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack

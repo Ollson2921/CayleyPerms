@@ -36,6 +36,9 @@ def binomial(x: int, y: int) -> int:
         return 0
 
 
+# pylint: disable=too-many-lines
+
+
 class Tiling(CombinatorialClass):
     """A tiling represents the set of gridded Cayley permutations with cells coming up to a given
     dimension, that avoid a set of obstructions and contain a set of requirements."""

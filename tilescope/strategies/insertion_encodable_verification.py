@@ -1,6 +1,6 @@
 """Strategy for verifying when a tiling is insertion encodable."""
 
-from typing import Optional, Type, TypeVar
+from typing import TypeVar
 from comb_spec_searcher import VerificationStrategy
 from gridded_cayley_permutations import GriddedCayleyPerm, Tiling
 
@@ -26,10 +26,9 @@ class HorizontalInsertionEncodableVerificationStrategy(
         self,
         ignore_parent: bool = False,
     ):
-        self._root: Optional[Tiling] = root
         super().__init__(ignore_parent=ignore_parent)
 
-    def pack(self, comb_class):
+    def pack(self):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack
@@ -43,14 +42,10 @@ class HorizontalInsertionEncodableVerificationStrategy(
         return "The tiling is horizontal insertion encodable"
 
     def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}("
-            f"ignore_parent={self.ignore_parent}, "
-            f"workable={self.workable})"
-        )
+        return f"{self.__class__.__name__}(" f"workable={self.workable})"
 
     @classmethod
-    def from_dict(cls, d: dict) -> "FactorStrategy":
+    def from_dict(cls, d: dict) -> "HorizontalInsertionEncodableVerificationStrategy":
         return cls(**d)
 
 
@@ -61,7 +56,7 @@ class VerticalInsertionEncodableVerificationStrategy(
     A strategy for verifying if a tiling is vertical insertion encodable.
     """
 
-    def pack(self, comb_class):
+    def pack(self):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
         from tilescope.strategy_packs import TileScopePack

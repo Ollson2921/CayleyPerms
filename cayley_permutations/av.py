@@ -40,7 +40,7 @@ class Av:
         False
         """
         return not cperm.contains(self.basis, require_last)
-        
+
     def generate_cperms(self, size: int) -> list[CayleyPermutation]:
         """Generate Cayley permutations of size 'size' which
         avoid the basis by checking avoidance at each step.
@@ -61,11 +61,13 @@ class Av:
             count += 1
             current_cperms = next_cperms
         return current_cperms
-    
-    def next_sized_cperms_in_class(self, last_cperms: list[CayleyPermutation]) -> list[CayleyPermutation]:
+
+    def next_sized_cperms_in_class(
+        self, last_cperms: list[CayleyPermutation]
+    ) -> list[CayleyPermutation]:
         """Finds the Cayley permutations in the class which are one longer than
         the Cayley permutations in 'last_cperms'.
-        
+
         Example:
         >>> Av([CayleyPermutation((0, 1))]).next_sized_cperms_in_class([CayleyPermutation((0,))])
         [CayleyPermutation((1, 0)), CayleyPermutation((0, 0))]"""
@@ -75,14 +77,18 @@ class Av:
                 if self.in_class(next_cperm):
                     next_cperms.append(next_cperm)
         return next_cperms
-    
+
     def generate_cperms_dict(self, size: int) -> dict[int, list[CayleyPermutation]]:
         """Returns a dictionary of Cayley permutations of length n in the class
         for n up to 'size'.
-        
+
         Example:
-        >>> Av([CayleyPermutation((0, 1))]).generate_cperms_dict(2)
-        {0: [CayleyPermutation(())], 1: [CayleyPermutation((0,))], 2: [CayleyPermutation((1, 0)), CayleyPermutation((0, 0))]}"""
+        >>> for item in Av([CayleyPermutation((0, 1))]).generate_cperms_dict(2).items():
+        >>>    print(item)
+        (0, [CayleyPermutation(())])
+        (1, [CayleyPermutation((0,))])
+        (2, [CayleyPermutation((1, 0)), CayleyPermutation((0, 0))])
+        """
         all_lengths: dict[int, list[CayleyPermutation]] = {0: [CayleyPermutation([])]}
         if size == 0:
             return all_lengths
@@ -92,7 +98,7 @@ class Av:
             current_size += 1
             all_lengths[current_size] = self.generate_cperms(current_size)
         return all_lengths
-        
+
     def counter(self, ran: int = 7) -> list[int]:
         """
         Returns a list of the number of cperms for each size in range 'ran'
@@ -120,7 +126,7 @@ class Av:
     def condition(self) -> bool:
         """Returns True if can skip pattern avoidance."""
         return False
-    
+
     def pretty_print_generate_cperms(self, size: int) -> str:
         """Prints the Cayley permutations of size 'size' in the class
         in a more readable format."""
@@ -128,7 +134,7 @@ class Av:
 
     def __str__(self) -> str:
         return f"Av({','.join(str(x) for x in self.basis)})"
-    
+
     def __repr__(self) -> str:
         return f"Av([{','.join(repr(cperm) for cperm in self.basis)}])"
 

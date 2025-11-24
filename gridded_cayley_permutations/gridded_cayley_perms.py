@@ -7,6 +7,8 @@ from comb_spec_searcher import CombinatorialObject
 
 from cayley_permutations import CayleyPermutation
 
+Cell = tuple[int, int]
+
 
 class GriddedCayleyPerm(CombinatorialObject):
     """A Cayley permutation as a gridding."""
@@ -326,6 +328,14 @@ class GriddedCayleyPerm(CombinatorialObject):
             for indices in combinations(range(len(self)), size)
         )
 
+    def get_gridded_perm_in_cells(self, cells: Iterable[Cell]) -> "GriddedCayleyPerm":
+        """Returns the subgridded permutation of points in cells."""
+        cells = set(cells)
+        return GriddedCayleyPerm(
+            CayleyPermutation.standardise(val for val, pos in self if pos in cells),
+            (pos for pos in self.positions if pos in cells),
+        )
+
     def to_jsonable(self) -> dict:
         """Returns a jsonable dictionary of the gridded Cayley permutation."""
         return {"pattern": self.pattern.to_jsonable(), "positions": self.positions}
@@ -358,3 +368,6 @@ class GriddedCayleyPerm(CombinatorialObject):
 
     def __hash__(self) -> int:
         return hash((self.pattern, self.positions))
+
+    def __iter__(self) -> Iterator[tuple[int, Cell]]:
+        return zip(self.pattern, self.positions)

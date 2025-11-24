@@ -12,7 +12,7 @@ def regular_vertical_insertion_encoding(
     """Checks if a basis has a regular insertion encoding.
 
     Example:
-    >>> has_regular_insertion_encoding("01_10")
+    >>> regular_vertical_insertion_encoding("01_10")
     True
     """
     basis = string_to_basis(basis) if isinstance(basis, str) else basis
@@ -34,9 +34,9 @@ def checks_vert_type(cperm: list[int], class_to_check: tuple[int, int]) -> bool:
     2 -> constant
 
     Examples:
-    >>> checks_type([0, 1, 2], (1, 1))
+    >>> checks_vert_type([0, 1, 2], (1, 1))
     True
-    >>> checks_type([0, 1, 2], (0, 0))
+    >>> checks_vert_type([0, 1, 2], (0, 0))
     False
     """
     if len(cperm) == 0 or len(cperm) == 1:

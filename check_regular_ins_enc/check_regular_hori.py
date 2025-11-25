@@ -5,7 +5,7 @@ horizontal insertion encoding."""
 from cayley_permutations import string_to_basis, CayleyPermutation
 
 
-def is_increasing(cperm: list[int], vals_seen=None) -> bool:
+def is_increasing(cperm: list[int], vals_seen: set[int] | None = None) -> bool:
     """Returns True if the sequence is strictly increasing.
     Also checks that no vals in vals_seen occur in the sequence."""
     if vals_seen is None:
@@ -26,7 +26,7 @@ def is_increasing(cperm: list[int], vals_seen=None) -> bool:
     return True
 
 
-def is_decreasing(cperm: list[int], vals_seen=None) -> bool:
+def is_decreasing(cperm: list[int], vals_seen: set[int] | None = None) -> bool:
     """Returns True if the sequence is strictly decreasing.
     Also checks that no vals in vals_seen occur in the sequence."""
     if vals_seen is None:
@@ -47,7 +47,7 @@ def is_decreasing(cperm: list[int], vals_seen=None) -> bool:
     return True
 
 
-def is_constant(cperm: list[int], vals_seen=None) -> bool:
+def is_constant(cperm: list[int], vals_seen: set[int] | None = None) -> bool:
     """Returns True if the sequence is constant.
     Also checks that no vals in vals_seen occur in the sequence."""
     if vals_seen is None:
@@ -67,7 +67,7 @@ def is_constant(cperm: list[int], vals_seen=None) -> bool:
     return True
 
 
-def seq_type(cperm: list[int], seqtype: int, vals_seen=None) -> bool:
+def seq_type(cperm: list[int], seqtype: int, vals_seen: set[int] | None = None) -> bool:
     """Returns True if the sequence is of the type specified by the
     integer.
     0 -> strictly decreasing

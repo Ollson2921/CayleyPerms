@@ -437,8 +437,8 @@ class Tiling(CombinatorialClass):
     @staticmethod
     def create_vincular_or_bivincular(
         cperm: CayleyPermutation | str,
-        adjacent_values: Iterable[int] = [],
         adjacent_indices: Iterable[int] = [],
+        adjacent_values: Iterable[int] = [],
     ) -> "Tiling":
         # pylint:disable=dangerous-default-value
         # pylint:disable=too-many-locals

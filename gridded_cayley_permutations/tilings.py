@@ -834,15 +834,8 @@ class Tiling(CombinatorialClass):
             width: 24px;
             height: 24px;
             text-align: center;
-            background-color : white;
             """
-        empty_style = """
-            border: 1px solid;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            background-color : grey;
-            """
+        empty = "background-color : grey;"
         dim_i, dim_j = self.dimensions
         result = []
         # Create tiling html table, has one extra row/col for RowColMap
@@ -850,10 +843,8 @@ class Tiling(CombinatorialClass):
         for i in range(dim_j):
             result.append("<tr>")
             for j in range(dim_i):
-                if (j, dim_j - i - 1) in empty_cells:
-                    result.append(f"<th style='{empty_style}'>")
-                else:
-                    result.append(f"<th style='{style}'>")
+                temp_style = style + empty * ((j, dim_j - i - 1) in empty_cells)
+                result.append(f"<th style='{temp_style}'>")
                 result.append(" ")
                 result.append("</th>")
             result.append("</tr>")
@@ -873,7 +864,7 @@ class Tiling(CombinatorialClass):
             if label is None:
 
                 match basis:
-                    case [CayleyPermutation((0,))]:
+                    case [CayleyPermutation((0,))] | []:
                         label = ""
                         continue
                     case [

@@ -24,7 +24,9 @@ start_class = Tiling(
     [],
     (1, 1),
 )
-searcher = CombinatorialSpecificationSearcher(start_class, TileScopePack.point_placement())
+searcher = CombinatorialSpecificationSearcher(
+    start_class, TileScopePack.point_placement()
+)
 spec = searcher.auto_search()
 # spec.get_genf()
 print([spec.count_objects_of_size(i) for i in range(10)])

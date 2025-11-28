@@ -8,7 +8,7 @@ setup(
     author_email="c.n.bean@keele.ac.uk",
     packages=find_namespace_packages(),
     install_requires=[
-        "comb_spec_searcher",
+        "comb_spec_searcher @ git+https://github.com/PermutaTriangle/comb_spec_searcher",
         "tqdm",
     ],  # external packages as dependencies
 )

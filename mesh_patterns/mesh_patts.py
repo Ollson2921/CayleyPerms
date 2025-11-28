@@ -287,9 +287,11 @@ class MeshPattern:
         Example:
         >>> print(MeshPattern(CayleyPermutation([1, 2]), [(0, 3), (2, 2)]).ascii_plot())
          | |
-        x+-●-
-         |x|
-        -●-+-
+        -+-●-
+         | |
+        x●-+-
+         | |x
+        -+-+-
          | |
         """
         shaded_cell = "x"

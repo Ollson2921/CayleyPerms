@@ -361,7 +361,7 @@ class Tiling(CombinatorialClass):
         for cell in self.point_cells():
             point_cols.add(cell[0])
         return point_cols
-        
+
     def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""
         cells = set()

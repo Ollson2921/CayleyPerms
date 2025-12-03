@@ -19,6 +19,8 @@ from .strategies import (
     VerticalInsertionEncodableVerificationStrategy,
     HorizontalInsertionEncodableVerificationStrategy,
     SubclassVerificationStrategy,
+    FusionPointRowFactory,
+    FusionFactory,
 )
 
 
@@ -278,6 +280,36 @@ class TileScopePack(StrategyPack):
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="Column Placement",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def col_placement_fusion(cls):
+        """Column placements with fusion strategy pack."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+                FusionPointRowFactory(),
+                FusionFactory(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[
+                [
+                    CellInsertionFactory(),
+                    ColInsertionFactory(),
+                ]
+            ],  # Iterable[Iterable[Strategy]]
+            ver_strats=[
+                AtomStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
+            ],  # Iterable[Strategy]
+            name="Column Placement with Fusion",
             symmetries=[],
             iterative=False,
         )

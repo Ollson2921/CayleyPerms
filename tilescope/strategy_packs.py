@@ -284,35 +284,21 @@ class TileScopePack(StrategyPack):
             iterative=False,
         )
 
-    @classmethod
-    def col_placement_fusion(cls):
-        """Column placements with fusion strategy pack."""
-        return TileScopePack(
-            inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    CellInsertionFactory(),
-                    ColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Column Placement with Fusion",
-            symmetries=[],
-            iterative=False,
-        )
+    def make_fusion(
+        self,
+        point_rows: bool = False,
+        apply_first: bool = False,
+    ) -> "TileScopePack":
+        """
+        Create a new pack by adding fusion to the current pack.
+
+        If point_rows, it will add point rows fusion.
+        If apply_first, it will add fusion to the front of the initial strategies.
+        """
+        name = "point_row_fusion" if point_rows else "fusion"
+        fusion_strat = FusionPointRowFactory() if point_rows else FusionFactory()
+        pack = self.add_initial(fusion_strat, name, apply_first=apply_first)
+        return pack
 
     @classmethod
     def row_and_col_placement(cls):

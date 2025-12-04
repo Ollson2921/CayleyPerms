@@ -1,11 +1,11 @@
 """Strategies and factories for inserting points of a requirement into a tiling."""
 
 from typing import Dict, Iterable, Iterator, Optional, Tuple
+from itertools import product
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
-from gridded_cayley_permutations import Tiling
-from gridded_cayley_permutations import GriddedCayleyPerm
-from cayley_permutations import CayleyPermutation
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
+from cayley_permutations import CayleyPermutation, Av
 
 Cell = Tuple[int, int]
 

@@ -172,7 +172,9 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
         self.maxreqlen = maxreqlen
         # self.one_cell_only = one_cell_only
 
-    def req_lists_to_insert(self, tiling: Tiling) -> Iterator[GriddedCayleyPerm]:
+    def req_lists_to_insert(
+        self, tiling: Tiling
+    ) -> Iterator[Tuple[GriddedCayleyPerm, ...]]:
         """Yields all requirement lists to insert into the tiling."""
         # if self.one_cell_only:
         #     assert self.maxreqlen == 1 and self.ignore_parent
@@ -192,7 +194,7 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
                 else CayleyPermutation.of_size(length)
             )
             yield from (
-                GriddedCayleyPerm.create_gcp_in_cell(patt, cell)
+                (GriddedCayleyPerm.create_gcp_in_cell(patt, cell),)
                 for patt in patterns
                 if not any(patt in cperm for cperm in bdict[cell][1])
             )

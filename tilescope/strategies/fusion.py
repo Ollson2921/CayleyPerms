@@ -77,7 +77,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def formal_step(self) -> str:
         fusing = "rows" if self.fuse_rows else "columns"
         idx = self.index
-        return f"Fuse {fusing} {idx} and {idx+1}"
+        return f"Fuse {fusing} {idx} and {idx +1}"
 
     # pylint: disable=arguments-differ
     def backward_map(
@@ -140,7 +140,6 @@ class FusionFactory(StrategyFactory[Tiling]):
     """Factory for doing fusion."""
 
     def __call__(self, comb_class: Tiling):
-        # print("Trying fusion")
         for direction in [True, False]:
             for index in range(comb_class.dimensions[direction] - 1):
                 if comb_class.is_fusable(direction, index):
@@ -155,3 +154,32 @@ class FusionFactory(StrategyFactory[Tiling]):
 
     def __str__(self) -> str:
         return "Fusion factory"
+
+
+class FusionPointRowStrategy(FusionStrategy):
+    """Strategy that fuses a point row with an adjacent row of a tiling together."""
+
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling]:
+        """If self.index is a point row then remove it, otherwise self.index + 1 is a point row so
+        remove that."""
+        if self.index in comb_class.point_rows:
+            return (comb_class.fuse(True, self.index),)
+        return (comb_class.fuse(True, self.index + 1),)
+
+    def formal_step(self) -> str:
+        idx = self.index
+        # if idx in self.comb_class.point_rows:
+        #     return f"Fuse point row {idx} with row {idx + 1}"
+        return f"Point row fusion of row {idx} and row {idx + 1}"
+
+
+class FusionPointRowFactory(FusionFactory):
+    """Factory for doing fusion with point rows."""
+
+    def __call__(self, comb_class: Tiling):
+        for row in comb_class.point_rows:
+            if comb_class.is_point_row_fuseable(row):
+                yield FusionPointRowStrategy(True, row)
+
+    def __str__(self) -> str:
+        return "Fusion for point rows factory"

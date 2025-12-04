@@ -295,7 +295,11 @@ class TileScopePack(StrategyPack):
         If point_rows, it will add point rows fusion.
         If apply_first, it will add fusion to the front of the initial strategies.
         """
-        name = "point_row_fusion" if point_rows else "fusion"
+        name = (
+            self.name + " with point row fusion"
+            if point_rows
+            else self.name + " with fusion"
+        )
         fusion_strat = FusionPointRowFactory() if point_rows else FusionFactory()
         pack = self.add_initial(fusion_strat, name, apply_first=apply_first)
         return pack

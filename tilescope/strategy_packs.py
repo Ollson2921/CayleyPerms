@@ -462,18 +462,23 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
-    def cell_insertion(cls):
+    def cell_insertion(cls, length: int):
         """Cell insertion strategy pack."""
         return TileScopePack(
             inferral_strats=[],  # Iterable[Strategy]
             initial_strats=[],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
+                    CellInsertionFactory(maxreqlen=length),
                 ]
             ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
-            name="Cell Insertion",
+            ver_strats=[
+                AtomStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
+            ],  # Iterable[Strategy]
+            name=f"Cell Insertion, inserting up to length {length}",
             symmetries=[],
             iterative=False,
         )

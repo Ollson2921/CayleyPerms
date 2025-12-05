@@ -37,6 +37,11 @@ def sym_of_basis(cperms: list[CayleyPermutation]) -> list[frozenset[CayleyPermut
         b1.append(cperm.reverse())
         b2.append(complement(cperm))
         b3.append(complement(cperm.reverse()))
+    return sorted(
+        [frozenset(cperms), frozenset(b1), frozenset(b2), frozenset(b3)],
+        key=lambda x: (len(x), x),
+        # key=lambda x: sorted(list(x))[0],
+    )
     return sorted([frozenset(cperms), frozenset(b1), frozenset(b2), frozenset(b3)])
 
 
@@ -63,16 +68,20 @@ for cperm in CayleyPermutation.of_size(3):
     all_bases.add(basis_syms)
     nomial_bases.add(initial_basis)
 
-print("Total bases found:", len(all_bases) + len(ins_enc_able_bases))
-print("Insertion encodable bases found:", len(ins_enc_able_bases))
-print("Non-insertion encodable bases found:", len(all_bases))
+# print("Total bases found:", len(all_bases) + len(ins_enc_able_bases))
+# print("Insertion encodable bases found:", len(ins_enc_able_bases))
+# print("Non-insertion encodable bases found:", len(all_bases))
 
-for basis in nomial_bases:
-    print(Av(list(basis)))
+# for basis in nomial_bases:
+#     print(Av(list(basis)))
 
 """All bases with only size 3 patterns"""
 
-for _ in range(16):
+for n in range(16):
+    size_n_ins_enc_able_bases = set()
+    size_n_not_ins_enc_able_bases = set()
+    # print("Checking bases of size", n + 1)
+
     new_nomial_bases = set()
     for basis in nomial_bases:
         for cperm in Av(list(basis)).generate_cperms(3):
@@ -88,16 +97,24 @@ for _ in range(16):
                 for b in basis_syms
             ):
                 ins_enc_able_bases.add(basis_syms)
+                size_n_ins_enc_able_bases.add(basis_syms)
                 continue
             all_bases.add(basis_syms)
             new_nomial_bases.add(initial_basis)
+            size_n_not_ins_enc_able_bases.add(basis_syms)
     nomial_bases.update(new_nomial_bases)
+    # print("insertion encodable bases:", len(size_n_ins_enc_able_bases))
+    # print("non-insertion encodable bases:", len(size_n_not_ins_enc_able_bases))
 
 
-# with open(f"all_basis_classes_3s.txt", "w") as f:
-#     f.write(repr(all_bases))
+# print("Total bases found:", len(all_bases) + len(ins_enc_able_bases))
+# print("Insertion encodable bases found:", len(ins_enc_able_bases))
+# print("Non-insertion encodable bases found:", len(all_bases))
 
-"""Bases from before with one size 4 pattern"""
+# # with open(f"all_basis_classes_3s.txt", "w") as f:
+# #     f.write(repr(all_bases))
+
+# """Bases from before with one size 4 pattern"""
 
 new_nomial_bases = set()
 bases_with_size_4s = set()
@@ -135,15 +152,49 @@ print("Non-insertion encodable bases found:", len(bases_with_size_4s))
 #     f.write(repr(bases_with_size_4s))
 
 
-"""With two size 4s"""
-new_nomial_bases = set()
-bases_with_2size_4s = set()
-ins_enc_able_bases_with_2size_4s = set()
+# """With two size 4s"""
+# # new_nomial_bases = set()
+# # bases_with_2size_4s = set()
+# # ins_enc_able_bases_with_2size_4s = set()
 
-for basis in nomial_bases:
-    for cperm in Av(list(basis)).generate_cperms(4):
-        new_basis = list(basis) + [cperm]
-        basis_syms = sym_of_basis(new_basis)
+# # for basis in nomial_bases:
+# #     for cperm in Av(list(basis)).generate_cperms(4):
+# #         new_basis = list(basis) + [cperm]
+# #         basis_syms = sym_of_basis(new_basis)
+# #         initial_basis = basis_syms[0]
+# #         basis_syms = frozenset(set(basis_syms))
+# #         if basis_syms in all_bases or basis_syms in ins_enc_able_bases:
+# #             continue
+# #         if any(
+# #             regular_horizontal_insertion_encoding(b)
+# #             or regular_vertical_insertion_encoding(b)
+# #             for b in basis_syms
+# #         ):
+# #             # ins_enc_able_bases.add(basis_syms)
+# #             ins_enc_able_bases_with_2size_4s.add(basis_syms)
+# #             continue
+# #         # all_bases.add(basis_syms)
+# #         new_nomial_bases.add(initial_basis)
+# #         bases_with_2size_4s.add(basis_syms)
+# # nomial_bases.update(new_nomial_bases)
+
+old_all_bases = bases_with_size_4s
+
+all_bases = set()
+ins_enc_able_bases = set()
+nomial_bases = set()
+
+"""One size 3 pattern"""
+
+from itertools import combinations
+
+print("=" * 20)
+for n in range(1, 14):
+    bases_this_size = set()
+    ins_enc_able_bases_this_size = set()
+    # print("Checking bases of size", n)
+    for basis in combinations(CayleyPermutation.of_size(3), n):
+        basis_syms = sym_of_basis(basis)
         initial_basis = basis_syms[0]
         basis_syms = frozenset(set(basis_syms))
         if basis_syms in all_bases or basis_syms in ins_enc_able_bases:
@@ -153,10 +204,58 @@ for basis in nomial_bases:
             or regular_vertical_insertion_encoding(b)
             for b in basis_syms
         ):
-            # ins_enc_able_bases.add(basis_syms)
-            ins_enc_able_bases_with_2size_4s.add(basis_syms)
+            ins_enc_able_bases.add(basis_syms)
+            ins_enc_able_bases_this_size.add(basis_syms)
             continue
-        # all_bases.add(basis_syms)
+        all_bases.add(basis_syms)
+        bases_this_size.add(basis_syms)
+        nomial_bases.add(initial_basis)
+    # print(
+    #     "Bases found this size:",
+    #     len(bases_this_size) + len(ins_enc_able_bases_this_size),
+    # )
+    # print("Insertion encodable bases:", len(ins_enc_able_bases_this_size))
+    # print("Non-insertion encodable bases:", len(bases_this_size))
+
+old_all_bases = all_bases
+old_ins_enc_able_bases = ins_enc_able_bases
+new_nomial_bases = set()
+all_bases = set()
+ins_enc_able_bases = set()
+for basis in nomial_bases:
+    for cperm in CayleyPermutation.of_size(4):
+        new_basis = list(basis) + [cperm]
+        basis_syms = sym_of_basis(new_basis)
+        initial_basis = basis_syms[0]
+        basis_syms = frozenset(set(basis_syms))
+        if (
+            basis_syms in all_bases
+            or basis_syms in ins_enc_able_bases
+            or basis_syms in old_all_bases
+            or basis_syms in old_ins_enc_able_bases
+        ):
+            continue
+        if any(
+            regular_horizontal_insertion_encoding(b)
+            or regular_vertical_insertion_encoding(b)
+            for b in basis_syms
+        ):
+            ins_enc_able_bases.add(basis_syms)
+            continue
+        all_bases.add(basis_syms)
         new_nomial_bases.add(initial_basis)
-        bases_with_2size_4s.add(basis_syms)
 nomial_bases.update(new_nomial_bases)
+
+print("Total bases found:", len(all_bases) + len(ins_enc_able_bases))
+print("Insertion encodable bases found:", len(ins_enc_able_bases))
+print("Non-insertion encodable bases found:", len(all_bases))
+
+# for basis in old_all_bases:
+#     assert basis in all_bases
+# for basis in all_bases:
+#     assert basis in old_all_bases
+
+# for basis in all_bases:
+#     print(Av(list(basis)[0]))
+# for basis in sorted(nomial_bases, key=lambda x: (len(x), x)):
+#     print(Av(list(basis)))

@@ -151,9 +151,7 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
         """Yields all requirement lists to insert into the tiling."""
         if self.one_cell_only:
             assert self.maxreqlen == 1 and self.ignore_parent
-            cells = sorted(
-                frozenset(tiling.active_cells) - frozenset(tiling.positive_cells)
-            )
+            cells = sorted(tiling.active_cells - tiling.positive_cells())
             if cells:
                 yield (
                     GriddedCayleyPerm.create_gcp_in_cell(

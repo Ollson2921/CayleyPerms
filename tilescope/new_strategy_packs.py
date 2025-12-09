@@ -32,71 +32,7 @@ class TileScopePack(StrategyPack):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    @classmethod
-    def vertical_insertion_encoding(cls):
-        """Vertical insertion encoding strategy pack."""
-        return TileScopePack(
-            initial_strats=[
-                FactorStrategy(),
-                VerticalInsertionEncodingRequirementInsertionFactory(),
-            ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
-            expansion_strats=[[VerticalInsertionEncodingPlacementFactory()]],
-            ver_strats=[AtomStrategy()],
-            name="Vertical_Insertion_Encoding",
-            symmetries=[],
-            iterative=False,
-        )
-
-    @classmethod
-    def horizontal_insertion_encoding(cls):
-        """Horizontal insertion encoding strategy pack."""
-        return TileScopePack(
-            initial_strats=[
-                FactorStrategy(),
-                HorizontalInsertionEncodingRequirementInsertionFactory(),
-            ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
-            expansion_strats=[[HorizontalInsertionEncodingPlacementFactory()]],
-            ver_strats=[AtomStrategy()],
-            name="Horizontal_Insertion_Encoding",
-            symmetries=[],
-            iterative=False,
-        )
-
-    @classmethod
-    def basics(cls):
-        """Minimum strategies for a pack.
-        NOTE: Has no expansion strategies!!"""
-        return TileScopePack(
-            inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[[]],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-            ],  # Iterable[Strategy]
-            name="",
-            symmetries=[],
-            iterative=False,
-        )
-
-    def change_name(self, new_name: str) -> "TileScopePack":
-        """Return a new pack with the given name."""
-        return TileScopePack(
-            initial_strats=self.initial_strats,
-            inferral_strats=self.inferral_strats,
-            expansion_strats=self.expansion_strats,
-            ver_strats=self.ver_strats,
-            name=new_name,
-            symmetries=self.symmetries,
-            iterative=self.iterative,
-        )
+    # General pack creation methods
 
     @classmethod
     def make_pack(
@@ -104,8 +40,9 @@ class TileScopePack(StrategyPack):
         expansions: Iterable[str],
         root: Tiling | None = None,
         verify: bool = False,
-        cell_insertion_expansion: bool = True,
+        cell_insertion_initial: bool = False,
         fusion: int = 0,
+        shuffle_factors: bool = False,
     ):
         """Make a strategy pack with the given strategies.
         root: The root tiling. Only needed if verify is True.
@@ -114,14 +51,14 @@ class TileScopePack(StrategyPack):
             - "row": RowInsertionFactory
             - "col": ColInsertionFactory
         verify: If True then includes all verification strategies, otherwise just AtomStrategy.
-        cell_insertion_expansion: If True includes cell insertion as an expansion strategy, else
-        included as initial strategy.
+        cell_insertion_initial: If True includes cell insertion as an initial strategy, else
+        included as an expansion strategy.
         fusion: If 0, no fusion. If 1, standard fusion. If 2, point row fusion. If 3, both.
+        shuffle_factors: If True, replaces FactorStrategy with ShuffleFactorStrategy.
         """
-        pack = cls.basics()
-
-        if not expansions and not cell_insertion_expansion:
+        if not expansions and cell_insertion_initial:
             raise ValueError("At least one expansion strategy must be provided.")
+        pack = cls.basics()
 
         exp_strats: list[StrategyFactory] = []
         exp_name = "_and_".join(expansions)
@@ -135,11 +72,9 @@ class TileScopePack(StrategyPack):
             else:
                 raise ValueError(f"Unknown expansion strategy: {strat}")
         exp_name += "_placement"
-        # pack = pack.add_expansion(exp_strats, name_ext=exp_name)
 
-        if cell_insertion_expansion:
+        if not cell_insertion_initial:
             exp_strats.append(CellInsertionFactory())
-            # exp_name += "_cell_insertion"
             pack = pack.add_expansion(exp_strats, name_ext=exp_name)
         else:
             pack = pack.add_expansion(exp_strats, name_ext=exp_name)
@@ -152,7 +87,34 @@ class TileScopePack(StrategyPack):
             if root is None:
                 raise ValueError("root Tiling must be provided if verify is True.")
             pack = pack.add_verification_strats(root=root)
+
+        if shuffle_factors:
+            pack = pack.remove_strategy(FactorStrategy())
+            pack = pack.add_initial(ShuffleFactorStrategy(), "with_shuffle_factors")
+
         return pack.change_name(pack.name[1:])
+
+    @classmethod
+    def basics(cls):
+        """Minimum strategies for a pack.
+        NOTE: Has no expansion strategies!! Add them in."""
+        return TileScopePack(
+            inferral_strats=[
+                RemoveEmptyRowsAndColumnsStrategy(),
+                LessThanRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            initial_strats=[
+                FactorStrategy(),
+                LessThanOrEqualRowColSeparationStrategy(),
+            ],  # Iterable[Strategy]
+            expansion_strats=[],  # Iterable[Iterable[Strategy]]
+            ver_strats=[
+                AtomStrategy(),
+            ],  # Iterable[Strategy]
+            name="",
+            symmetries=[],
+            iterative=False,
+        )
 
     def add_verification_strats(
         self,
@@ -206,35 +168,80 @@ class TileScopePack(StrategyPack):
             return pack
         raise ValueError("fusion_type must be 1, 2, or 3.")
 
+    def change_name(self, new_name: str) -> "TileScopePack":
+        """Return a new pack with the given name."""
+        return TileScopePack(
+            initial_strats=self.initial_strats,
+            inferral_strats=self.inferral_strats,
+            expansion_strats=self.expansion_strats,
+            ver_strats=self.ver_strats,
+            name=new_name,
+            symmetries=self.symmetries,
+            iterative=self.iterative,
+        )
+
     @classmethod
     def point_placement(cls):
         """Point placement strategy pack."""
-        return cls.make_pack(expansions=["point"], verify=False)
+        return cls.make_pack(expansions=["point"])
 
+    @classmethod
+    def row_and_col_placement(cls):
+        """Row and column placement strategy pack."""
+        return cls.make_pack(expansions=["row", "col"])
 
-print(TileScopePack.point_placement().name)
-print(TileScopePack.vertical_insertion_encoding().name)
-print(
-    TileScopePack.make_pack(
-        expansions=["point", "row"],
-        fusion=2,
-        cell_insertion_expansion=False,
-        root=Tiling([], [], (1, 1)),
-    ).name
-)
-print(
-    TileScopePack.make_pack(
-        expansions=["row"],
-        fusion=3,
-        root=Tiling([], [], (1, 1)),
-    ).name
-)
+    # Other packs
 
-print(
-    TileScopePack.make_pack(
-        expansions=["point", "row", "col"],
-        fusion=1,
-        root=Tiling([], [], (1, 1)),
-        verify=True,
-    ).name
-)
+    @classmethod
+    def vertical_insertion_encoding(cls):
+        """Vertical insertion encoding strategy pack."""
+        return TileScopePack(
+            initial_strats=[
+                FactorStrategy(),
+                VerticalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[VerticalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="vertical_insertion_encoding",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def horizontal_insertion_encoding(cls):
+        """Horizontal insertion encoding strategy pack."""
+        return TileScopePack(
+            initial_strats=[
+                FactorStrategy(),
+                HorizontalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[HorizontalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="horizontal_insertion_encoding",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def cell_insertion(cls, length: int):
+        """Cell insertion strategy pack."""
+        return TileScopePack(
+            inferral_strats=[],
+            initial_strats=[],
+            expansion_strats=[
+                [
+                    CellInsertionFactory(maxreqlen=length),
+                ]
+            ],
+            ver_strats=[
+                AtomStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
+            ],
+            name=f"cell_insertion_patterns_up_to_length_{length}",
+            symmetries=[],
+            iterative=False,
+        )

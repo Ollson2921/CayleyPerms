@@ -56,6 +56,8 @@ class TileScopePack(StrategyPack):
         fusion: If 0, no fusion. If 1, standard fusion. If 2, point row fusion. If 3, both.
         shuffle_factors: If True, replaces FactorStrategy with ShuffleFactorStrategy.
         """
+        # pylint:disable=too-many-arguments
+        # pylint:disable=too-many-positional-arguments
         if not expansions and cell_insertion_initial:
             raise ValueError("At least one expansion strategy must be provided.")
         pack = cls.basics()

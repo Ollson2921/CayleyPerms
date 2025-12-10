@@ -177,7 +177,7 @@ class TrackedTiling(Tiling):
         """If fuse_rows, tries to fuse rows, otherwise, tries to fuse cols.
         Creates a cloud at index 'index' of rows if fuse_rows else columns."""
         if fuse_rows is False:
-            tracked_til = self.delete_columns([index])
+            tracked_til = self.delete_rows_and_columns(cols=[index], rows=[])
             new_cloud = tuple(
                 (index, row)
                 for row in range(tracked_til.dimensions[1])
@@ -188,7 +188,7 @@ class TrackedTiling(Tiling):
                 tracked_til.value_clouds,
                 tracked_til.indices_clouds + (new_cloud,),
             )
-        tracked_til = self.delete_rows([index])
+        tracked_til = self.delete_rows_and_columns(cols=[], rows=[index])
         new_cloud = tuple(
             (col, index)
             for col in range(tracked_til.dimensions[0])
@@ -199,6 +199,32 @@ class TrackedTiling(Tiling):
             tracked_til.value_clouds + (new_cloud,),
             tracked_til.indices_clouds,
         )
+
+    def is_fusable(self, fuse_rows: bool, index: int) -> bool:
+        """If fuse rows, checks if the rows at index and index+1 are fuseable,
+        otherwise does the same for cols at index and index+1.
+
+        can't fuse rows/cols if a cloud maps onto only part of the rows/cols to be fused,
+        must map to all or none of it."""
+        if fuse_rows:
+            cells_fusing = [(col, index) for col in range(self.dimensions[0])] + [
+                (col, index + 1) for col in range(self.dimensions[0])
+            ]
+        else:
+            cells_fusing = [(index, row) for row in range(self.dimensions[1])] + [
+                (index + 1, row) for row in range(self.dimensions[1])
+            ]
+        for cloud in self.value_clouds + self.indices_clouds:
+            cloud_in_fusion_area = [cell for cell in cloud if cell in cells_fusing]
+            if 0 < len(cloud_in_fusion_area) < len(cloud):
+                return False
+
+        if fuse_rows:
+            test_tiling = self.delete_rows_and_columns(cols=[], rows=[index])
+        else:
+            test_tiling = self.delete_rows_and_columns(cols=[index], rows=[])
+        test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
+        return test_tiling == self
 
     def __str__(self) -> str:
         return (

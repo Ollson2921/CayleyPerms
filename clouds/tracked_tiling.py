@@ -216,7 +216,7 @@ class TrackedTiling(Tiling):
             ]
         for cloud in self.value_clouds + self.indices_clouds:
             cloud_in_fusion_area = [cell for cell in cloud if cell in cells_fusing]
-            if 0 < len(cloud_in_fusion_area) < len(cloud):
+            if 0 < len(cloud_in_fusion_area) < len(cells_fusing):
                 return False
 
         if fuse_rows:

@@ -198,15 +198,42 @@ print("=====Fusion=====")
 print("-----Fusing Rows 1, 2-----")
 til = Tiling([], [], (3, 3))
 tracked_til = TrackedTiling(
-    til, value_clouds=(((0, 0), (1, 0)),), indices_clouds=(((0, 1),),)
+    til,
+    value_clouds=(((0, 0), (1, 0)),),
+    indices_clouds=(((0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 2)),),
 )
 print(tracked_til)
-print(tracked_til.fuse(True, 1))
+assert tracked_til.is_fusable(True, 1)
+fused = tracked_til.fuse(True, 1)
+print(fused)
+assert fused == TrackedTiling(
+    tiling=Tiling((), (), (3, 2)),
+    value_clouds=(((0, 0), (1, 0)), ((0, 1), (1, 1), (2, 1))),
+    indices_clouds=(((0, 1), (1, 1), (2, 1)),),
+)
 
 print("-----Fusing Columns 1, 2-----")
 til = Tiling([], [], (3, 3))
 tracked_til = TrackedTiling(
-    til, value_clouds=(((0, 0), (1, 0)),), indices_clouds=(((2, 0),),)
+    til, value_clouds=(((0, 0), (0, 1)),), indices_clouds=(((0, 2),),)
 )
 print(tracked_til)
-print(tracked_til.fuse(False, 1))
+assert tracked_til.is_fusable(False, 1)
+fused = tracked_til.fuse(False, 1)
+print(fused)
+assert fused == TrackedTiling(
+    tiling=Tiling((), (), (2, 3)),
+    value_clouds=(((0, 0), (0, 1)),),
+    indices_clouds=(((0, 2),), ((1, 0), (1, 1), (1, 2))),
+)
+
+print("-----Trying to Fuse Columns 1, 2, clounds in the way-----")
+til = Tiling([], [], (3, 3))
+tracked_til = TrackedTiling(
+    til,
+    value_clouds=(((0, 0), (1, 0)),),
+    indices_clouds=(((0, 1), (0, 2), (1, 2), (1, 1)),),
+)
+print(tracked_til)
+print("Is fusable:", tracked_til.is_fusable(True, 1))
+assert not tracked_til.is_fusable(True, 1)

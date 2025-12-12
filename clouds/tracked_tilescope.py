@@ -2,6 +2,7 @@
 with tracking."""
 
 from comb_spec_searcher import StrategyPack, AtomStrategy
+from clouds.tracked_tiling import TrackedTiling
 from gridded_cayley_permutations import Tiling
 from tilescope.strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
@@ -9,6 +10,7 @@ from tilescope.strategies import (
     HorizontalInsertionEncodableVerificationStrategy,
     SubclassVerificationStrategy,
     FusionFactory,
+    FusionStrategy,
     FusionPointRowFactory,
     CellInsertionFactory,
     ColInsertionFactory,
@@ -16,7 +18,7 @@ from tilescope.strategies import (
 )
 from .tracked_strategies import (
     TrackedFactorStrategy,
-    TrackedShuffleFactorStrategy,
+    TrackedShuffleFactorStrategy,4
     TrackedVerticalInsertionEncodingPlacementFactory,
     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
     TrackedHorizontalInsertionEncodingPlacementFactory,
@@ -25,6 +27,68 @@ from .tracked_strategies import (
     TrackedLessThanRowColSeparationStrategy,
     TrackedLessThanOrEqualRowColSeparationStrategy,
 )
+from .fusion_constructor import FusionConstructor
+
+
+class TrackedFusionStrategy(FusionStrategy):
+    """Tracked fusion strategy."""
+
+    def __init__(self):
+        super().__init__()
+
+    def constructor(
+        self,
+        comb_class: TrackedTiling,
+        children: Optional[tuple[TrackedTiling, ...]] = None,
+    ) -> FusionConstructor[TrackedTiling, GriddedCayleyPerm]:
+        """
+        This is where the details of the 'reliance profile' and 'counting'
+        functions are hidden.
+        """
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        child = children[0]
+        fuse_parameter = child.find_parameter(
+            child.col_or_row_cloud(self.fuse_rows, self.index), self.fuse_rows
+        )
+        extra_parameters = self.extra_parameters(comb_class, children)
+        left_sided_parameters, right_sided_parameters, both_sided_parameters = (
+            self.sided_parameters(comb_class)
+        )
+        return FusionConstructor(
+            comb_class,
+            child,
+            fuse_parameter,
+            extra_parameters,
+            left_sided_parameters,
+            right_sided_parameters,
+            both_sided_parameters,
+            0,
+            0,
+        )
+
+    def sided_parameters(self, comb_class: TrackedTiling):
+        """Determine which parameters are left-sided, right-sided, or both-sided."""
+        left_sided_parameters = []
+        right_sided_parameters = []
+        both_sided_parameters = []
+        if self.fuse_rows:
+            all_clouds = comb_class.value_clouds
+            cell_index = 1
+        else:
+            all_clouds = comb_class.indices_clouds
+            cell_index = 0
+
+        for cloud in all_clouds:
+            intersects_left = any(cell[cell_index] == self.index for cell in cloud)
+            intersects_right = any(cell[cell_index] == self.index + 1 for cell in cloud)
+            if intersects_left and intersects_right:
+                both_sided_parameters.append(cloud)
+            elif intersects_left:
+                left_sided_parameters.append(cloud)
+            elif intersects_right:
+                right_sided_parameters.append(cloud)
+        return left_sided_parameters, right_sided_parameters, both_sided_parameters
 
 
 class TileScopePack(StrategyPack):

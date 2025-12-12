@@ -50,6 +50,34 @@ class TrackedFactorStrategy(FactorStrategy):
             raise StrategyDoesNotApply
         return factors
 
+    def extra_parameters(
+        self,
+        comb_class: TrackedTiling,
+        children: Optional[tuple[TrackedTiling, ...]] = None,
+    ) -> tuple[dict[str, str], ...]:
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        if children is None:
+            raise StrategyDoesNotApply("Strategy does not apply")
+        dicts = tuple(dict() for _ in range(len(children)))
+        for cloud in comb_class.indices_clouds:
+            parent_param = comb_class.find_parameter(cloud, row=False)
+            for idx, child in enumerate(children):
+                child_cloud = tuple(
+                    cell for cell in cloud if cell in child.active_cells
+                )
+                child_param = child.find_parameter(child_cloud, row=False)
+                dicts[idx][parent_param] = child_param
+        for cloud in comb_class.value_clouds:
+            parent_param = comb_class.find_parameter(cloud, row=True)
+            for idx, child in enumerate(children):
+                child_cloud = tuple(
+                    cell for cell in cloud if cell in child.active_cells
+                )
+                child_param = child.find_parameter(child_cloud, row=True)
+                dicts[idx][parent_param] = child_param
+        return dicts
+
 
 class TrackedShuffleFactorStrategy(ShuffleFactorStrategy):
     """

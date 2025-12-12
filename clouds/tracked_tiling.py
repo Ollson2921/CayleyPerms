@@ -178,26 +178,32 @@ class TrackedTiling(Tiling):
         Creates a cloud at index 'index' of rows if fuse_rows else columns."""
         if fuse_rows is False:
             tracked_til = self.delete_rows_and_columns(cols=[index], rows=[])
-            new_cloud = tuple(
-                (index, row)
-                for row in range(tracked_til.dimensions[1])
-                if (index, row) in tracked_til.active_cells
-            )
+            new_cloud = tracked_til.col_or_row_cloud(row=False, index=index)
             return TrackedTiling(
                 tracked_til.tiling,
                 tracked_til.value_clouds,
                 tracked_til.indices_clouds + (new_cloud,),
             )
         tracked_til = self.delete_rows_and_columns(cols=[], rows=[index])
-        new_cloud = tuple(
-            (col, index)
-            for col in range(tracked_til.dimensions[0])
-            if (col, index) in tracked_til.active_cells
-        )
+        new_cloud = tracked_til.col_or_row_cloud(row=True, index=index)
         return TrackedTiling(
             tracked_til.tiling,
             tracked_til.value_clouds + (new_cloud,),
             tracked_til.indices_clouds,
+        )
+
+    def col_or_row_cloud(self, row: bool, index: int) -> tuple[Cell, ...]:
+        """Returns the cloud that would be created at the column or row."""
+        if row:
+            return tuple(
+                (col, index)
+                for col in range(self.dimensions[0])
+                if (col, index) in self.active_cells
+            )
+        return tuple(
+            (index, row)
+            for row in range(self.dimensions[1])
+            if (index, row) in self.active_cells
         )
 
     def is_fusable(self, fuse_rows: bool, index: int) -> bool:
@@ -225,6 +231,26 @@ class TrackedTiling(Tiling):
             test_tiling = self.delete_rows_and_columns(cols=[index], rows=[])
         test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
         return test_tiling == self
+
+    # CSS methods
+    @property
+    def extra_parameters(self) -> tuple[str, ...]:
+        """Indices are first, then values."""
+        value_cloud_params = [f"v_{i}" for i in range(len(self.value_clouds))]
+        index_cloud_params = [f"i_{i}" for i in range(len(self.indices_clouds))]
+        return tuple(index_cloud_params + value_cloud_params)
+
+    def find_parameter(self, cloud: tuple[Cell, ...], row: bool) -> str:
+        """Finds the name of the parameter for the cloud."""
+        try:
+            index = (
+                self.value_clouds.index(cloud)
+                if not row
+                else self.indices_clouds.index(cloud)
+            )
+        except ValueError:
+            raise ValueError("Cloud not found in tracked tiling.")
+        return f"i_{index}" if row else f"v_{index}"
 
     def __str__(self) -> str:
         return (

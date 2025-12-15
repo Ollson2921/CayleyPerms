@@ -46,6 +46,14 @@ class GriddedCayleyPerm(CombinatorialObject):
         contradicts the Cayley permutation."""
         return not self.increasing_are_above() or not self.indices_left_to_right()
 
+    @classmethod
+    def create_gcp_in_cell(
+        cls, cperm: CayleyPermutation, cell: Cell
+    ) -> "GriddedCayleyPerm":
+        """Creates a gridded Cayley permutation with all points in the given cell."""
+        positions = tuple(cell for _ in range(len(cperm)))
+        return GriddedCayleyPerm(cperm, positions)
+
     def increasing_are_above(self) -> bool:
         """Checks if a larger value is in a cell greater than or equal to the current one."""
         for j, val in enumerate(self.pattern):

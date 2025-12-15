@@ -8,7 +8,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 from collections import defaultdict
 from copy import copy
 from functools import cached_property
-from itertools import chain, product
+from itertools import chain, product, combinations
 from math import factorial
 from typing import Iterable, Iterator
 
@@ -442,6 +442,48 @@ class Tiling(CombinatorialClass):
         return Tiling(
             new_obstructions, new_requirements, new_dimensions, simplify=False
         )
+
+    def split_point_row(self, row: int, above: bool) -> "Tiling":
+        """Unfuses a point row at row 'row' either above or below that row."""
+        unfused = self.split_row_or_col(True, row)
+        point_row = row + int(above)
+        row_obs: list[GriddedCayleyPerm] = []
+        for col in range(unfused.dimensions[0]):
+            row_obs.append(
+                GriddedCayleyPerm(
+                    CayleyPermutation([0, 1]), [(col, point_row), (col, point_row)]
+                )
+            )
+            row_obs.append(
+                GriddedCayleyPerm(
+                    CayleyPermutation([1, 0]), [(col, point_row), (col, point_row)]
+                )
+            )
+        for col1, col2 in combinations(range(unfused.dimensions[0]), 2):
+            row_obs.append(
+                GriddedCayleyPerm(
+                    CayleyPermutation([0, 1]), [(col1, point_row), (col2, point_row)]
+                )
+            )
+            row_obs.append(
+                GriddedCayleyPerm(
+                    CayleyPermutation([1, 0]), [(col1, point_row), (col2, point_row)]
+                )
+            )
+        return unfused.add_obstructions(row_obs)
+
+    def is_point_row_fuseable(self, row: int) -> bool:
+        """Returns true if row and row+1 are fuseable and either of them
+        are point rows."""
+        if row in self.point_rows:
+            test_tiling = self.delete_rows([row]).split_point_row(row, False)
+            if test_tiling == self:
+                return True
+        if row + 1 in self.point_rows:
+            test_tiling = self.delete_rows([row + 1]).split_point_row(row, True)
+            if test_tiling == self:
+                return True
+        return False
 
     # Construction methods
 

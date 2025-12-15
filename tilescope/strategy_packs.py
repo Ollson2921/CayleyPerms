@@ -19,6 +19,8 @@ from .strategies import (
     VerticalInsertionEncodableVerificationStrategy,
     HorizontalInsertionEncodableVerificationStrategy,
     SubclassVerificationStrategy,
+    FusionPointRowFactory,
+    FusionFactory,
 )
 
 
@@ -282,6 +284,22 @@ class TileScopePack(StrategyPack):
             iterative=False,
         )
 
+    def make_fusion(
+        self,
+        point_rows: bool = False,
+        apply_first: bool = False,
+    ) -> "TileScopePack":
+        """
+        Create a new pack by adding fusion to the current pack.
+
+        If point_rows, it will add point rows fusion.
+        If apply_first, it will add fusion to the front of the initial strategies.
+        """
+        name = "point_row_fusion" if point_rows else "fusion"
+        fusion_strat = FusionPointRowFactory() if point_rows else FusionFactory()
+        pack = self.add_initial(fusion_strat, name, apply_first=apply_first)
+        return pack
+
     @classmethod
     def row_and_col_placement(cls):
         """Point placements strategy pack."""
@@ -462,18 +480,23 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
-    def cell_insertion(cls):
+    def cell_insertion(cls, length: int):
         """Cell insertion strategy pack."""
         return TileScopePack(
             inferral_strats=[],  # Iterable[Strategy]
             initial_strats=[],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
+                    CellInsertionFactory(maxreqlen=length),
                 ]
             ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
-            name="Cell Insertion",
+            ver_strats=[
+                AtomStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
+            ],  # Iterable[Strategy]
+            name=f"Cell Insertion, inserting up to length {length}",
             symmetries=[],
             iterative=False,
         )

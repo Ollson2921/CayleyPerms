@@ -26,8 +26,8 @@ class TrackedFactors(Factors):
         for factor in factors:
             yield TrackedTiling(
                 factor,
-                value_clouds=tuple(self.tracked_tiling.value_clouds),
-                indices_clouds=tuple(self.tracked_tiling.indices_clouds),
+                value_clouds=self.tracked_tiling.value_clouds,
+                indices_clouds=self.tracked_tiling.indices_clouds,
                 intersect_clouds_with_active=True,
             )
 
@@ -51,15 +51,18 @@ class TrackedLessThanRowColSeparation(LessThanRowColSeparation):
     def tracked_row_col_separation(self) -> Iterable[TrackedTiling]:
         """Yield the separated tilings with tracked clouds."""
         for separated_tiling in self.row_col_separation():
-            value_clouds, indices_clouds = TrackedTiling.map_clouds(
-                self.tracked_tiling.value_clouds,
-                self.tracked_tiling.indices_clouds,
-                self.row_col_map,
+            (
+                indices_clouds,
+                value_clouds,
+            ) = TrackedTiling.map_clouds(
+                indices_clouds=self.tracked_tiling.indices_clouds,
+                value_clouds=self.tracked_tiling.value_clouds,
+                tiling_map=self.row_col_map,
             )
             yield TrackedTiling(
                 separated_tiling,
-                value_clouds=tuple(value_clouds),
-                indices_clouds=tuple(indices_clouds),
+                value_clouds=value_clouds,
+                indices_clouds=indices_clouds,
                 intersect_clouds_with_active=True,
             )
 
@@ -96,16 +99,16 @@ class TrackedPointPlacement(PointPlacement):
                 requirement_list, indices, direction, placed_cell
             )
             map_for_cells = self.multiplex_map(placed_cell)
-            value_clouds, indices_clouds = TrackedTiling.map_clouds(
-                self.tracked_tiling.value_clouds,
-                self.tracked_tiling.indices_clouds,
-                map_for_cells,
+            indices_clouds, value_clouds = TrackedTiling.map_clouds(
+                indices_clouds=self.tracked_tiling.indices_clouds,
+                value_clouds=self.tracked_tiling.value_clouds,
+                tiling_map=map_for_cells,
             )
             all_tracked_tilings.append(
                 TrackedTiling(
                     tiling,
-                    value_clouds,
-                    indices_clouds,
+                    indices_clouds=indices_clouds,
+                    value_clouds=value_clouds,
                     intersect_clouds_with_active=True,
                 )
             )

@@ -14,13 +14,14 @@ print("=====Factoring=====")
 til = Tiling.create_vincular_or_bivincular("0")
 track_til = TrackedTiling(
     til,
-    value_clouds=(((0, 0), (0, 1)),),
-    indices_clouds=(((1, 0), (1, 1), (2, 0), (2, 1)),),
+    value_clouds=((0, 1), (2,)),
+    indices_clouds=((1, 2),),
     intersect_clouds_with_active=True,
 )
 print(track_til)
 for til in TrackedFactors(track_til).find_tracked_factors():
     print(til)
+# print(repr(list(TrackedFactors(track_til).find_tracked_factors())))
 assert list(TrackedFactors(track_til).find_tracked_factors()) == [
     TrackedTiling(
         tiling=Tiling(
@@ -38,8 +39,8 @@ assert list(TrackedFactors(track_til).find_tracked_factors()) == [
             (),
             (3, 3),
         ),
-        value_clouds=(((0, 0), (0, 1)),),
-        indices_clouds=(((2, 0), (2, 1)),),
+        indices_clouds=((2,),),
+        value_clouds=((0, 1), (2,)),
     ),
     TrackedTiling(
         tiling=Tiling(
@@ -59,8 +60,8 @@ assert list(TrackedFactors(track_til).find_tracked_factors()) == [
             ((GriddedCayleyPerm(CayleyPermutation((0,)), ((1, 1),)),),),
             (3, 3),
         ),
-        value_clouds=((),),
-        indices_clouds=(((1, 1),),),
+        indices_clouds=((1,),),
+        value_clouds=((1,),),
     ),
 ]
 
@@ -70,13 +71,19 @@ til = Tiling(
 )
 track_til = TrackedTiling(
     til,
-    value_clouds=(((0, 0), (0, 1)),),
-    indices_clouds=(((0, 0),),),
+    value_clouds=(
+        (0,),
+        (1,),
+    ),
+    indices_clouds=((0,),),
     intersect_clouds_with_active=False,
 )
 print(track_til)
 for til in TrackedLessThanRowColSeparation(track_til).tracked_row_col_separation():
     print(til)
+# print(
+#     repr(list(TrackedLessThanRowColSeparation(track_til).tracked_row_col_separation()))
+# )
 assert list(
     TrackedLessThanRowColSeparation(track_til).tracked_row_col_separation()
 ) == [
@@ -89,8 +96,8 @@ assert list(
             (),
             (2, 2),
         ),
-        value_clouds=(((1, 0), (0, 1)),),
-        indices_clouds=(((1, 0),),),
+        indices_clouds=((0, 1),),
+        value_clouds=((0,), (1,)),
     )
 ]
 
@@ -100,8 +107,8 @@ til = Tiling(
 )
 track_til = TrackedTiling(
     til,
-    value_clouds=(((0, 0), (1, 0)),),
-    indices_clouds=(((0, 0),),),
+    value_clouds=((0,),),
+    indices_clouds=(),
     intersect_clouds_with_active=False,
 )
 print(track_til)
@@ -109,6 +116,15 @@ for til in TrackedLessThanOrEqualRowColSeparation(
     track_til
 ).tracked_row_col_separation():
     print(til)
+# print(
+#     repr(
+#         list(
+#             TrackedLessThanOrEqualRowColSeparation(
+#                 track_til
+#             ).tracked_row_col_separation()
+#         )
+#     )
+# )
 assert list(
     TrackedLessThanOrEqualRowColSeparation(track_til).tracked_row_col_separation()
 ) == [
@@ -123,8 +139,8 @@ assert list(
             (),
             (2, 3),
         ),
-        value_clouds=(((0, 2), (1, 0)),),
-        indices_clouds=(((0, 2),),),
+        indices_clouds=(),
+        value_clouds=((0, 2),),
     ),
     TrackedTiling(
         tiling=Tiling(
@@ -144,24 +160,34 @@ assert list(
             ),
             (2, 3),
         ),
-        value_clouds=(((0, 1), (0, 2), (1, 0), (1, 1)),),
-        indices_clouds=(((0, 1), (0, 2)),),
+        indices_clouds=(),
+        value_clouds=((0, 1, 2),),
     ),
 ]
 
 print("=====Point Placement=====")
 til = Tiling([], [], (2, 2))
-tracked_til = TrackedTiling(
-    til, value_clouds=(((0, 0), (1, 0)),), indices_clouds=(((0, 1),),)
-)
+tracked_til = TrackedTiling(til, value_clouds=((0,),), indices_clouds=((0,), (1,)))
 print(tracked_til)
 for out in TrackedPointPlacement(tracked_til).tracked_point_placement(
     [GriddedCayleyPerm(CayleyPermutation([0]), [(0, 0)])], (0,), 0
 ):
     print(out)
-assert TrackedPointPlacement(tracked_til).tracked_point_placement(
-    [GriddedCayleyPerm(CayleyPermutation([0]), [(0, 0)])], (0,), 0
-) == (
+
+# print(
+#     repr(
+#         list(
+#             TrackedPointPlacement(tracked_til).tracked_point_placement(
+#                 [GriddedCayleyPerm(CayleyPermutation([0]), [(0, 0)])], (0,), 0
+#             )
+#         )
+#     )
+# )
+assert list(
+    TrackedPointPlacement(tracked_til).tracked_point_placement(
+        [GriddedCayleyPerm(CayleyPermutation([0]), [(0, 0)])], (0,), 0
+    )
+) == [
     TrackedTiling(
         tiling=Tiling(
             (
@@ -188,52 +214,59 @@ assert TrackedPointPlacement(tracked_til).tracked_point_placement(
             ((GriddedCayleyPerm(CayleyPermutation((0,)), ((1, 1),)),),),
             (4, 4),
         ),
-        value_clouds=(((0, 0), (0, 1), (0, 2), (1, 1), (3, 0), (3, 1), (3, 2)),),
-        indices_clouds=(((0, 3), (2, 3)),),
-    ),
-)
-
+        indices_clouds=((0, 1, 2), (3,)),
+        value_clouds=((0, 1, 2),),
+    )
+]
 
 print("=====Fusion=====")
 print("-----Fusing Rows 1, 2-----")
 til = Tiling([], [], (3, 3))
 tracked_til = TrackedTiling(
     til,
-    value_clouds=(((0, 0), (1, 0)),),
-    indices_clouds=(((0, 1), (0, 2), (1, 2), (1, 1), (2, 1), (2, 2)),),
+    value_clouds=((0,),),
+    indices_clouds=((0, 1),),
 )
 print(tracked_til)
 assert tracked_til.is_fusable(True, 1)
 fused = tracked_til.fuse(True, 1)
 print(fused)
+# print(repr(fused))
 assert fused == TrackedTiling(
-    tiling=Tiling((), (), (3, 2)),
-    value_clouds=(((0, 0), (1, 0)), ((0, 1), (1, 1), (2, 1))),
-    indices_clouds=(((0, 1), (1, 1), (2, 1)),),
+    tiling=Tiling((), (), (3, 2)), indices_clouds=((0, 1),), value_clouds=((0,), (1,))
 )
 
 print("-----Fusing Columns 1, 2-----")
 til = Tiling([], [], (3, 3))
 tracked_til = TrackedTiling(
-    til, value_clouds=(((0, 0), (0, 1)),), indices_clouds=(((0, 2),),)
+    til,
+    value_clouds=((0,), (2,)),
+    indices_clouds=(
+        (
+            0,
+            1,
+            2,
+        ),
+    ),
 )
 print(tracked_til)
 assert tracked_til.is_fusable(False, 1)
 fused = tracked_til.fuse(False, 1)
 print(fused)
+# print(repr(fused))
 assert fused == TrackedTiling(
     tiling=Tiling((), (), (2, 3)),
-    value_clouds=(((0, 0), (0, 1)),),
-    indices_clouds=(((0, 2),), ((1, 0), (1, 1), (1, 2))),
+    indices_clouds=((0, 1), (1,)),
+    value_clouds=((0,), (2,)),
 )
 
-print("-----Trying to Fuse Columns 1, 2, clounds in the way-----")
+print("-----Trying to Fuse Columns 1, 2, clouds in the way-----")
 til = Tiling([], [], (3, 3))
 tracked_til = TrackedTiling(
     til,
-    value_clouds=(((0, 0), (1, 0)),),
-    indices_clouds=(((0, 1), (0, 2), (1, 2), (1, 1)),),
+    value_clouds=(),
+    indices_clouds=((1,),),
 )
 print(tracked_til)
-print("Is fusable:", tracked_til.is_fusable(True, 1))
-assert not tracked_til.is_fusable(True, 1)
+print("Is fusable:", tracked_til.is_fusable(False, 1))
+assert not tracked_til.is_fusable(False, 1)

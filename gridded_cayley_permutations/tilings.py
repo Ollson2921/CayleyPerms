@@ -195,6 +195,16 @@ class Tiling(CombinatorialClass):
         Deletes rows and columns at indices specified
         from the tiling and returns the new tiling.
         """
+        return self.tiling_and_rc_map_after_deleting_rows_and_columns(cols, rows)[0]
+
+    def tiling_and_rc_map_after_deleting_rows_and_columns(
+        self, cols: Iterable[int], rows: Iterable[int]
+    ) -> tuple["Tiling", RowColMap]:
+        """
+        Deletes rows and columns at indices specified
+        from the tiling and returns the new tiling
+        and the row column map used to create it.
+        """
         rows, cols = set(rows), set(cols)
         col_map = {}
         counter = 0
@@ -233,9 +243,10 @@ class Tiling(CombinatorialClass):
             self.dimensions[0] - len(cols),
             self.dimensions[1] - len(rows),
         )
-        return Tiling(
+        new_til = Tiling(
             new_obstructions, new_requirements, new_dimensions, simplify=False
         )
+        return new_til, rc_map
 
     def find_empty_rows_and_columns(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """Returns a list of the indices of empty rows and

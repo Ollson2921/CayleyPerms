@@ -34,6 +34,8 @@ from tilescope.strategies import (
 class TileScopePack(StrategyPack):
     """Strategy packs for TileScope."""
 
+    # pylint:disable=too-many-public-methods
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -72,6 +74,7 @@ class TileScopePack(StrategyPack):
         """
         # pylint:disable=too-many-arguments
         # pylint:disable=too-many-positional-arguments
+        # pylint:disable=too-many-branches
         if not expansions and cell_insertion != "expansion":
             raise ValueError("At least one expansion strategy must be provided.")
         pack = cls.basics()
@@ -150,7 +153,7 @@ class TileScopePack(StrategyPack):
 
     def add_verification_strats(
         self,
-        strats_to_add: list[str] | bool = ["vert_ins_enc", "hori_ins_enc", "subclass"],
+        strats_to_add: list[str] | bool = True,
         root: Tiling | None = None,
     ):
         """Return a new pack with the given verification strategies added.

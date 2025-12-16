@@ -68,7 +68,8 @@ class TrackedLessThanRowColSeparation(LessThanRowColSeparation):
 
 
 class TrackedLessThanOrEqualRowColSeparation(
-    LessThanOrEqualRowColSeparation, TrackedLessThanRowColSeparation
+    TrackedLessThanRowColSeparation,
+    LessThanOrEqualRowColSeparation,
 ):
     """Separates rows and columns with less than or equal constraints and tracks clouds."""
 

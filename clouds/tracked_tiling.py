@@ -1,6 +1,6 @@
 from functools import cached_property
 from typing import Iterable
-from gridded_cayley_permutations import Tiling
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.row_col_map import RowColMap
 
 Cell = tuple[int, int]
@@ -27,7 +27,7 @@ class TrackedTiling(Tiling):
         self.value_clouds = tuple(sorted(tuple(sorted(c)) for c in value_clouds))
         self.indices_clouds = tuple(sorted(tuple(sorted(c)) for c in indices_clouds))
         if intersect_clouds_with_active:
-            active_rows, active_cols = self.active_row_cols
+            active_rows, active_cols = self.active_col_rows
             self.value_clouds = tuple(
                 sorted(
                     c
@@ -50,14 +50,14 @@ class TrackedTiling(Tiling):
             )
 
     @cached_property
-    def active_row_cols(self) -> tuple[set[int], set[int]]:
-        """Returns the rows and columns in the tiling that have active cells."""
+    def active_col_rows(self) -> tuple[set[int], set[int]]:
+        """Returns the columns and rows in the tiling that have active cells."""
         active_rows = set()
         active_cols = set()
         for cell in self.active_cells:
             active_cols.add(cell[0])
             active_rows.add(cell[1])
-        return active_rows, active_cols
+        return active_cols, active_rows
 
     @classmethod
     def map_clouds(
@@ -184,6 +184,32 @@ class TrackedTiling(Tiling):
             test_tiling = self.delete_rows_and_columns(cols=[index], rows=[])
         test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
         return test_tiling == self
+
+    def add_obstructions(self, gcps: Iterable[GriddedCayleyPerm]) -> "Tiling":
+        """
+        Returns a new tiling with the given gridded Cayley permutations added as obstructions.
+        """
+        return TrackedTiling(
+            Tiling(self.obstructions + tuple(gcps), self.requirements, self.dimensions),
+            indices_clouds=self.indices_clouds,
+            value_clouds=self.value_clouds,
+        )
+
+    def add_requirements(
+        self, requirements: Iterable[Iterable[GriddedCayleyPerm]]
+    ) -> "Tiling":
+        """
+        Returns a new tiling with the given requirements added.
+        """
+        return TrackedTiling(
+            Tiling(
+                self.obstructions,
+                self.requirements + tuple(requirements),
+                self.dimensions,
+            ),
+            indices_clouds=self.indices_clouds,
+            value_clouds=self.value_clouds,
+        )
 
     # CSS methods
     @property

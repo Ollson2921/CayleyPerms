@@ -1,95 +1,41 @@
 """Module containing various strategy packs for running TileScope
 with tracking."""
 
-from typing import Optional
+# from typing import Optional
 from comb_spec_searcher import StrategyPack, AtomStrategy
+
 from clouds.tracked_tiling import TrackedTiling
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from tilescope.strategies import (
-    VerticalInsertionEncodableVerificationStrategy,
-    HorizontalInsertionEncodableVerificationStrategy,
-    SubclassVerificationStrategy,
-    FusionFactory,
-    FusionStrategy,
-    FusionPointRowFactory,
-    CellInsertionFactory,
-    RowInsertionFactory,
-)
-from .tracked_strategies import (
-    TrackedFactorStrategy,
-    TrackedShuffleFactorStrategy,
+
+# from .tracked_strategies import (
+#     TrackedFactorStrategy,
+#     TrackedShuffleFactorStrategy,
+#     TrackedVerticalInsertionEncodingPlacementFactory,
+#     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
+#     TrackedHorizontalInsertionEncodingPlacementFactory,
+#     TrackedHorizontalInsertionEncodingRequirementInsertionFactory,
+#     TrackedPointPlacementFactory,
+#     TrackedLessThanRowColSeparationStrategy,
+#     TrackedLessThanOrEqualRowColSeparationStrategy,
+#     TrackedColInsertionFactory,
+#     TrackedRemoveEmptyRowsAndColumnsStrategy, TrackedFusionStrategy
+# )
+
+
+from .strategies import (
     TrackedVerticalInsertionEncodingPlacementFactory,
-    TrackedVerticalInsertionEncodingRequirementInsertionFactory,
+    TrackedColPlacementFactory,
+    TrackedFusionPointRowFactory,
+    TrackedFactorStrategy,
     TrackedHorizontalInsertionEncodingPlacementFactory,
     TrackedHorizontalInsertionEncodingRequirementInsertionFactory,
-    TrackedPointPlacementFactory,
+    TrackedVerticalInsertionEncodingRequirementInsertionFactory,
+    TrackedShuffleFactorStrategy,
     TrackedLessThanRowColSeparationStrategy,
     TrackedLessThanOrEqualRowColSeparationStrategy,
-    TrackedColInsertionFactory,
+    TrackedPointPlacementFactory,
     TrackedRemoveEmptyRowsAndColumnsStrategy,
+    TrackedFusionFactory,
 )
-from .fusion_constructor import FusionConstructor
-
-
-class TrackedFusionStrategy(FusionStrategy):
-    """Tracked fusion strategy."""
-
-    def __init__(self):
-        super().__init__()
-
-    def constructor(
-        self,
-        comb_class: TrackedTiling,
-        children: Optional[tuple[TrackedTiling, ...]] = None,
-    ) -> FusionConstructor:
-        """
-        This is where the details of the 'reliance profile' and 'counting'
-        functions are hidden.
-        """
-        if children is None:
-            children = self.decomposition_function(comb_class)
-        child = children[0]
-        fuse_parameter = child.find_parameter(
-            child.col_or_row_cloud(self.fuse_rows, self.index), self.fuse_rows
-        )
-        extra_parameters = self.extra_parameters(comb_class, children)
-        left_sided_parameters, right_sided_parameters, both_sided_parameters = (
-            self.sided_parameters(comb_class)
-        )
-        return FusionConstructor(
-            comb_class,
-            child,
-            fuse_parameter,
-            extra_parameters,
-            left_sided_parameters,
-            right_sided_parameters,
-            both_sided_parameters,
-            0,
-            0,
-        )
-
-    def sided_parameters(self, comb_class: TrackedTiling):
-        """Determine which parameters are left-sided, right-sided, or both-sided."""
-        left_sided_parameters = []
-        right_sided_parameters = []
-        both_sided_parameters = []
-        if self.fuse_rows:
-            all_clouds = comb_class.value_clouds
-            cell_index = 1
-        else:
-            all_clouds = comb_class.indices_clouds
-            cell_index = 0
-
-        for cloud in all_clouds:
-            intersects_left = any(cell[cell_index] == self.index for cell in cloud)
-            intersects_right = any(cell[cell_index] == self.index + 1 for cell in cloud)
-            if intersects_left and intersects_right:
-                both_sided_parameters.append(cloud)
-            elif intersects_left:
-                left_sided_parameters.append(cloud)
-            elif intersects_right:
-                right_sided_parameters.append(cloud)
-        return left_sided_parameters, right_sided_parameters, both_sided_parameters
 
 
 class TileScopePack(StrategyPack):
@@ -194,8 +140,8 @@ class TileScopePack(StrategyPack):
             initial_strats=[
                 TrackedFactorStrategy(),
                 TrackedLessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
@@ -214,7 +160,7 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
-    def point_placement_subclass_ver_strat(cls, root: Tiling):
+    def point_placement_subclass_ver_strat(cls, root: TrackedTiling):
         """Point placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
@@ -354,25 +300,27 @@ class TileScopePack(StrategyPack):
             iterative=False,
         )
 
-    def make_fusion(
-        self,
-        point_rows: bool = False,
-        apply_first: bool = False,
-    ) -> "TileScopePack":
-        """
-        Create a new pack by adding fusion to the current pack.
+    # def make_fusion(
+    #     self,
+    #     point_rows: bool = False,
+    #     apply_first: bool = False,
+    # ) -> "TileScopePack":
+    #     """
+    #     Create a new pack by adding fusion to the current pack.
 
-        If point_rows, it will add point rows fusion.
-        If apply_first, it will add fusion to the front of the initial strategies.
-        """
-        name = (
-            self.name + " with point row fusion"
-            if point_rows
-            else self.name + " with fusion"
-        )
-        fusion_strat = FusionPointRowFactory() if point_rows else FusionFactory()
-        pack = self.add_initial(fusion_strat, name, apply_first=apply_first)
-        return pack
+    #     If point_rows, it will add point rows fusion.
+    #     If apply_first, it will add fusion to the front of the initial strategies.
+    #     """
+    #     name = (
+    #         self.name + " with point row fusion"
+    #         if point_rows
+    #         else self.name + " with fusion"
+    #     )
+    #     fusion_strat = (
+    #         TrackedFusionPointRowFactory() if point_rows else TrackedFusionFactory()
+    #     )
+    #     pack = self.add_initial(fusion_strat, name, apply_first=apply_first)
+    #     return pack
 
     @classmethod
     def col_placement_fusion(cls):
@@ -385,216 +333,216 @@ class TileScopePack(StrategyPack):
             initial_strats=[
                 TrackedFactorStrategy(),
                 TrackedLessThanOrEqualRowColSeparationStrategy(),
-                # FusionPointRowFactory(),
-                # FusionFactory(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    TrackedColInsertionFactory(),
+                    TrackedColPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                # VerticalInsertionEncodableVerificationStrategy(),
+                # HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="Column Placement with Fusion",
             symmetries=[],
             iterative=False,
         )
 
-    @classmethod
-    def row_and_col_placement(cls):
-        """Point placements strategy pack."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    CellInsertionFactory(),
-                    RowInsertionFactory(),
-                    TrackedColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Row and Column Placement",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def row_and_col_placement(cls):
+    #     """Point placements strategy pack."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 CellInsertionFactory(),
+    #                 RowInsertionFactory(),
+    #                 TrackedColInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Row and Column Placement",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def point_row_and_col_placement(cls):
-        """Point, row and column placements strategy pack."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    CellInsertionFactory(),
-                    TrackedPointPlacementFactory(),
-                    RowInsertionFactory(),
-                    TrackedColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Point, Row and Column Placement",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def point_row_and_col_placement(cls):
+    #     """Point, row and column placements strategy pack."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 CellInsertionFactory(),
+    #                 TrackedPointPlacementFactory(),
+    #                 RowInsertionFactory(),
+    #                 TrackedColInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Point, Row and Column Placement",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def row_placement_initial_cell_insertion(cls):
-        """Row placements strategy pack with cell insertion
-        as an initial strategy."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                CellInsertionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    RowInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Row Placement with Cell Insertion initially",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def row_placement_initial_cell_insertion(cls):
+    #     """Row placements strategy pack with cell insertion
+    #     as an initial strategy."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #             CellInsertionFactory(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 RowInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Row Placement with Cell Insertion initially",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def col_placement_initial_cell_insertion(cls):
-        """Column placements strategy pack with cell insertion
-        as an initial strategy."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                CellInsertionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Column Placement with Cell Insertion initially",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def col_placement_initial_cell_insertion(cls):
+    #     """Column placements strategy pack with cell insertion
+    #     as an initial strategy."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #             CellInsertionFactory(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 TrackedColInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Column Placement with Cell Insertion initially",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def row_and_col_placement_initial_cell_insertion(cls):
-        """Point placements strategy pack with cell insertion
-        as an initial strategy."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                CellInsertionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    RowInsertionFactory(),
-                    TrackedColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Row and Column Placement with Cell Insertion initially",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def row_and_col_placement_initial_cell_insertion(cls):
+    #     """Point placements strategy pack with cell insertion
+    #     as an initial strategy."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #             CellInsertionFactory(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 RowInsertionFactory(),
+    #                 TrackedColInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Row and Column Placement with Cell Insertion initially",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def point_row_and_col_placement_initial_cell_insertion(cls):
-        """Point, row and column placements strategy pack with cell insertion
-        as an initial strategy."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                CellInsertionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedPointPlacementFactory(),
-                    RowInsertionFactory(),
-                    TrackedColInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Point, Row and Column Placement with Cell Insertion initially",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def point_row_and_col_placement_initial_cell_insertion(cls):
+    #     """Point, row and column placements strategy pack with cell insertion
+    #     as an initial strategy."""
+    #     return TileScopePack(
+    #         inferral_strats=[
+    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
+    #             TrackedLessThanRowColSeparationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         initial_strats=[
+    #             TrackedFactorStrategy(),
+    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
+    #             CellInsertionFactory(),
+    #         ],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 TrackedPointPlacementFactory(),
+    #                 RowInsertionFactory(),
+    #                 TrackedColInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[
+    #             AtomStrategy(),
+    #             VerticalInsertionEncodableVerificationStrategy(),
+    #             HorizontalInsertionEncodableVerificationStrategy(),
+    #             SubclassVerificationStrategy(),
+    #         ],  # Iterable[Strategy]
+    #         name="Point, Row and Column Placement with Cell Insertion initially",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )
 
-    @classmethod
-    def cell_insertion(cls):
-        """Cell insertion strategy pack."""
-        return TileScopePack(
-            inferral_strats=[],  # Iterable[Strategy]
-            initial_strats=[],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    CellInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[AtomStrategy()],  # Iterable[Strategy]
-            name="Cell Insertion",
-            symmetries=[],
-            iterative=False,
-        )
+    # @classmethod
+    # def cell_insertion(cls):
+    #     """Cell insertion strategy pack."""
+    #     return TileScopePack(
+    #         inferral_strats=[],  # Iterable[Strategy]
+    #         initial_strats=[],  # Iterable[Strategy]
+    #         expansion_strats=[
+    #             [
+    #                 CellInsertionFactory(),
+    #             ]
+    #         ],  # Iterable[Iterable[Strategy]]
+    #         ver_strats=[AtomStrategy()],  # Iterable[Strategy]
+    #         name="Cell Insertion",
+    #         symmetries=[],
+    #         iterative=False,
+    #     )

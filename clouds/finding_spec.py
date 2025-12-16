@@ -15,5 +15,5 @@ til = TrackedTiling(
 pack = TileScopePack.col_placement_fusion()
 searcher = CombinatorialSpecificationSearcher(til, pack, debug=False)
 spec = searcher.auto_search()
-# spec.show()
+spec.show()
 spec.get_genf()

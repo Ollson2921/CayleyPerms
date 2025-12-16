@@ -1,6 +1,6 @@
 """The strategies for tracked tilings."""
 
-from typing import Iterator
+from typing import Iterator, Optional
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from cayley_permutations import CayleyPermutation
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
@@ -45,7 +45,7 @@ class TrackedFactorStrategy(FactorStrategy):
     """
 
     def decomposition_function(self, comb_class: TrackedTiling) -> tuple[Tiling, ...]:
-        factors = TrackedFactors(comb_class).find_tracked_factors()
+        factors = tuple(TrackedFactors(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
@@ -268,3 +268,47 @@ class TrackedHorizontalInsertionEncodingPlacementFactory(TrackedColPlacementFact
 
     def __str__(self) -> str:
         return "Place next point of insertion encoding"
+
+
+from tilescope.strategies import (
+    RemoveEmptyRowsAndColumnsStrategy,
+    VerticalInsertionEncodableVerificationStrategy,
+    HorizontalInsertionEncodableVerificationStrategy,
+    SubclassVerificationStrategy,
+    FusionFactory,
+    FusionStrategy,
+    FusionPointRowFactory,
+    CellInsertionFactory,
+    ColInsertionFactory,
+    RowInsertionFactory,
+)
+from comb_spec_searcher.strategies import StrategyFactory
+
+
+class TrackedColInsertionFactory(ColInsertionFactory):
+    """Factory for having a point requirement on a column."""
+
+    def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
+        not_point_cols = set(range(comb_class.dimensions[0])) - set(
+            cell[0] for cell in comb_class.point_cells()
+        )
+        for col in not_point_cols:
+            all_gcps = []
+            for row in range(comb_class.dimensions[1]):
+                cell = (col, row)
+                gcps = GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
+                all_gcps.append(gcps)
+            indices = tuple(0 for _ in all_gcps)
+            for direction in [DIR_LEFT, DIR_RIGHT]:
+                yield TrackedRequirementPlacementStrategy(all_gcps, indices, direction)
+
+
+class TrackedRemoveEmptyRowsAndColumnsStrategy(RemoveEmptyRowsAndColumnsStrategy):
+    """Removes all the empty rows and columns from a tiling."""
+
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
+        rows_and_cols = comb_class.find_empty_rows_and_columns()
+        if len(rows_and_cols[0]) == 0 and len(rows_and_cols[1]) == 0:
+            raise StrategyDoesNotApply("No empty rows or columns")
+        print(repr(comb_class))
+        return (comb_class.remove_empty_rows_and_columns(),)

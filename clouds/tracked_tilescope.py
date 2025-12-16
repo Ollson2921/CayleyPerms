@@ -1,11 +1,11 @@
 """Module containing various strategy packs for running TileScope
 with tracking."""
 
+from typing import Optional
 from comb_spec_searcher import StrategyPack, AtomStrategy
 from clouds.tracked_tiling import TrackedTiling
-from gridded_cayley_permutations import Tiling
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from tilescope.strategies import (
-    RemoveEmptyRowsAndColumnsStrategy,
     VerticalInsertionEncodableVerificationStrategy,
     HorizontalInsertionEncodableVerificationStrategy,
     SubclassVerificationStrategy,
@@ -13,12 +13,11 @@ from tilescope.strategies import (
     FusionStrategy,
     FusionPointRowFactory,
     CellInsertionFactory,
-    ColInsertionFactory,
     RowInsertionFactory,
 )
 from .tracked_strategies import (
     TrackedFactorStrategy,
-    TrackedShuffleFactorStrategy,4
+    TrackedShuffleFactorStrategy,
     TrackedVerticalInsertionEncodingPlacementFactory,
     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
     TrackedHorizontalInsertionEncodingPlacementFactory,
@@ -26,6 +25,8 @@ from .tracked_strategies import (
     TrackedPointPlacementFactory,
     TrackedLessThanRowColSeparationStrategy,
     TrackedLessThanOrEqualRowColSeparationStrategy,
+    TrackedColInsertionFactory,
+    TrackedRemoveEmptyRowsAndColumnsStrategy,
 )
 from .fusion_constructor import FusionConstructor
 
@@ -40,7 +41,7 @@ class TrackedFusionStrategy(FusionStrategy):
         self,
         comb_class: TrackedTiling,
         children: Optional[tuple[TrackedTiling, ...]] = None,
-    ) -> FusionConstructor[TrackedTiling, GriddedCayleyPerm]:
+    ) -> FusionConstructor:
         """
         This is where the details of the 'reliance profile' and 'counting'
         functions are hidden.
@@ -105,7 +106,7 @@ class TileScopePack(StrategyPack):
                 TrackedFactorStrategy(),
                 TrackedVerticalInsertionEncodingRequirementInsertionFactory(),
             ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
             expansion_strats=[[TrackedVerticalInsertionEncodingPlacementFactory()]],
             ver_strats=[AtomStrategy()],
             name="Vertical Insertion Encoding",
@@ -121,7 +122,7 @@ class TileScopePack(StrategyPack):
                 TrackedFactorStrategy(),
                 TrackedHorizontalInsertionEncodingRequirementInsertionFactory(),
             ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
             expansion_strats=[[TrackedHorizontalInsertionEncodingPlacementFactory()]],
             ver_strats=[AtomStrategy()],
             name="Horizontal Insertion Encoding",
@@ -134,7 +135,7 @@ class TileScopePack(StrategyPack):
         """Point placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -166,7 +167,7 @@ class TileScopePack(StrategyPack):
                 TrackedLessThanOrEqualRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             expansion_strats=[
@@ -187,7 +188,7 @@ class TileScopePack(StrategyPack):
         """Point placements strategy pack with fusion of point rows."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -217,7 +218,7 @@ class TileScopePack(StrategyPack):
         """Point placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -229,7 +230,7 @@ class TileScopePack(StrategyPack):
                     CellInsertionFactory(),
                     TrackedPointPlacementFactory(),
                     # RowInsertionFactory(),
-                    # ColInsertionFactory(),
+                    # TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -248,7 +249,7 @@ class TileScopePack(StrategyPack):
         """Point placements strategy pack, place points initially."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
                 TrackedPointPlacementFactory(),
             ],  # Iterable[Strategy]
@@ -277,7 +278,7 @@ class TileScopePack(StrategyPack):
         as an initial strategy."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -310,7 +311,7 @@ class TileScopePack(StrategyPack):
                 TrackedLessThanOrEqualRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             expansion_strats=[
@@ -331,7 +332,7 @@ class TileScopePack(StrategyPack):
         """Row placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -378,19 +379,18 @@ class TileScopePack(StrategyPack):
         """Column placements with fusion strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 TrackedFactorStrategy(),
                 TrackedLessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                # FusionPointRowFactory(),
+                # FusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -408,7 +408,7 @@ class TileScopePack(StrategyPack):
         """Point placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -419,7 +419,7 @@ class TileScopePack(StrategyPack):
                 [
                     CellInsertionFactory(),
                     RowInsertionFactory(),
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -437,7 +437,7 @@ class TileScopePack(StrategyPack):
         """Point, row and column placements strategy pack."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -449,7 +449,7 @@ class TileScopePack(StrategyPack):
                     CellInsertionFactory(),
                     TrackedPointPlacementFactory(),
                     RowInsertionFactory(),
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -468,7 +468,7 @@ class TileScopePack(StrategyPack):
         as an initial strategy."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -497,7 +497,7 @@ class TileScopePack(StrategyPack):
         as an initial strategy."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -507,7 +507,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -526,7 +526,7 @@ class TileScopePack(StrategyPack):
         as an initial strategy."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -537,7 +537,7 @@ class TileScopePack(StrategyPack):
             expansion_strats=[
                 [
                     RowInsertionFactory(),
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
@@ -556,7 +556,7 @@ class TileScopePack(StrategyPack):
         as an initial strategy."""
         return TileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
@@ -568,7 +568,7 @@ class TileScopePack(StrategyPack):
                 [
                     TrackedPointPlacementFactory(),
                     RowInsertionFactory(),
-                    ColInsertionFactory(),
+                    TrackedColInsertionFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[

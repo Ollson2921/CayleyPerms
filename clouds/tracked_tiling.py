@@ -156,6 +156,12 @@ class TrackedTiling(Tiling):
                 for cloud in self.value_clouds
             ):
                 return False
+            if any(
+                req.positions[1] == index or req.positions[1] == index + 1
+                for req_list in self.requirements
+                for req in req_list
+            ):
+                return False
         else:
             if any(
                 index in cloud and (index + 1) not in cloud
@@ -163,6 +169,12 @@ class TrackedTiling(Tiling):
             ) or any(
                 index not in cloud and (index + 1) in cloud
                 for cloud in self.indices_clouds
+            ):
+                return False
+            if any(
+                req.positions[0] == index or req.positions[0] == index + 1
+                for req_list in self.requirements
+                for req in req_list
             ):
                 return False
 

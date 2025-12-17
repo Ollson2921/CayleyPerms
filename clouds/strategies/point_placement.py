@@ -1,6 +1,6 @@
 from typing import Iterator
 from cayley_permutations import CayleyPermutation
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm, RowColMap
 from tilescope.strategies import (
     RequirementPlacementStrategy,
     CellInsertionFactory,
@@ -44,6 +44,15 @@ class TrackedRequirementPlacementStrategy(
         return (comb_class.add_obstructions(self.gcps),) + self.algorithm(
             comb_class
         ).tracked_point_placement(self.gcps, self.indices, self.direction)
+
+    def map_for_clouds(self, comb_class: TrackedTiling):
+        maps_for_children = [RowColMap.identity_map(comb_class.dimensions)]
+        for cell in self.algorithm(comb_class).cells_to_place_in(
+            self.gcps, self.indices, self.direction
+        ):
+            rc_map = self.algorithm(comb_class).multiplex_map(cell)
+            maps_for_children.append(rc_map)
+        return tuple(maps_for_children)
 
 
 class TrackedPointPlacementFactory(PointPlacementFactory):

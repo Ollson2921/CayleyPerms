@@ -215,11 +215,11 @@ class TrackedTiling(Tiling):
     @property
     def extra_parameters(self) -> tuple[str, ...]:
         """Indices are first, then values."""
-        value_cloud_params = [f"v_{i}" for i in range(len(self.value_clouds))]
         index_cloud_params = [f"i_{i}" for i in range(len(self.indices_clouds))]
+        value_cloud_params = [f"v_{i}" for i in range(len(self.value_clouds))]
         return tuple(index_cloud_params + value_cloud_params)
 
-    def find_parameter(self, cloud: tuple[Cell, ...], row: bool) -> str:
+    def find_parameter(self, cloud: tuple[int, ...], row: bool) -> str:
         """Finds the name of the parameter for the cloud."""
         try:
             index = (

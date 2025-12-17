@@ -1,6 +1,6 @@
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from clouds.tracked_tiling import TrackedTiling
-from gridded_cayley_permutations import Tiling
+from gridded_cayley_permutations import Tiling, RowColMap
 from tilescope.strategies import FactorStrategy, ShuffleFactorStrategy
 from .extra_parameters import StrategyWithExtraParameters
 from clouds.tracked_algos import TrackedFactors, TrackedShuffleFactors
@@ -18,6 +18,12 @@ class TrackedFactorStrategy(FactorStrategy, StrategyWithExtraParameters):
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
+
+    def map_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
+        return tuple(
+            RowColMap.identity_map(comb_class.dimensions)
+            for _ in self.decomposition_function(comb_class)
+        )
 
 
 class TrackedShuffleFactorStrategy(ShuffleFactorStrategy, StrategyWithExtraParameters):

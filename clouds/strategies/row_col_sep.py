@@ -17,22 +17,32 @@ class TrackedLessThanRowColSeparationStrategy(
 ):
     """A strategy for separating rows and columns with less than constraints."""
 
+    def algorithm(self, comb_class):
+        return TrackedLessThanRowColSeparation(comb_class)
+
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
         """Return the decomposition function."""
-        algo = TrackedLessThanRowColSeparation(comb_class)
+        algo = self.algorithm(comb_class)
         return (next(algo.tracked_row_col_separation()),)
 
 
 class TrackedLessThanOrEqualRowColSeparationStrategy(
-    LessThanOrEqualRowColSeparationStrategy, StrategyWithExtraParameters
+    LessThanOrEqualRowColSeparationStrategy, TrackedLessThanRowColSeparationStrategy
 ):
     """A strategy for separating rows and columns with less than or equal constraints."""
+
+    def algorithm(self, comb_class):
+        return TrackedLessThanOrEqualRowColSeparation(comb_class)
 
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
         """Return the decomposition function."""
-        algo = TrackedLessThanOrEqualRowColSeparation(comb_class)
+        algo = self.algorithm(comb_class)
         return tuple(algo.tracked_row_col_separation())
+
+    def maps_for_clouds(self, comb_class: TrackedTiling):
+        rc_map = self.algorithm(comb_class).row_col_map
+        return (rc_map for _ in self.decomposition_function(comb_class))

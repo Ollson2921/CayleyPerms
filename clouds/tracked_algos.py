@@ -90,10 +90,7 @@ class TrackedPointPlacement(PointPlacement):
         """Yield the tilings with tracked clouds after point placement."""
         if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction {direction} is not a valid direction.")
-        cells = []
-        for idx, gcp in zip(indices, requirement_list):
-            cells.append(gcp.positions[idx])
-        cells = sorted(set(cells))
+        cells = self.cells_to_place_in(requirement_list, indices)
         all_tracked_tilings = []
         for placed_cell in cells:
             tiling = self.point_placement_in_cell(
@@ -114,3 +111,14 @@ class TrackedPointPlacement(PointPlacement):
                 )
             )
         return tuple(all_tracked_tilings)
+
+    def cells_to_place_in(
+        self,
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
+    ) -> set[Cell]:
+        """Return the set of cells to place points in."""
+        cells = set()
+        for idx, gcp in zip(indices, requirement_list):
+            cells.add(gcp.positions[idx])
+        return cells

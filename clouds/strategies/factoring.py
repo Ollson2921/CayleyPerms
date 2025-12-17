@@ -2,13 +2,13 @@ from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from clouds.tracked_tiling import TrackedTiling
 from gridded_cayley_permutations import Tiling, RowColMap
 from tilescope.strategies import FactorStrategy, ShuffleFactorStrategy
-from .extra_parameters import StrategyWithExtraParameters
+from .extra_parameters import ExtraParametersForStrategies
 from clouds.tracked_algos import TrackedFactors, TrackedShuffleFactors
 
 Cell = tuple[int, int]
 
 
-class TrackedFactorStrategy(FactorStrategy, StrategyWithExtraParameters):
+class TrackedFactorStrategy(FactorStrategy, ExtraParametersForStrategies):
     """
     A strategy for finding factors in a tracked tiling.
     """
@@ -26,7 +26,7 @@ class TrackedFactorStrategy(FactorStrategy, StrategyWithExtraParameters):
         )
 
 
-class TrackedShuffleFactorStrategy(ShuffleFactorStrategy, StrategyWithExtraParameters):
+class TrackedShuffleFactorStrategy(ShuffleFactorStrategy, ExtraParametersForStrategies):
     """
     A strategy for finding factors in a tracked tiling.
     """

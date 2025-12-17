@@ -6,7 +6,7 @@ from tilescope.strategies import (
     FusionPointRowFactory,
     FusionPointRowStrategy,
 )
-from .extra_parameters import StrategyWithExtraParameters
+from .extra_parameters import ExtraParametersForStrategies
 from .fusion_constructor import FusionConstructor
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 
@@ -14,7 +14,7 @@ from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 Cell = tuple[int, int]
 
 
-class TrackedFusionStrategy(FusionStrategy, StrategyWithExtraParameters):
+class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
     """Tracked fusion strategy."""
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
@@ -98,7 +98,7 @@ class TrackedFusionFactory(FusionFactory):
 
 
 class TrackedFusionPointRowStrategy(
-    FusionPointRowStrategy, StrategyWithExtraParameters
+    FusionPointRowStrategy, ExtraParametersForStrategies
 ):
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):

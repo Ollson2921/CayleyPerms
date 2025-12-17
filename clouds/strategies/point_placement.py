@@ -22,13 +22,13 @@ from clouds import TrackedTiling
 from clouds.tracked_algos import (
     TrackedPointPlacement,
 )
-from .extra_parameters import StrategyWithExtraParameters
+from .extra_parameters import ExtraParametersForStrategies
 
 Cell = tuple[int, int]
 
 
 class TrackedRequirementPlacementStrategy(
-    RequirementPlacementStrategy, StrategyWithExtraParameters
+    RequirementPlacementStrategy, ExtraParametersForStrategies
 ):
     """
     A strategy for placing requirements with tracked clouds.

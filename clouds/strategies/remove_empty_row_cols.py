@@ -1,18 +1,19 @@
 """The strategies for tracked tilings."""
 
-from typing import Optional
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from clouds import TrackedTiling
 from tilescope.strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
 )
 from gridded_cayley_permutations import RowColMap
-
+from .extra_parameters import ExtraParametersForStrategies
 
 Cell = tuple[int, int]
 
 
-class TrackedRemoveEmptyRowsAndColumnsStrategy(RemoveEmptyRowsAndColumnsStrategy):
+class TrackedRemoveEmptyRowsAndColumnsStrategy(
+    RemoveEmptyRowsAndColumnsStrategy, ExtraParametersForStrategies
+):
     """Removes all the empty rows and columns from a tiling."""
 
     def empty_rows_and_columns(

@@ -7,13 +7,13 @@ from clouds.tracked_algos import (
     TrackedLessThanOrEqualRowColSeparation,
     TrackedLessThanRowColSeparation,
 )
-from .extra_parameters import StrategyWithExtraParameters
+from .extra_parameters import ExtraParametersForStrategies
 
 Cell = tuple[int, int]
 
 
 class TrackedLessThanRowColSeparationStrategy(
-    LessThanRowColSeparationStrategy, StrategyWithExtraParameters
+    LessThanRowColSeparationStrategy, ExtraParametersForStrategies
 ):
     """A strategy for separating rows and columns with less than constraints."""
 

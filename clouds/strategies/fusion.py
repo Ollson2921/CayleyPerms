@@ -20,6 +20,18 @@ class TrackedFusionStrategy(FusionStrategy, StrategyWithExtraParameters):
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
         super().__init__(fuse_rows=fuse_rows, index=index, tracked=tracked)
 
+    def maps_for_clouds(self, comb_class: TrackedTiling):
+        rc_map = (
+            comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
+                rows=self.index, cols=[]
+            )[1]
+            if self.fuse_rows
+            else comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
+                rows=[], cols=[self.index]
+            )[1]
+        )
+        return (rc_map,)
+
     def constructor(
         self,
         comb_class: TrackedTiling,

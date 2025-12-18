@@ -942,11 +942,11 @@ class Tiling(CombinatorialClass):
         cell_labels = self.cell_labels
         # How many characters are in a row in the grid
         row_width = 3 * dim_i + 2
-        for cell in self.active_cells & self.not_blank_cells():
+        for cell, label in cell_labels.items():
 
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
-            result[index] = cell_labels[cell]
+            result[index] = label
         return result
 
     def to_html_representation(self):
@@ -972,8 +972,6 @@ class Tiling(CombinatorialClass):
         cell_labels = self.cell_labels
         for cell in self.empty_cells():
             cell_labels[cell] = "░"
-        for cell in self.blank_cells():
-            cell_labels[cell] = " "
         row_separator = "├" + ("┼─" * self.dimensions[0] + "┤")[1:]
         top_row = "┌" + ("┬─" * self.dimensions[0])[1:] + "┐"
         bottom_row = "└" + ("┴─" * self.dimensions[0])[1:] + "┘"
@@ -981,7 +979,10 @@ class Tiling(CombinatorialClass):
         for row in range(self.dimensions[1]):
             new_row = "│"
             for col in range(self.dimensions[0]):
-                new_row += self.cell_labels[(col, row)] + "│"
+                label = " "
+                if (col, row) in cell_labels:
+                    label = cell_labels[(col, row)]
+                new_row += label + "│"
             final_table += [new_row, row_separator]
         final_table.reverse()
         final_table[0] = top_row

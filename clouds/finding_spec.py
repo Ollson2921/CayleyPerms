@@ -13,7 +13,11 @@ tracked_tiling = TrackedTiling(tiling, [], [])
 
 
 pack = TileScopePack.col_placement_fusion()
-searcher = CombinatorialSpecificationSearcher(tracked_tiling, pack, debug=False)
-spec = searcher.auto_search()
-# spec.show()
-# spec.get_genf()
+searcher = CombinatorialSpecificationSearcher(tracked_tiling, pack, debug=True)
+spec = searcher.auto_search(status_update=5)
+
+# print(spec.get_maple_equations())
+
+# spec.sanity_check(4)
+
+print([spec.count_objects_of_size(i) for i in range(10)])

@@ -7,14 +7,18 @@ from tilescope.strategies import (
     FusionPointRowStrategy,
 )
 from .extra_parameters import ExtraParametersForStrategies
-from .fusion_constructor import FusionConstructor
+from .fusion_constructor import (
+    FusionConstructor,
+    PointRowFusionConstructor,
+    ReverseFusionConstructor,
+)
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 
 
 Cell = tuple[int, int]
 
 
-class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
+class TrackedFusionStrategy(ExtraParametersForStrategies, FusionStrategy):
     """Tracked fusion strategy."""
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
@@ -57,10 +61,30 @@ class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
             comb_class,
             child,
             fuse_parameter,
-            extra_parameters,
+            extra_parameters[0],
             left_sided_parameters,
             right_sided_parameters,
             both_sided_parameters,
+            0,
+            0,
+        )
+
+    def reverse_constructor(self, idx, comb_class, children=None):
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        child = children[0]
+        fuse_parameter = child.find_parameter((self.index,), self.fuse_rows)
+        extra_parameters = self.extra_parameters(comb_class, children)
+        left_sided_parameters, right_sided_parameters, _ = self.sided_parameters(
+            comb_class
+        )
+        return ReverseFusionConstructor(
+            comb_class,
+            child,
+            fuse_parameter,
+            extra_parameters[0],
+            left_sided_parameters,
+            right_sided_parameters,
             0,
             0,
         )
@@ -79,12 +103,27 @@ class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
             intersects_left = any(idx == self.index for idx in cloud)
             intersects_right = any(idx == self.index + 1 for idx in cloud)
             if intersects_left and intersects_right:
-                both_sided_parameters.append(cloud)
+                both_sided_parameters.append(comb_class.find_parameter(cloud))
             elif intersects_left:
-                left_sided_parameters.append(cloud)
+                left_sided_parameters.append(comb_class.find_parameter(cloud))
             elif intersects_right:
-                right_sided_parameters.append(cloud)
+                right_sided_parameters.append(comb_class.find_parameter(cloud))
         return left_sided_parameters, right_sided_parameters, both_sided_parameters
+
+    def is_reversible(self, comb_class: TrackedTiling):
+        row_map, col_map = self.maps_for_clouds(comb_class)[0]
+        child = self.decomposition_function(comb_class)[0]
+        fuse_cloud = (self.index,)
+        if self.fuse_rows:
+            value_clouds = [
+                self.map_cloud(cloud, row_map, child)
+                for cloud in comb_class.value_clouds
+            ]
+            return fuse_cloud in value_clouds
+        index_clouds = [
+            self.map_cloud(cloud, col_map, child) for cloud in comb_class.indices_clouds
+        ]
+        return fuse_cloud in index_clouds
 
 
 class TrackedFusionFactory(FusionFactory):
@@ -98,7 +137,7 @@ class TrackedFusionFactory(FusionFactory):
 
 
 class TrackedFusionPointRowStrategy(
-    FusionPointRowStrategy, ExtraParametersForStrategies
+    ExtraParametersForStrategies, FusionPointRowStrategy
 ):
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
@@ -128,16 +167,13 @@ class TrackedFusionPointRowStrategy(
         left_sided_parameters, right_sided_parameters, both_sided_parameters = (
             self.sided_parameters(comb_class)
         )
-        return FusionConstructor(
+        return PointRowFusionConstructor(
             comb_class,
             child,
             fuse_parameter,
-            extra_parameters,
+            extra_parameters[0],
             left_sided_parameters,
             right_sided_parameters,
-            both_sided_parameters,
-            0,
-            0,
         )
 
     def sided_parameters(self, comb_class: TrackedTiling):

@@ -27,25 +27,29 @@ class TrackedTiling(Tiling):
         self.value_clouds = tuple(sorted(tuple(sorted(c)) for c in value_clouds))
         self.indices_clouds = tuple(sorted(tuple(sorted(c)) for c in indices_clouds))
         if intersect_clouds_with_active:
-            active_rows, active_cols = self.active_col_rows
+            active_cols, active_rows = self.active_col_rows
             self.value_clouds = tuple(
                 sorted(
-                    c
-                    for c in [
-                        tuple(sorted(row for row in cloud if row in active_rows))
-                        for cloud in value_clouds
-                    ]
-                    if c
+                    set(
+                        c
+                        for c in [
+                            tuple(row for row in cloud if row in active_rows)
+                            for cloud in value_clouds
+                        ]
+                        if c
+                    )
                 )
             )
             self.indices_clouds = tuple(
                 sorted(
-                    c
-                    for c in [
-                        tuple(sorted(col for col in cloud if col in active_cols))
-                        for cloud in indices_clouds
-                    ]
-                    if c
+                    set(
+                        c
+                        for c in [
+                            tuple(col for col in cloud if col in active_cols)
+                            for cloud in indices_clouds
+                        ]
+                        if c
+                    )
                 )
             )
 
@@ -193,6 +197,7 @@ class TrackedTiling(Tiling):
             Tiling(self.obstructions + tuple(gcps), self.requirements, self.dimensions),
             indices_clouds=self.indices_clouds,
             value_clouds=self.value_clouds,
+            intersect_clouds_with_active=True,
         )
 
     def add_requirements(
@@ -229,7 +234,50 @@ class TrackedTiling(Tiling):
             )
         except ValueError as exc:
             raise ValueError("Cloud not found in tracked tiling.") from exc
-        return f"i_{index}" if row else f"v_{index}"
+        return f"v_{index}" if row else f"i_{index}"
+
+    def get_minimum_value(self, parameter: str) -> int:
+        return min(
+            self.get_value(gcp, parameter) for gcp in self.minimal_gridded_cperms()
+        )
+
+    def get_value(self, gcp: GriddedCayleyPerm, parameter: str) -> int:
+        x, y = parameter.split("_")
+        if x == "v":
+            cloud = self.value_clouds[int(y)]
+            return len(
+                set(
+                    gcp.pattern[i]
+                    for i, cell in enumerate(gcp.positions)
+                    if cell[1] in cloud
+                )
+            )
+        elif x == "i":
+            cloud = self.indices_clouds[int(y)]
+            return sum(1 for cell in gcp.positions if cell[0] in cloud)
+
+    def get_cloud(self, parameter: str) -> tuple[int, ...]:
+        x, y = parameter.split("_")
+        if x == "v":
+            return self.value_clouds[int(y)]
+        elif x == "i":
+            return self.indices_clouds[int(y)]
+        raise ValueError(f"Not a valid parameter: {parameter}")
+
+    def get_parameters(self, gcp: GriddedCayleyPerm) -> tuple[int, ...]:
+        return tuple(self.get_value(gcp, param) for param in self.extra_parameters)
+
+    def __eq__(self, other):
+        if isinstance(other, TrackedTiling):
+            return (
+                self.tiling == other.tiling
+                and self.indices_clouds == other.indices_clouds
+                and self.value_clouds == other.value_clouds
+            )
+        return NotImplemented
+
+    def __hash__(self):
+        return hash((hash(self.tiling), self.indices_clouds, self.value_clouds))
 
     def __str__(self) -> str:
         return (

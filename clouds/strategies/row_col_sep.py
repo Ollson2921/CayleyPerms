@@ -13,7 +13,7 @@ Cell = tuple[int, int]
 
 
 class TrackedLessThanRowColSeparationStrategy(
-    LessThanRowColSeparationStrategy, ExtraParametersForStrategies
+    ExtraParametersForStrategies, LessThanRowColSeparationStrategy
 ):
     """A strategy for separating rows and columns with less than constraints."""
 

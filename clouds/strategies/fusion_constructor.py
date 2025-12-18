@@ -12,6 +12,9 @@ rows or columns.
 
 We will assume we are always fusing two adjacent columns, and discuss the left
 and right hand sides accordingly.
+
+See https://github.com/PermutaTriangle/Tilings/blob/develop/tilings/strategies/fusion/constructor.py
+
 """
 
 import enum
@@ -901,3 +904,68 @@ class ReverseFusionConstructor(Constructor[Tiling, GriddedPerm]):
         self, other: "Constructor", data: Optional[object] = None
     ) -> Tuple[bool, Optional[object]]:
         raise NotImplementedError("Required for bijections")
+
+
+class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
+    def __init__(
+        self,
+        parent: Tiling,
+        child: Tiling,
+        fuse_parameter: str,
+        extra_parameters: dict[str, str],
+        left_sided_parameters: tuple[str, ...],
+        right_sided_parameters: tuple[str, ...],
+    ):
+        self.parent = parent
+        self.child = child
+        self.fuse_parameter_idx = child.extra_parameters.index(fuse_parameter)
+        self.reversed_extra_parameters: Dict[str, List[str]] = defaultdict(list)
+        for parent_var, child_var in extra_parameters.items():
+            self.reversed_extra_parameters[child_var].append(parent_var)
+
+        self.index_mapping = [
+            child.extra_parameters.index(extra_parameters[parameter])
+            for parameter in parent.extra_parameters
+        ]
+
+        self.left_indices = [
+            parent.extra_parameters.index(param) for param in left_sided_parameters
+        ]
+        self.right_indices = [
+            parent.extra_parameters.index(param) for param in right_sided_parameters
+        ]
+
+    def equiv(self, other, data=None):
+        raise NotImplementedError
+
+    def get_equation(self, lhs_func, rhs_funcs):
+        raise NotImplementedError
+
+    def get_sub_objects(self, subobjs, n):
+        raise NotImplementedError
+
+    def get_terms(self, parent_terms, subterms, n):
+        res = Counter()
+        for param, count in subterms[0](n).items():
+            new_param = [param[idx] for idx in self.index_mapping]
+            print(self.child)
+            print(param, self.fuse_parameter_idx)
+            k = param[self.fuse_parameter_idx]
+            for idx in self.right_indices:
+                new_param[idx] -= k
+            res[tuple(new_param)] += count
+            if param[self.fuse_parameter_idx] > 0:
+                for idx in self.right_indices:
+                    new_param[idx] += 1
+                for idx in self.left_indices:
+                    new_param[idx] -= 1
+                res[tuple(new_param)] += count  # right minus k - 1, left minus 1
+        return res
+
+    def random_sample_sub_objects(
+        self, parent_count, subsamplers, subrecs, n, **parameters
+    ):
+        raise NotImplementedError
+
+    def reliance_profile(self, n, **parameters):
+        raise NotImplementedError

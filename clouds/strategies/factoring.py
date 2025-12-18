@@ -8,7 +8,7 @@ from clouds.tracked_algos import TrackedFactors, TrackedShuffleFactors
 Cell = tuple[int, int]
 
 
-class TrackedFactorStrategy(FactorStrategy, ExtraParametersForStrategies):
+class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
     """
     A strategy for finding factors in a tracked tiling.
     """
@@ -27,7 +27,7 @@ class TrackedFactorStrategy(FactorStrategy, ExtraParametersForStrategies):
         return tuple(identity_map for _ in self.decomposition_function(comb_class))
 
 
-class TrackedShuffleFactorStrategy(ShuffleFactorStrategy, ExtraParametersForStrategies):
+class TrackedShuffleFactorStrategy(ExtraParametersForStrategies, ShuffleFactorStrategy):
     """
     A strategy for finding factors in a tracked tiling.
     """

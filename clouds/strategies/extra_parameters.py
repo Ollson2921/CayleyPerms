@@ -12,6 +12,27 @@ class ExtraParametersForStrategies:
     which returns a tuple of RowColMaps for each child, mapping from the parent to the child.
     """
 
+    def map_cloud(
+        self,
+        cloud: tuple[int, ...],
+        map_cloud: dict[int, tuple[int, ...]],
+        child: TrackedTiling,
+        rows: bool,
+    ) -> tuple[int, ...]:
+        print(cloud)
+        print(map_cloud)
+        print(child)
+        print(rows)
+        child_cloud = []
+        for i in cloud:
+            if i in map_cloud:
+                child_cloud += [
+                    col
+                    for col in map_cloud[i]
+                    if col in child.active_col_rows[int(rows)]
+                ]
+        return tuple(sorted(child_cloud))
+
     def extra_parameters(
         self,
         comb_class: TrackedTiling,
@@ -26,31 +47,19 @@ class ExtraParametersForStrategies:
         for cloud in comb_class.indices_clouds:
             parent_param = comb_class.find_parameter(cloud, row=False)
             for idx, child in enumerate(children):
-                child_cloud = []
-                for i in cloud:
-                    if i in maps_for_clouds[idx][0]:
-                        child_cloud += [
-                            col
-                            for col in maps_for_clouds[idx][0][i]
-                            if col in child.active_col_rows[0]
-                        ]
-                if child_cloud != []:
-                    child_cloud = tuple(sorted(child_cloud))
+                child_cloud = self.map_cloud(
+                    cloud, maps_for_clouds[idx][0], child, False
+                )
+                if child_cloud:
                     child_param = child.find_parameter(child_cloud, row=False)
                     dicts[idx][parent_param] = child_param
         for cloud in comb_class.value_clouds:
             parent_param = comb_class.find_parameter(cloud, row=True)
             for idx, child in enumerate(children):
-                child_cloud = []
-                for i in cloud:
-                    if i in maps_for_clouds[idx][1]:
-                        child_cloud += [
-                            row
-                            for row in maps_for_clouds[idx][1][i]
-                            if row in child.active_col_rows[1]
-                        ]
-                if child_cloud != []:
-                    child_cloud = tuple(sorted(child_cloud))
+                child_cloud = self.map_cloud(
+                    cloud, maps_for_clouds[idx][1], child, True
+                )
+                if child_cloud:
                     child_param = child.find_parameter(child_cloud, row=True)
                     dicts[idx][parent_param] = child_param
         return dicts
@@ -58,4 +67,4 @@ class ExtraParametersForStrategies:
     @abc.abstractmethod
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
-        pass
+        raise NotImplementedError

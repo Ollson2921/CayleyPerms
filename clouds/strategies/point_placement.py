@@ -28,7 +28,8 @@ Cell = tuple[int, int]
 
 
 class TrackedRequirementPlacementStrategy(
-    RequirementPlacementStrategy, ExtraParametersForStrategies
+    ExtraParametersForStrategies,
+    RequirementPlacementStrategy,
 ):
     """
     A strategy for placing requirements with tracked clouds.
@@ -117,7 +118,7 @@ class TrackedColPlacementFactory(ColInsertionFactory):
                 gcps = GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
                 all_gcps.append(gcps)
             indices = tuple(0 for _ in all_gcps)
-            for direction in [DIR_LEFT, DIR_RIGHT]:
+            for direction in [DIR_LEFT]:
                 yield TrackedRequirementPlacementStrategy(all_gcps, indices, direction)
 
 

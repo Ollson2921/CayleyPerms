@@ -12,7 +12,7 @@ Cell = tuple[int, int]
 
 
 class TrackedRemoveEmptyRowsAndColumnsStrategy(
-    RemoveEmptyRowsAndColumnsStrategy, ExtraParametersForStrategies
+    ExtraParametersForStrategies, RemoveEmptyRowsAndColumnsStrategy
 ):
     """Removes all the empty rows and columns from a tiling."""
 

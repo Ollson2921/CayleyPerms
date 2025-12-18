@@ -942,7 +942,7 @@ class Tiling(CombinatorialClass):
         cell_labels = self.cell_labels
         # How many characters are in a row in the grid
         row_width = 3 * dim_i + 2
-        for cell in self.active_cells:
+        for cell in self.active_cells & self.not_blank_cells():
 
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
@@ -971,7 +971,9 @@ class Tiling(CombinatorialClass):
         """Creates a list of strings for each row of the __str__ grid"""
         cell_labels = self.cell_labels
         for cell in self.empty_cells():
-            cell_labels[cell] = "#"
+            cell_labels[cell] = "░"
+        for cell in self.blank_cells():
+            cell_labels[cell] = " "
         row_separator = "├" + ("┼─" * self.dimensions[0] + "┤")[1:]
         top_row = "┌" + ("┬─" * self.dimensions[0])[1:] + "┐"
         bottom_row = "└" + ("┴─" * self.dimensions[0])[1:] + "┘"
@@ -1008,10 +1010,13 @@ class Tiling(CombinatorialClass):
                 continue
             if label not in key_dict:
                 key_dict[label] = self.cell_basis[cell][0]
-        key_string = "\nKey: \n"
-        for label, patts in key_dict.items():
-            basis_string = ", ".join(map(str, patts))
-            key_string += f"{label}: Av({basis_string}) \n"
+        if key_dict:
+            key_string = "\nKey: \n"
+            for label, patts in key_dict.items():
+                basis_string = ", ".join(map(str, patts))
+                key_string += f"{label}: Av({basis_string}) \n"
+        else:
+            key_string = ""
 
         grid = "\n".join(self._string_table())
 

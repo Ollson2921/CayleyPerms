@@ -896,7 +896,7 @@ class Tiling(CombinatorialClass):
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
                     ]:
-                        label = "\u2014"  # * (1 + int(cell[1] in self.point_rows))
+                        label = "\u2014"
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:

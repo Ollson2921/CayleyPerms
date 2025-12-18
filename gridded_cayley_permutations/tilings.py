@@ -993,17 +993,9 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        crossing_string = "\nCrossing obstructions: \n"
-        cayley_ob = CayleyPermutation((0, 0))
-        for ob in self.obstructions:
-            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
-                crossing_string += f"{ob} \n"
-
-        requirements_string = "\n"
-        for i, req_list in enumerate(self.requirements):
-            requirements_string += f"Requirements {i}: \n"
-            for req in req_list:
-                requirements_string += f"{req} \n"
+        if self.dimensions == (0, 0):
+            return str(Tiling([GriddedCayleyPerm([], [])], [], (1, 1)))
+        final_string = "\n".join(self._string_table())
 
         key_dict = dict[str, list[CayleyPermutation]]()
         for cell, label in self.cell_labels.items():
@@ -1016,12 +1008,28 @@ class Tiling(CombinatorialClass):
             for label, patts in key_dict.items():
                 basis_string = ", ".join(map(str, patts))
                 key_string += f"{label}: Av({basis_string}) \n"
-        else:
-            key_string = ""
+            final_string += key_string
 
-        grid = "\n".join(self._string_table())
+        if self.requirements:
+            requirements_string = "\n"
+            for i, req_list in enumerate(self.requirements):
+                requirements_string += f"Requirements {i}: \n"
+                for req in req_list:
+                    requirements_string += f"{req} \n"
+            final_string += requirements_string
 
-        return grid + key_string + requirements_string + crossing_string
+        cayley_ob = CayleyPermutation((0, 0))
+        crossing_obs = set[CayleyPermutation]()
+        for ob in self.obstructions:
+            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
+                crossing_obs.add(ob.pattern)
+        if crossing_obs:
+            crossing_string = "\nCrossing obstructions: \n"
+            for pat in crossing_obs:
+                crossing_string += f"{pat}\n"
+            final_string += crossing_string
+
+        return final_string
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tiling):

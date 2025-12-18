@@ -224,7 +224,7 @@ class TrackedTiling(Tiling):
         try:
             index = (
                 self.value_clouds.index(cloud)
-                if not row
+                if row
                 else self.indices_clouds.index(cloud)
             )
         except ValueError as exc:

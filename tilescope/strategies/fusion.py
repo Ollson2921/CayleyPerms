@@ -77,7 +77,7 @@ class FusionStrategy(Strategy[Tiling, GriddedCayleyPerm]):
     def formal_step(self) -> str:
         fusing = "rows" if self.fuse_rows else "columns"
         idx = self.index
-        return f"Fuse {fusing} {idx} and {idx +1}"
+        return f"Fuse {fusing} {idx} and {idx + 1}"
 
     # pylint: disable=arguments-differ
     def backward_map(
@@ -168,8 +168,6 @@ class FusionPointRowStrategy(FusionStrategy):
 
     def formal_step(self) -> str:
         idx = self.index
-        # if idx in self.comb_class.point_rows:
-        #     return f"Fuse point row {idx} with row {idx + 1}"
         return f"Point row fusion of row {idx} and row {idx + 1}"
 
 

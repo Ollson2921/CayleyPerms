@@ -48,9 +48,7 @@ class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
         if children is None:
             children = self.decomposition_function(comb_class)
         child = children[0]
-        fuse_parameter = child.find_parameter(
-            child.col_or_row_cloud(self.fuse_rows, self.index), self.fuse_rows
-        )
+        fuse_parameter = child.find_parameter((self.index,), self.fuse_rows)
         extra_parameters = self.extra_parameters(comb_class, children)
         left_sided_parameters, right_sided_parameters, both_sided_parameters = (
             self.sided_parameters(comb_class)
@@ -74,14 +72,12 @@ class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
         both_sided_parameters = []
         if self.fuse_rows:
             all_clouds = comb_class.value_clouds
-            cell_index = 1
         else:
             all_clouds = comb_class.indices_clouds
-            cell_index = 0
 
         for cloud in all_clouds:
-            intersects_left = any(cell[cell_index] == self.index for cell in cloud)
-            intersects_right = any(cell[cell_index] == self.index + 1 for cell in cloud)
+            intersects_left = any(idx == self.index for idx in cloud)
+            intersects_right = any(idx == self.index + 1 for idx in cloud)
             if intersects_left and intersects_right:
                 both_sided_parameters.append(cloud)
             elif intersects_left:
@@ -127,10 +123,7 @@ class TrackedFusionPointRowStrategy(
         if children is None:
             children = self.decomposition_function(comb_class)
         child = children[0]
-        raise StrategyDoesNotApply("Constructor not implemented yet.")
-        fuse_parameter = child.find_parameter(
-            child.col_or_row_cloud(self.fuse_rows, self.index), self.fuse_rows
-        )
+        fuse_parameter = child.find_parameter((self.index,), self.fuse_rows)
         extra_parameters = self.extra_parameters(comb_class, children)
         left_sided_parameters, right_sided_parameters, both_sided_parameters = (
             self.sided_parameters(comb_class)
@@ -152,17 +145,14 @@ class TrackedFusionPointRowStrategy(
         left_sided_parameters = []
         right_sided_parameters = []
         both_sided_parameters = []
-        raise StrategyDoesNotApply("Sided parameters not implemented yet.")
         if self.fuse_rows:
             all_clouds = comb_class.value_clouds
-            cell_index = 1
         else:
             all_clouds = comb_class.indices_clouds
-            cell_index = 0
 
         for cloud in all_clouds:
-            intersects_left = any(cell[cell_index] == self.index for cell in cloud)
-            intersects_right = any(cell[cell_index] == self.index + 1 for cell in cloud)
+            intersects_left = any(idx == self.index for idx in cloud)
+            intersects_right = any(idx == self.index + 1 for idx in cloud)
             if intersects_left and intersects_right:
                 both_sided_parameters.append(cloud)
             elif intersects_left:

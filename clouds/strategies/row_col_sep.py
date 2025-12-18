@@ -27,6 +27,14 @@ class TrackedLessThanRowColSeparationStrategy(
         algo = self.algorithm(comb_class)
         return (next(algo.tracked_row_col_separation()),)
 
+    def maps_for_clouds(self, comb_class: TrackedTiling):
+        rc_map = self.algorithm(comb_class).row_col_map
+        col_map = rc_map.col_map
+        row_map = rc_map.row_map
+        col_map = {k: (v,) for k, v in col_map.items()}
+        row_map = {k: (v,) for k, v in row_map.items()}
+        return ((col_map, row_map),)
+
 
 class TrackedLessThanOrEqualRowColSeparationStrategy(
     LessThanOrEqualRowColSeparationStrategy, TrackedLessThanRowColSeparationStrategy
@@ -45,4 +53,8 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
         rc_map = self.algorithm(comb_class).row_col_map
-        return (rc_map for _ in self.decomposition_function(comb_class))
+        col_map = rc_map.col_map
+        row_map = rc_map.row_map
+        col_map = {k: (v,) for k, v in col_map.items()}
+        row_map = {k: (v,) for k, v in row_map.items()}
+        return ((col_map, row_map) for _ in self.decomposition_function(comb_class))

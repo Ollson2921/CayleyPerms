@@ -23,14 +23,18 @@ class TrackedFusionStrategy(FusionStrategy, ExtraParametersForStrategies):
     def maps_for_clouds(self, comb_class: TrackedTiling):
         rc_map = (
             comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
-                rows=self.index, cols=[]
+                rows=[self.index], cols=[]
             )[1]
             if self.fuse_rows
             else comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
                 rows=[], cols=[self.index]
             )[1]
         )
-        return (rc_map,)
+        col_map = rc_map.col_map
+        row_map = rc_map.row_map
+        col_map = {k: (v,) for k, v in col_map.items()}
+        row_map = {k: (v,) for k, v in row_map.items()}
+        return ((col_map, row_map),)
 
     def constructor(
         self,

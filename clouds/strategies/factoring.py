@@ -19,11 +19,12 @@ class TrackedFactorStrategy(FactorStrategy, ExtraParametersForStrategies):
             raise StrategyDoesNotApply
         return factors
 
-    def map_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
-        return tuple(
-            RowColMap.identity_map(comb_class.dimensions)
-            for _ in self.decomposition_function(comb_class)
+    def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
+        identity_map = (
+            {i: (i,) for i in range(comb_class.dimensions[0])},
+            {i: (i,) for i in range(comb_class.dimensions[1])},
         )
+        return tuple(identity_map for _ in self.decomposition_function(comb_class))
 
 
 class TrackedShuffleFactorStrategy(ShuffleFactorStrategy, ExtraParametersForStrategies):

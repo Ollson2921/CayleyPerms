@@ -45,12 +45,25 @@ class TrackedRequirementPlacementStrategy(
             comb_class
         ).tracked_point_placement(self.gcps, self.indices, self.direction)
 
-    def map_for_clouds(self, comb_class: TrackedTiling):
-        maps_for_children = [RowColMap.identity_map(comb_class.dimensions)]
+    def maps_for_clouds(self, comb_class: TrackedTiling):
+        obs_child = (
+            {i: (i,) for i in range(comb_class.dimensions[0])},
+            {i: (i,) for i in range(comb_class.dimensions[1])},
+        )
+        maps_for_children = [obs_child]
         for cell in self.algorithm(comb_class).cells_to_place_in(
-            self.gcps, self.indices, self.direction
+            self.gcps, self.indices
         ):
-            rc_map = self.algorithm(comb_class).multiplex_map(cell)
+            preimage_rc_map = self.algorithm(comb_class).multiplex_map(cell)
+            col_map = {
+                idx: preimage_rc_map.preimages_of_col(idx)
+                for idx in range(comb_class.dimensions[0])
+            }
+            row_map = {
+                idx: preimage_rc_map.preimages_of_row(idx)
+                for idx in range(comb_class.dimensions[1])
+            }
+            rc_map = (col_map, row_map)
             maps_for_children.append(rc_map)
         return tuple(maps_for_children)
 

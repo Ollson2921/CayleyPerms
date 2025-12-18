@@ -16,21 +16,23 @@ class TrackedRemoveEmptyRowsAndColumnsStrategy(
 ):
     """Removes all the empty rows and columns from a tiling."""
 
-    def empty_rows_and_columns(
-        self, comb_class: TrackedTiling
-    ) -> tuple[tuple[int, ...], tuple[int, ...]]:
-        return comb_class.find_empty_rows_and_columns()
-
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
-        rows_and_cols = self.empty_rows_and_columns(comb_class)
+        rows_and_cols = comb_class.find_empty_rows_and_columns()
         if len(rows_and_cols[0]) == 0 and len(rows_and_cols[1]) == 0:
             raise StrategyDoesNotApply("No empty rows or columns")
         return (comb_class.remove_empty_rows_and_columns(),)
 
-    def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
+    def maps_for_clouds(
+        self, comb_class: TrackedTiling
+    ) -> tuple[tuple[dict[int, tuple[int, ...]], dict[int, tuple[int, ...]]], ...]:
+        empty_rows, empty_cols = comb_class.find_empty_rows_and_columns()
         rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
-            self.empty_rows_and_columns(comb_class)
+            empty_rows, empty_cols
         )[1]
-        return (rc_map,)
+        col_map = rc_map.col_map
+        row_map = rc_map.row_map
+        col_map = {k: (v,) for k, v in col_map.items()}
+        row_map = {k: (v,) for k, v in row_map.items()}
+        return ((col_map, row_map),)

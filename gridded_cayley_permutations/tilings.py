@@ -1019,14 +1019,14 @@ class Tiling(CombinatorialClass):
             final_string += requirements_string
 
         cayley_ob = CayleyPermutation((0, 0))
-        crossing_obs = set[CayleyPermutation]()
+        crossing_obs = set[GriddedCayleyPerm]()
         for ob in self.obstructions:
             if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
-                crossing_obs.add(ob.pattern)
-        if crossing_obs:
+                crossing_obs.add(ob)
+
+        if len(crossing_obs) > 0:
             crossing_string = "\nCrossing obstructions: \n"
-            for pat in crossing_obs:
-                crossing_string += f"{pat}\n"
+            crossing_string += "\n".join(map(str, crossing_obs))
             final_string += crossing_string
 
         return final_string

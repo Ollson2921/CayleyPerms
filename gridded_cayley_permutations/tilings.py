@@ -863,6 +863,54 @@ class Tiling(CombinatorialClass):
         resdict = {cell: (obdict[cell], reqdict[cell]) for cell in all_cells}
         return resdict
 
+    @cached_property
+    def cell_labels(self) -> dict[Cell, str]:
+        """Assigns each cell a labelaccording to cell basis"""
+        used_labels = dict[tuple[tuple[CayleyPermutation, ...], bool], str]()
+        labels = dict[Cell, str]()
+        curr_label = 1
+        for cell, gridded_perms in sorted(self.cell_basis.items()):
+            obstructions, _ = gridded_perms
+            basis = list(sorted(obstructions))
+
+            # the block, is the basis and whether or not positive
+            block = (tuple(basis), cell in self.positive_cells())
+            label = used_labels.get(block)
+            if label is None:
+
+                match basis:
+                    case [CayleyPermutation((0,))] | []:
+                        label = ""
+                        continue
+                    case [
+                        CayleyPermutation((0, 0)),
+                        CayleyPermutation((0, 1)),
+                        CayleyPermutation((1, 0)),
+                    ]:
+                        if cell in self.positive_cells():
+                            label = "\u25cf"
+                        else:
+                            label = "\u25cb"
+                        # if cell[1] in self.point_rows:
+                        #     label = "-" + label + "-"
+                    case [
+                        CayleyPermutation((0, 1)),
+                        CayleyPermutation((1, 0)),
+                    ]:
+                        label = "\u2014"  # * (1 + int(cell[1] in self.point_rows))
+                    case [CayleyPermutation((0, 1))]:
+                        label = "\\"
+                    case [CayleyPermutation((1, 0))]:
+                        label = "/"
+                    case [CayleyPermutation((0, 0))]:
+                        label = "="
+                    case _:
+                        label = chr(ord("@") + curr_label)
+                        curr_label += 1
+                used_labels[block] = label
+            labels[cell] = label
+        return labels
+
     # html methods
 
     def _html_table(self) -> list[str]:
@@ -891,53 +939,15 @@ class Tiling(CombinatorialClass):
                 result.append("</th>")
             result.append("</tr>")
         result.append("</table>")
-        labels: dict[tuple[tuple[CayleyPermutation, ...], bool], str] = {}
 
+        cell_labels = self.cell_labels
         # How many characters are in a row in the grid
         row_width = 3 * dim_i + 2
-        curr_label = 1
-        for cell, gridded_perms in sorted(self.cell_basis.items()):
-            obstructions, _ = gridded_perms
-            basis = list(sorted(obstructions))
+        for cell in self.active_cells:
 
-            # the block, is the basis and whether or not positive
-            block = (tuple(basis), cell in self.positive_cells())
-            label = labels.get(block)
-            if label is None:
-
-                match basis:
-                    case [CayleyPermutation((0,))] | []:
-                        label = ""
-                        continue
-                    case [
-                        CayleyPermutation((0, 0)),
-                        CayleyPermutation((0, 1)),
-                        CayleyPermutation((1, 0)),
-                    ]:
-                        if cell in self.positive_cells():
-                            label = "\u25cf"
-                        else:
-                            label = "\u25cb"
-                        # if cell[1] in self.point_rows:
-                        #     label = "-" + label + "-"
-                    case [
-                        CayleyPermutation((0, 1)),
-                        CayleyPermutation((1, 0)),
-                    ]:
-                        label = "\u2014" * (1 + int(cell[1] in self.point_rows))
-                    case [CayleyPermutation((0, 1))]:
-                        label = "\\"
-                    case [CayleyPermutation((1, 0))]:
-                        label = "/"
-                    case [CayleyPermutation((0, 0))]:
-                        label = "="
-                    case _:
-                        label = chr(ord("@") + curr_label)
-                        curr_label += 1
-                labels[block] = label
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
-            result[index] = label
+            result[index] = cell_labels[cell]
         return result
 
     def to_html_representation(self):
@@ -958,75 +968,60 @@ class Tiling(CombinatorialClass):
             + f"{repr(self.dimensions)})"
         )
 
+    def _string_table(self) -> list[str]:
+
+        # ━
+        # │
+        # ┼
+        # ├
+        # ┤
+        cell_labels = self.cell_labels
+        for cell in self.empty_cells():
+            cell_labels[cell] = "#"
+        row_separator = "├" + ("┼─" * self.dimensions[0] + "┤")[1:]
+        top_row = "┌" + ("┬─" * self.dimensions[0])[1:] + "┐"
+        bottom_row = "└" + ("┴─" * self.dimensions[0])[1:] + "┘"
+        final_table = [row_separator]
+        for row in range(self.dimensions[1]):
+            new_row = "│"
+            for col in range(self.dimensions[0]):
+                new_row += self.cell_labels[(col, row)] + "│"
+            final_table += [new_row, row_separator]
+        final_table.reverse()
+        final_table[0] = top_row
+        final_table[-1] = bottom_row
+        return final_table
+
     def __str__(self) -> str:
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
-        if self.dimensions == (0, 0):
-            return "+-+\n|\u03b5|\n+-+\n"
-        crossing_string = "Crossing obstructions: \n"
-        point_rows = self.point_rows
 
-        cell_basis = defaultdict(list)
+        crossing_string = "\nCrossing obstructions: \n"
+        cayley_ob = CayleyPermutation((0, 0))
         for ob in self.obstructions:
-            if ob.is_local() and len(ob) > 0:
-                cell_basis[ob.positions[0]].append(ob.pattern)
-            elif (
-                len(ob.pattern) == 2
-                and ob.positions[0][1] == ob.positions[1][1]
-                and ob.positions[0][1] in point_rows
-            ):
-                continue
-            else:
-                crossing_string += str(ob) + "\n"
-        basis_key: dict[tuple[CayleyPermutation, ...], int] = {}
-        cell_key: dict[tuple[int, int], str] = {}
-        for cell, basis in cell_basis.items():
-            if tuple(basis) not in basis_key:
-                if all(
-                    p in basis
-                    for p in [
-                        CayleyPermutation([0, 0]),
-                        CayleyPermutation([0, 1]),
-                        CayleyPermutation([1, 0]),
-                    ]
-                ):
-                    if cell in self.positive_cells():
-                        cell_key[cell] = "\u25cf"
-                    else:
-                        cell_key[cell] = "\u25cb"
-                    continue
-                if CayleyPermutation([0]) in basis:
-                    cell_key[cell] = "#"
-                    continue
-                basis_key[tuple(basis)] = len(basis_key)
-            cell_key[cell] = str(basis_key[tuple(basis)])
+            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
+                crossing_string += f"{ob} \n"
 
-        requirements_string = ""
+        requirements_string = "\n"
         for i, req_list in enumerate(self.requirements):
             requirements_string += f"Requirements {i}: \n"
             for req in req_list:
                 requirements_string += f"{req} \n"
 
-        n, m = self.dimensions
-        edge_row = "-".join("+" for _ in range(n + 1)) + "\n"
-        fill_row = " ".join("|" for _ in range(n + 1)) + "\n"
-        grid = fill_row.join(edge_row for _ in range(m + 1))
-        fill_rows = [copy(fill_row) for _ in range(m)]
-        for cell, key in cell_key.items():
-            i, j = cell
-            fill_rows[j] = fill_rows[j][: i * 2 + 1] + key + fill_rows[j][i * 2 + 2 :]
+        key_dict = dict[str, list[CayleyPermutation]]()
+        for cell, label in self.cell_labels.items():
+            if not label.isalpha():
+                continue
+            if label not in key_dict:
+                key_dict[label] = self.cell_basis[cell][0]
+        key_string = "\nKey: \n"
+        for label, patts in key_dict.items():
+            basis_string = ", ".join(map(str, patts))
+            key_string += f"{label}: Av({basis_string}) \n"
 
-        for pr in point_rows:
-            fill_rows[pr] = fill_rows[pr][:-1] + "*\n"
+        grid = "\n".join(self._string_table())
 
-        grid = edge_row + edge_row.join(reversed(fill_rows)) + edge_row
-
-        key_string = "Key: \n"
-        for patts, label in basis_key.items():
-            basis_string = f"Av({','.join(str(p) for p in patts)})"
-            key_string += f"{label}: {basis_string} \n"
-
-        return grid + key_string + crossing_string + requirements_string
+        return grid + key_string + requirements_string + crossing_string
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tiling):

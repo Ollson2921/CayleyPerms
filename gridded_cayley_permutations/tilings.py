@@ -968,12 +968,7 @@ class Tiling(CombinatorialClass):
         )
 
     def _string_table(self) -> list[str]:
-
-        # ━
-        # │
-        # ┼
-        # ├
-        # ┤
+        """Creates a list of strings for each row of the __str__ grid"""
         cell_labels = self.cell_labels
         for cell in self.empty_cells():
             cell_labels[cell] = "#"

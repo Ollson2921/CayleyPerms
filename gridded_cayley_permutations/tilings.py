@@ -6,7 +6,6 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 """
 
 from collections import defaultdict
-from copy import copy
 from functools import cached_property
 from itertools import chain, product, combinations
 from math import factorial

@@ -1012,6 +1012,9 @@ class Tiling(CombinatorialClass):
                 key_string += f"{label}: Av({basis_string}) \n"
             final_string += key_string
 
+        if self == Tiling.empty_tiling():
+            final_string += "Obstructions: ε"
+
         if self.requirements:
             requirements_string = "\n"
             for i, req_list in enumerate(self.requirements):

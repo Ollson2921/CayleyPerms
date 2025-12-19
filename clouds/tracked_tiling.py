@@ -255,6 +255,7 @@ class TrackedTiling(Tiling):
         elif x == "i":
             cloud = self.indices_clouds[int(y)]
             return sum(1 for cell in gcp.positions if cell[0] in cloud)
+        raise ValueError(f"Not a valid parameter: {parameter}")
 
     def get_cloud(self, parameter: str) -> tuple[int, ...]:
         x, y = parameter.split("_")
@@ -278,6 +279,22 @@ class TrackedTiling(Tiling):
 
     def __hash__(self):
         return hash((hash(self.tiling), self.indices_clouds, self.value_clouds))
+
+    def to_jsonable(self) -> dict:
+        res = {
+            "indices_clouds": [list(cloud) for cloud in self.indices_clouds],
+            "value_clouds": [list(cloud) for cloud in self.value_clouds],
+        }
+        res.update(super().to_jsonable())
+        return res
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "Tiling":
+        return TrackedTiling(
+            Tiling.from_dict(d),
+            indices_clouds=d["indices_clouds"],
+            value_clouds=d["value_clouds"],
+        )
 
     def __str__(self) -> str:
         return (

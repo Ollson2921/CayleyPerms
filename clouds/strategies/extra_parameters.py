@@ -63,4 +63,4 @@ class ExtraParametersForStrategies:
     @abc.abstractmethod
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
-        raise NotImplementedError
+        pass

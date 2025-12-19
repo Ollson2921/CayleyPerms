@@ -177,25 +177,10 @@ class TrackedFusionPointRowStrategy(
         )
 
     def sided_parameters(self, comb_class: TrackedTiling):
-        """Determine which parameters are left-sided, right-sided, or both-sided."""
-        left_sided_parameters = []
-        right_sided_parameters = []
-        both_sided_parameters = []
-        if self.fuse_rows:
-            all_clouds = comb_class.value_clouds
-        else:
-            all_clouds = comb_class.indices_clouds
+        return TrackedFusionStrategy.sided_parameters(self, comb_class)
 
-        for cloud in all_clouds:
-            intersects_left = any(idx == self.index for idx in cloud)
-            intersects_right = any(idx == self.index + 1 for idx in cloud)
-            if intersects_left and intersects_right:
-                both_sided_parameters.append(cloud)
-            elif intersects_left:
-                left_sided_parameters.append(cloud)
-            elif intersects_right:
-                right_sided_parameters.append(cloud)
-        return left_sided_parameters, right_sided_parameters, both_sided_parameters
+    def maps_for_clouds(self, comb_class):
+        return TrackedFusionStrategy.maps_for_clouds(self, comb_class)
 
 
 class TrackedFusionPointRowFactory(FusionPointRowFactory):

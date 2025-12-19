@@ -948,8 +948,6 @@ class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
         res = Counter()
         for param, count in subterms[0](n).items():
             new_param = [param[idx] for idx in self.index_mapping]
-            print(self.child)
-            print(param, self.fuse_parameter_idx)
             k = param[self.fuse_parameter_idx]
             for idx in self.right_indices:
                 new_param[idx] -= k

@@ -19,10 +19,6 @@ class ExtraParametersForStrategies:
         child: TrackedTiling,
         rows: bool,
     ) -> tuple[int, ...]:
-        print(cloud)
-        print(map_cloud)
-        print(child)
-        print(rows)
         child_cloud = []
         for i in cloud:
             if i in map_cloud:

@@ -20,11 +20,20 @@ class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
         return factors
 
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
-        identity_map = (
-            {i: (i,) for i in range(comb_class.dimensions[0])},
-            {i: (i,) for i in range(comb_class.dimensions[1])},
-        )
-        return tuple(identity_map for _ in self.decomposition_function(comb_class))
+        positive_point_rows, represantives = TrackedFactors(
+            comb_class
+        ).positive_point_rows_and_represantive
+        res = []
+        for factor in self.decomposition_function(comb_class):
+            col_map = {i: (i,) for i in range(comb_class.dimensions[0])}
+            row_map = {
+                i: (i,)
+                for i in range(comb_class.dimensions[1])
+                if i not in positive_point_rows
+                or factor.active_cells.intersection(represantives)
+            }
+            res.append((col_map, row_map))
+        return res
 
 
 class TrackedShuffleFactorStrategy(ExtraParametersForStrategies, ShuffleFactorStrategy):

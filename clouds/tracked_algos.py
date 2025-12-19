@@ -1,5 +1,6 @@
 """The algorithms for tracked tilings."""
 
+from functools import cached_property
 from typing import Iterable
 from gridded_cayley_permutations import GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
@@ -20,13 +21,49 @@ class TrackedFactors(Factors):
         self.tracked_tiling = tracked_tiling
         super().__init__(tracked_tiling.tiling)
 
+    @cached_property
+    def positive_point_rows_and_represantive(
+        self,
+    ) -> tuple[set[int], set[tuple[int, int]]]:
+        positive_point_rows = set()
+        positive_point_rows_reps = set()
+        for point_row in self.tracked_tiling.point_rows:
+            if any(point_row in cloud for cloud in self.tracked_tiling.value_clouds):
+                positive_cells = [
+                    cell
+                    for cell in self.tracked_tiling.cells_in_row(point_row)
+                    if cell in self.tracked_tiling.positive_cells()
+                ]
+                if positive_cells:
+                    cell = min(positive_cells)
+                    positive_point_rows.add(cell[1])
+                    positive_point_rows_reps.add(cell)
+        return positive_point_rows, positive_point_rows_reps
+
+    def new_value_clouds(
+        self, active_cells: set[tuple[int, int]]
+    ) -> tuple[tuple[int, ...], ...]:
+        positive_point_rows, positive_point_rows_reps = (
+            self.positive_point_rows_and_represantive
+        )
+        return tuple(
+            tuple(
+                row
+                for row in cloud
+                if row not in positive_point_rows
+                or positive_point_rows_reps.intersection(active_cells)
+            )
+            for cloud in self.tracked_tiling.value_clouds
+        )
+
     def find_tracked_factors(self) -> Iterable[TrackedTiling]:
         """Return the factors of the tracked tiling."""
         factors = self.find_factors()
+        # only one child where the row is positive needs a cloud for a point row
         for factor in factors:
             yield TrackedTiling(
                 factor,
-                value_clouds=self.tracked_tiling.value_clouds,
+                value_clouds=self.new_value_clouds(factor.active_cells),
                 indices_clouds=self.tracked_tiling.indices_clouds,
                 intersect_clouds_with_active=True,
             )

@@ -915,9 +915,11 @@ class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
         extra_parameters: dict[str, str],
         left_sided_parameters: tuple[str, ...],
         right_sided_parameters: tuple[str, ...],
+        above: bool,
     ):
         self.parent = parent
         self.child = child
+        self.above = above
         self.fuse_parameter_idx = child.extra_parameters.index(fuse_parameter)
         self.reversed_extra_parameters: Dict[str, List[str]] = defaultdict(list)
         for parent_var, child_var in extra_parameters.items():
@@ -949,15 +951,20 @@ class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
         for param, count in subterms[0](n).items():
             new_param = [param[idx] for idx in self.index_mapping]
             k = param[self.fuse_parameter_idx]
-            for idx in self.right_indices:
+            point_row_indices = self.right_indices if self.above else self.left_indices
+            other_indices = self.left_indices if self.above else self.right_indices
+            # point row has at most 1
+            for idx in point_row_indices:
+                # either 0
                 new_param[idx] -= k
             res[tuple(new_param)] += count
-            if param[self.fuse_parameter_idx] > 0:
-                for idx in self.right_indices:
+            if k > 0:
+                # or 1
+                for idx in point_row_indices:
                     new_param[idx] += 1
-                for idx in self.left_indices:
+                for idx in other_indices:
                     new_param[idx] -= 1
-                res[tuple(new_param)] += count  # right minus k - 1, left minus 1
+                res[tuple(new_param)] += count
         return res
 
     def random_sample_sub_objects(

@@ -162,9 +162,7 @@ class FusionPointRowStrategy(FusionStrategy):
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling]:
         """If self.index is a point row then remove it, otherwise self.index + 1 is a point row so
         remove that."""
-        if self.index in comb_class.point_rows:
-            return (comb_class.fuse(True, self.index),)
-        return (comb_class.fuse(True, self.index + 1),)
+        return (comb_class.fuse(True, self.index),)
 
     def formal_step(self) -> str:
         idx = self.index

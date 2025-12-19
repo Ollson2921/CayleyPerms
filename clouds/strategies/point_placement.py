@@ -118,7 +118,7 @@ class TrackedColPlacementFactory(ColInsertionFactory):
                 gcps = GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
                 all_gcps.append(gcps)
             indices = tuple(0 for _ in all_gcps)
-            for direction in [DIR_LEFT]:
+            for direction in [DIR_LEFT, DIR_RIGHT]:
                 yield TrackedRequirementPlacementStrategy(all_gcps, indices, direction)
 
 

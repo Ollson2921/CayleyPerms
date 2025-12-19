@@ -25,19 +25,18 @@ class TrackedFusionStrategy(ExtraParametersForStrategies, FusionStrategy):
         super().__init__(fuse_rows=fuse_rows, index=index, tracked=tracked)
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        rc_map = (
-            comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
-                rows=[self.index], cols=[]
-            )[1]
-            if self.fuse_rows
-            else comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
-                rows=[], cols=[self.index]
-            )[1]
-        )
-        col_map = rc_map.col_map
-        row_map = rc_map.row_map
-        col_map = {k: (v,) for k, v in col_map.items()}
-        row_map = {k: (v,) for k, v in row_map.items()}
+        if self.fuse_rows:
+            col_map = {x: (x,) for x in range(comb_class.dimensions[0])}
+            row_map = {
+                x: (x,) if x <= self.index else (x - 1,)
+                for x in range(comb_class.dimensions[1])
+            }
+        else:
+            row_map = {x: (x,) for x in range(comb_class.dimensions[1])}
+            col_map = {
+                x: (x,) if x <= self.index else (x - 1,)
+                for x in range(comb_class.dimensions[0])
+            }
         return ((col_map, row_map),)
 
     def constructor(
@@ -103,11 +102,17 @@ class TrackedFusionStrategy(ExtraParametersForStrategies, FusionStrategy):
             intersects_left = any(idx == self.index for idx in cloud)
             intersects_right = any(idx == self.index + 1 for idx in cloud)
             if intersects_left and intersects_right:
-                both_sided_parameters.append(comb_class.find_parameter(cloud))
+                both_sided_parameters.append(
+                    comb_class.find_parameter(cloud, self.fuse_rows)
+                )
             elif intersects_left:
-                left_sided_parameters.append(comb_class.find_parameter(cloud))
+                left_sided_parameters.append(
+                    comb_class.find_parameter(cloud, self.fuse_rows)
+                )
             elif intersects_right:
-                right_sided_parameters.append(comb_class.find_parameter(cloud))
+                right_sided_parameters.append(
+                    comb_class.find_parameter(cloud, self.fuse_rows)
+                )
         return left_sided_parameters, right_sided_parameters, both_sided_parameters
 
     def is_reversible(self, comb_class: TrackedTiling):
@@ -143,13 +148,6 @@ class TrackedFusionPointRowStrategy(
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
         super().__init__(fuse_rows=fuse_rows, index=index, tracked=tracked)
 
-    def decomposition_function(self, comb_class: TrackedTiling) -> tuple[TrackedTiling]:
-        """If self.index is a point row then remove it, otherwise self.index + 1 is a point row so
-        remove that."""
-        if self.index in comb_class.point_rows:
-            return (comb_class.fuse(True, self.index),)
-        return (comb_class.fuse(True, self.index + 1),)
-
     def constructor(
         self,
         comb_class: TrackedTiling,
@@ -167,6 +165,7 @@ class TrackedFusionPointRowStrategy(
         left_sided_parameters, right_sided_parameters, both_sided_parameters = (
             self.sided_parameters(comb_class)
         )
+        above = self.index + 1 in comb_class.point_rows
         return PointRowFusionConstructor(
             comb_class,
             child,
@@ -174,6 +173,7 @@ class TrackedFusionPointRowStrategy(
             extra_parameters[0],
             left_sided_parameters,
             right_sided_parameters,
+            above,
         )
 
     def sided_parameters(self, comb_class: TrackedTiling):
@@ -187,6 +187,6 @@ class TrackedFusionPointRowFactory(FusionPointRowFactory):
     """Factory for fusing point rows/columns in tracked tilings."""
 
     def __call__(self, comb_class: TrackedTiling):
-        for row in comb_class.point_rows:
+        for row in range(comb_class.dimensions[1]):
             if comb_class.is_point_row_fuseable(row):
                 yield TrackedFusionPointRowStrategy(True, row)

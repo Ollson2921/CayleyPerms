@@ -24,8 +24,10 @@ class TrackedTiling(Tiling):
         super().__init__(
             tiling.obstructions, tiling.requirements, tiling.dimensions, simplify
         )
-        self.value_clouds = tuple(sorted(tuple(sorted(c)) for c in value_clouds))
-        self.indices_clouds = tuple(sorted(tuple(sorted(c)) for c in indices_clouds))
+        self.value_clouds = tuple(sorted(set(tuple(sorted(c)) for c in value_clouds)))
+        self.indices_clouds = tuple(
+            sorted(set(tuple(sorted(c)) for c in indices_clouds))
+        )
         if intersect_clouds_with_active:
             active_cols, active_rows = self.active_col_rows
             self.value_clouds = tuple(
@@ -131,18 +133,26 @@ class TrackedTiling(Tiling):
         Creates a cloud at index 'index' of rows if fuse_rows else columns."""
         new_cloud = (index,)
         if fuse_rows is False:
-            tracked_til = self.delete_rows_and_columns(cols=[index], rows=[])
-            new_indices_clouds = tracked_til.indices_clouds + (new_cloud,)
+            underlying = self.tiling.delete_rows_and_columns(cols=[index], rows=[])
+            new_indices_clouds = tuple(
+                tuple(x if x <= index else x - 1 for x in cloud)
+                for cloud in self.indices_clouds
+            ) + (new_cloud,)
             return TrackedTiling(
-                tracked_til.tiling,
+                underlying,
                 indices_clouds=new_indices_clouds,
-                value_clouds=tracked_til.value_clouds,
+                value_clouds=self.value_clouds,
             )
-        tracked_til = self.delete_rows_and_columns(cols=[], rows=[index])
+        fuse_idx = index if index in self.point_rows else index + 1
+        underlying = self.tiling.delete_rows_and_columns(cols=[], rows=[fuse_idx])
+        value_clouds = tuple(
+            tuple(x if x <= index else x - 1 for x in cloud)
+            for cloud in self.value_clouds
+        ) + (new_cloud,)
         return TrackedTiling(
-            tracked_til.tiling,
-            indices_clouds=tracked_til.indices_clouds,
-            value_clouds=tracked_til.value_clouds + (new_cloud,),
+            underlying,
+            indices_clouds=self.indices_clouds,
+            value_clouds=value_clouds,
         )
 
     def is_fusable(self, fuse_rows: bool, index: int) -> bool:
@@ -151,36 +161,36 @@ class TrackedTiling(Tiling):
 
         can't fuse rows/cols if a cloud maps onto only part of the rows/cols to be fused,
         must map to all or none of it."""
-        if fuse_rows:
-            if any(
-                index in cloud and (index + 1) not in cloud
-                for cloud in self.value_clouds
-            ) or any(
-                index not in cloud and (index + 1) in cloud
-                for cloud in self.value_clouds
-            ):
-                return False
-            if any(
-                req.positions[1] == index or req.positions[1] == index + 1
-                for req_list in self.requirements
-                for req in req_list
-            ):
-                return False
-        else:
-            if any(
-                index in cloud and (index + 1) not in cloud
-                for cloud in self.indices_clouds
-            ) or any(
-                index not in cloud and (index + 1) in cloud
-                for cloud in self.indices_clouds
-            ):
-                return False
-            if any(
-                req.positions[0] == index or req.positions[0] == index + 1
-                for req_list in self.requirements
-                for req in req_list
-            ):
-                return False
+        # if fuse_rows:
+        #     if any(
+        #         index in cloud and (index + 1) not in cloud
+        #         for cloud in self.value_clouds
+        #     ) or any(
+        #         index not in cloud and (index + 1) in cloud
+        #         for cloud in self.value_clouds
+        #     ):
+        #         return False
+        #     if any(
+        #         req.positions[1] == index or req.positions[1] == index + 1
+        #         for req_list in self.requirements
+        #         for req in req_list
+        #     ):
+        #         return False
+        # else:
+        #     if any(
+        #         index in cloud and (index + 1) not in cloud
+        #         for cloud in self.indices_clouds
+        #     ) or any(
+        #         index not in cloud and (index + 1) in cloud
+        #         for cloud in self.indices_clouds
+        #     ):
+        #         return False
+        #     if any(
+        #         req.positions[0] == index or req.positions[0] == index + 1
+        #         for req_list in self.requirements
+        #         for req in req_list
+        #     ):
+        #         return False
 
         if fuse_rows:
             test_tiling = self.delete_rows_and_columns(cols=[], rows=[index])

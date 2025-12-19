@@ -479,7 +479,7 @@ class Tiling(CombinatorialClass):
             test_tiling = self.delete_rows([row]).split_point_row(row, False)
             if test_tiling == self:
                 return True
-        if row + 1 in self.point_rows:
+        elif row + 1 in self.point_rows:
             test_tiling = self.delete_rows([row + 1]).split_point_row(row, True)
             if test_tiling == self:
                 return True

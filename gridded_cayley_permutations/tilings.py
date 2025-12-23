@@ -896,7 +896,7 @@ class Tiling(CombinatorialClass):
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
                     ]:
-                        label = "\u2014"
+                        label = "-"
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:
@@ -974,6 +974,8 @@ class Tiling(CombinatorialClass):
         cell_labels = self.cell_labels
         for cell in self.empty_cells():
             cell_labels[cell] = "░"
+            if cell in self.point_rows:
+                cell_labels[cell] = "#"
         row_separator = "├" + ("┼─" * self.dimensions[0] + "┤")[1:]
         top_row = "┌" + ("┬─" * self.dimensions[0])[1:] + "┐"
         bottom_row = "└" + ("┴─" * self.dimensions[0])[1:] + "┘"

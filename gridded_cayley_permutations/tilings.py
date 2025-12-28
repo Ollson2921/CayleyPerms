@@ -896,7 +896,7 @@ class Tiling(CombinatorialClass):
                         CayleyPermutation((0, 1)),
                         CayleyPermutation((1, 0)),
                     ]:
-                        label = "\u2014"
+                        label = "-"
                     case [CayleyPermutation((0, 1))]:
                         label = "\\"
                     case [CayleyPermutation((1, 0))]:
@@ -942,11 +942,11 @@ class Tiling(CombinatorialClass):
         cell_labels = self.cell_labels
         # How many characters are in a row in the grid
         row_width = 3 * dim_i + 2
-        for cell in self.active_cells & self.not_blank_cells():
+        for cell, label in cell_labels.items():
 
             row_index_from_top = dim_j - cell[1] - 1
             index = row_index_from_top * row_width + cell[0] * 3 + 3
-            result[index] = cell_labels[cell]
+            result[index] = label
         return result
 
     def to_html_representation(self):
@@ -969,11 +969,13 @@ class Tiling(CombinatorialClass):
 
     def _string_table(self) -> list[str]:
         """Creates a list of strings for each row of the __str__ grid"""
+        if self.dimensions == (0, 0):
+            return ["┌ ┐", " ε ", "└ ┘"]
         cell_labels = self.cell_labels
         for cell in self.empty_cells():
             cell_labels[cell] = "░"
-        for cell in self.blank_cells():
-            cell_labels[cell] = " "
+            if cell in self.point_rows:
+                cell_labels[cell] = "#"
         row_separator = "├" + ("┼─" * self.dimensions[0] + "┤")[1:]
         top_row = "┌" + ("┬─" * self.dimensions[0])[1:] + "┐"
         bottom_row = "└" + ("┴─" * self.dimensions[0])[1:] + "┘"
@@ -981,7 +983,10 @@ class Tiling(CombinatorialClass):
         for row in range(self.dimensions[1]):
             new_row = "│"
             for col in range(self.dimensions[0]):
-                new_row += self.cell_labels[(col, row)] + "│"
+                label = " "
+                if (col, row) in cell_labels:
+                    label = cell_labels[(col, row)]
+                new_row += label + "│"
             final_table += [new_row, row_separator]
         final_table.reverse()
         final_table[0] = top_row
@@ -992,17 +997,9 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        crossing_string = "\nCrossing obstructions: \n"
-        cayley_ob = CayleyPermutation((0, 0))
-        for ob in self.obstructions:
-            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
-                crossing_string += f"{ob} \n"
-
-        requirements_string = "\n"
-        for i, req_list in enumerate(self.requirements):
-            requirements_string += f"Requirements {i}: \n"
-            for req in req_list:
-                requirements_string += f"{req} \n"
+        if self.dimensions == (0, 0):
+            return ""
+        final_string = "\n".join(self._string_table())
 
         key_dict = dict[str, list[CayleyPermutation]]()
         for cell, label in self.cell_labels.items():
@@ -1015,12 +1012,31 @@ class Tiling(CombinatorialClass):
             for label, patts in key_dict.items():
                 basis_string = ", ".join(map(str, patts))
                 key_string += f"{label}: Av({basis_string}) \n"
-        else:
-            key_string = ""
+            final_string += key_string
 
-        grid = "\n".join(self._string_table())
+        if self == Tiling.empty_tiling():
+            final_string += "Obstructions: ε"
 
-        return grid + key_string + requirements_string + crossing_string
+        if self.requirements:
+            requirements_string = "\n"
+            for i, req_list in enumerate(self.requirements):
+                requirements_string += f"Requirements {i}: \n"
+                for req in req_list:
+                    requirements_string += f"{req} \n"
+            final_string += requirements_string
+
+        cayley_ob = CayleyPermutation((0, 0))
+        crossing_obs = set[GriddedCayleyPerm]()
+        for ob in self.obstructions:
+            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
+                crossing_obs.add(ob)
+
+        if len(crossing_obs) > 0:
+            crossing_string = "\nCrossing obstructions: \n"
+            crossing_string += "\n".join(map(str, crossing_obs))
+            final_string += crossing_string
+
+        return final_string
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Tiling):

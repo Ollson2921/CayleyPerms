@@ -173,7 +173,7 @@ class FusionPointRowFactory(FusionFactory):
     """Factory for doing fusion with point rows."""
 
     def __call__(self, comb_class: Tiling):
-        for row in comb_class.point_rows:
+        for row in range(comb_class.dimensions[1] - 1):
             if comb_class.is_point_row_fuseable(row):
                 yield FusionPointRowStrategy(True, row)
 

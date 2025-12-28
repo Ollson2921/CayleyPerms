@@ -6,11 +6,11 @@ from comb_spec_searcher import CombinatorialSpecificationSearcher
 basis = "012_101_001_010"  # done
 basis = "012_101_010"  # done
 basis = "210_101_011"  # done
-basis = "101_010_011"  # error in counting
-# basis = "100_110_010_011"  # error in counting
-# basis = "101_010" # error in counitng
-# basis = "101_110_010_001_011" # error in counting
-# basis = "100_110_001_011" # errot in counting
+basis = "101_010_011"  # done
+basis = "100_110_010_011"  # done
+basis = "101_010"  # done
+basis = "101_110_010_001_011"  # done
+basis = "100_110_001_011"  # done
 # basis = "210_100_110_010" # done
 
 tiling = Tiling(

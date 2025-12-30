@@ -1030,7 +1030,7 @@ class Tiling(CombinatorialClass):
         cayley_ob = CayleyPermutation((0, 0))
         crossing_obs = set[GriddedCayleyPerm]()
         for ob in self.obstructions:
-            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
+            if len(set(ob.positions)) != 1 and ob.pattern != cayley_ob:
                 crossing_obs.add(ob)
 
         if len(crossing_obs) > 0:

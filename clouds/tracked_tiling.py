@@ -24,9 +24,11 @@ class TrackedTiling(Tiling):
         super().__init__(
             tiling.obstructions, tiling.requirements, tiling.dimensions, simplify
         )
-        self.value_clouds = tuple(sorted(set(tuple(sorted(c)) for c in value_clouds)))
+        self.value_clouds = tuple(
+            sorted(set(tuple(sorted(set(c))) for c in value_clouds))
+        )
         self.indices_clouds = tuple(
-            sorted(set(tuple(sorted(c)) for c in indices_clouds))
+            sorted(set(tuple(sorted(set(c))) for c in indices_clouds))
         )
         if intersect_clouds_with_active:
             active_cols, active_rows = self.active_col_rows
@@ -35,7 +37,9 @@ class TrackedTiling(Tiling):
                     set(
                         c
                         for c in [
-                            tuple(row for row in cloud if row in active_rows)
+                            tuple(
+                                sorted(set(row for row in cloud if row in active_rows))
+                            )
                             for cloud in value_clouds
                         ]
                         if c
@@ -47,7 +51,9 @@ class TrackedTiling(Tiling):
                     set(
                         c
                         for c in [
-                            tuple(col for col in cloud if col in active_cols)
+                            tuple(
+                                sorted(set(col for col in cloud if col in active_cols))
+                            )
                             for cloud in indices_clouds
                         ]
                         if c

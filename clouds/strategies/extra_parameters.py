@@ -27,7 +27,7 @@ class ExtraParametersForStrategies:
                     for col in map_cloud[i]
                     if col in child.active_col_rows[int(rows)]
                 ]
-        return tuple(sorted(child_cloud))
+        return tuple(sorted(set(child_cloud)))
 
     def extra_parameters(
         self,

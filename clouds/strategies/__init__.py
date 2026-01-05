@@ -14,6 +14,10 @@ from .row_col_sep import (
     TrackedLessThanRowColSeparationStrategy,
 )
 from .remove_empty_row_cols import TrackedRemoveEmptyRowsAndColumnsStrategy
+from .ins_enc_verification_strats import (
+    TrackedVerticalInsertionEncodableVerificationStrategy,
+    TrackedHorizontalInsertionEncodableVerificationStrategy,
+)
 
 __all__ = [
     "TrackedFactorStrategy",
@@ -30,4 +34,6 @@ __all__ = [
     "TrackedVerticalInsertionEncodingRequirementInsertionFactory",
     "TrackedFusionPointRowFactory",
     "TrackedRemoveEmptyRowsAndColumnsStrategy",
+    "TrackedVerticalInsertionEncodableVerificationStrategy",
+    "TrackedHorizontalInsertionEncodableVerificationStrategy",
 ]

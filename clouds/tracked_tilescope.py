@@ -1,25 +1,9 @@
 """Module containing various strategy packs for running TileScope
 with tracking."""
 
-# from typing import Optional
 from comb_spec_searcher import StrategyPack, AtomStrategy
 
 from clouds.tracked_tiling import TrackedTiling
-
-# from .tracked_strategies import (
-#     TrackedFactorStrategy,
-#     TrackedShuffleFactorStrategy,
-#     TrackedVerticalInsertionEncodingPlacementFactory,
-#     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
-#     TrackedHorizontalInsertionEncodingPlacementFactory,
-#     TrackedHorizontalInsertionEncodingRequirementInsertionFactory,
-#     TrackedPointPlacementFactory,
-#     TrackedLessThanRowColSeparationStrategy,
-#     TrackedLessThanOrEqualRowColSeparationStrategy,
-#     TrackedColPlacementFactory,
-#     TrackedRemoveEmptyRowsAndColumnsStrategy, TrackedFusionStrategy
-# )
-
 
 from .strategies import (
     TrackedVerticalInsertionEncodingPlacementFactory,
@@ -36,11 +20,11 @@ from .strategies import (
     TrackedRemoveEmptyRowsAndColumnsStrategy,
     TrackedFusionFactory,
     TrackedRowPlacementFactory,
+    TrackedVerticalInsertionEncodableVerificationStrategy,
+    TrackedHorizontalInsertionEncodableVerificationStrategy,
 )
 from tilescope.strategies import (
     CellInsertionFactory,
-    VerticalInsertionEncodableVerificationStrategy,
-    HorizontalInsertionEncodableVerificationStrategy,
     SubclassVerificationStrategy,
 )
 
@@ -50,6 +34,38 @@ class TileScopePack(StrategyPack):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    @classmethod
+    def vertical_ins_enc(cls):
+        """Vertical insertion encoding strategy pack."""
+        return TileScopePack(
+            initial_strats=[
+                TrackedFactorStrategy(),
+                TrackedVerticalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[TrackedVerticalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="vertical_insertion_encoding",
+            symmetries=[],
+            iterative=False,
+        )
+
+    @classmethod
+    def horizontal_ins_enc(cls):
+        """Horizontal insertion encoding strategy pack."""
+        return TileScopePack(
+            initial_strats=[
+                TrackedFactorStrategy(),
+                TrackedHorizontalInsertionEncodingRequirementInsertionFactory(),
+            ],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[TrackedHorizontalInsertionEncodingPlacementFactory()]],
+            ver_strats=[AtomStrategy()],
+            name="horizontal_insertion_encoding",
+            symmetries=[],
+            iterative=False,
+        )
 
     @classmethod
     def point_placement(cls):
@@ -73,8 +89,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_placement",
             symmetries=[],
@@ -102,8 +118,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_placement",
             symmetries=[],
@@ -153,8 +169,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="col_placement",
             symmetries=[],
@@ -183,8 +199,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_and_col_placement",
             symmetries=[],
@@ -215,8 +231,8 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_row_and_col_placement",
             symmetries=[],

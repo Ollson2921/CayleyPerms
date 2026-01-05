@@ -51,59 +51,6 @@ class TileScopePack(StrategyPack):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    # @classmethod
-    # def point_placement(cls):
-    #     """Point placements strategy pack."""
-    #     return TileScopePack(
-    #         inferral_strats=[
-    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
-    #             TrackedLessThanRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         initial_strats=[
-    #             TrackedFactorStrategy(),
-    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         expansion_strats=[
-    #             [
-    #                 CellInsertionFactory(),
-    #                 TrackedPointPlacementFactory(),
-    #             ]
-    #         ],  # Iterable[Iterable[Strategy]]
-    #         ver_strats=[
-    #             AtomStrategy(),
-    #             VerticalInsertionEncodableVerificationStrategy(),
-    #             HorizontalInsertionEncodableVerificationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         name="Point Placement",
-    #         symmetries=[],
-    #         iterative=False,
-    #     )
-
-    # @classmethod
-    # def point_placements_shuffle(cls):
-    #     """Point placements with shuffle strategy pack."""
-    #     return TileScopePack(
-    #         initial_strats=[
-    #             TrackedShuffleFactorStrategy(),
-    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         inferral_strats=[
-    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
-    #             TrackedLessThanRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         expansion_strats=[
-    #             [CellInsertionFactory(), TrackedPointPlacementFactory()]
-    #         ],  # Iterable[Iterable[Strategy]]
-    #         ver_strats=[
-    #             AtomStrategy(),
-    #             VerticalInsertionEncodableVerificationStrategy(),
-    #             HorizontalInsertionEncodableVerificationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         name="Point Placements Shuffle",
-    #         symmetries=[],
-    #         iterative=False,
-    #     )
-
     @classmethod
     def point_placement(cls):
         """Point placements strategy pack with both types of fusion."""
@@ -129,125 +76,7 @@ class TileScopePack(StrategyPack):
                 VerticalInsertionEncodableVerificationStrategy(),
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="Point Placement with Fusion of Point Rows",
-            symmetries=[],
-            iterative=False,
-        )
-
-    # @classmethod
-    # def point_placement_subclass_ver_strat(cls, root: TrackedTiling):
-    #     """Point placements strategy pack."""
-    #     return TileScopePack(
-    #         inferral_strats=[
-    #             TrackedRemoveEmptyRowsAndColumnsStrategy(),
-    #             TrackedLessThanRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         initial_strats=[
-    #             TrackedFactorStrategy(),
-    #             TrackedLessThanOrEqualRowColSeparationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         expansion_strats=[
-    #             [
-    #                 CellInsertionFactory(),
-    #                 TrackedPointPlacementFactory(),
-    #             ]
-    #         ],  # Iterable[Iterable[Strategy]]
-    #         ver_strats=[
-    #             AtomStrategy(),
-    #             SubclassVerificationStrategy(root),
-    #             VerticalInsertionEncodableVerificationStrategy(),
-    #             HorizontalInsertionEncodableVerificationStrategy(),
-    #         ],  # Iterable[Strategy]
-    #         name="Point Placement with subclass verification",
-    #         symmetries=[],
-    #         iterative=False,
-    #     )
-
-    @classmethod
-    def point_placement_initial_place_points(cls):
-        """Point placements strategy pack, place points initially."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-                TrackedPointPlacementFactory(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    CellInsertionFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Point Placement initially place points",
-            symmetries=[],
-            iterative=False,
-        )
-
-    @classmethod
-    def point_placement_initial_cell_insertion(cls):
-        """Point placements strategy pack with cell insertion
-        as an initial strategy."""
-        return TileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-                CellInsertionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedPointPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Point Placement, initial cell insertion",
-            symmetries=[],
-            iterative=False,
-        )
-
-    @classmethod
-    def point_placements_shuffle_initial_cell_insertion(cls):
-        """Point placements with shuffle strategy pack with cell
-        insertion as an initial strategy.."""
-        return TileScopePack(
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [CellInsertionFactory(), TrackedPointPlacementFactory()]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="Point Placements Shuffle, initial cell insertion",
+            name="point_placement",
             symmetries=[],
             iterative=False,
         )
@@ -276,7 +105,7 @@ class TileScopePack(StrategyPack):
                 VerticalInsertionEncodableVerificationStrategy(),
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="Row Placement",
+            name="row_placement",
             symmetries=[],
             iterative=False,
         )
@@ -304,7 +133,7 @@ class TileScopePack(StrategyPack):
         return pack
 
     @classmethod
-    def col_placement_fusion(cls):
+    def col_placement(cls):
         """Column placements with fusion strategy pack."""
         return TileScopePack(
             inferral_strats=[
@@ -324,10 +153,10 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                # VerticalInsertionEncodableVerificationStrategy(),
-                # HorizontalInsertionEncodableVerificationStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="col_placement_with_fusion",
+            name="col_placement",
             symmetries=[],
             iterative=False,
         )
@@ -357,7 +186,7 @@ class TileScopePack(StrategyPack):
                 VerticalInsertionEncodableVerificationStrategy(),
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="row_and_col_placement_with_fusion",
+            name="row_and_col_placement",
             symmetries=[],
             iterative=False,
         )
@@ -389,7 +218,7 @@ class TileScopePack(StrategyPack):
                 VerticalInsertionEncodableVerificationStrategy(),
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="Point, Row and Column Placement",
+            name="point_row_and_col_placement",
             symmetries=[],
             iterative=False,
         )

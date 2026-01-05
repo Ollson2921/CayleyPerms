@@ -187,6 +187,6 @@ class TrackedFusionPointRowFactory(FusionPointRowFactory):
     """Factory for fusing point rows/columns in tracked tilings."""
 
     def __call__(self, comb_class: TrackedTiling):
-        for row in range(comb_class.dimensions[1]):
+        for row in range(comb_class.dimensions[1] - 1):
             if comb_class.is_point_row_fuseable(row):
                 yield TrackedFusionPointRowStrategy(True, row)

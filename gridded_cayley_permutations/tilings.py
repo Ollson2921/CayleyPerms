@@ -998,6 +998,8 @@ class Tiling(CombinatorialClass):
                 if (col, row) in cell_labels:
                     label = cell_labels[(col, row)]
                 new_row += label + "│"
+            if row in self.point_rows:
+                new_row += "*"
             final_table += [new_row, row_separator]
         final_table.reverse()
         final_table[0] = top_row
@@ -1039,7 +1041,14 @@ class Tiling(CombinatorialClass):
         cayley_ob = CayleyPermutation((0, 0))
         crossing_obs = set[GriddedCayleyPerm]()
         for ob in self.obstructions:
-            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
+            if (
+                len(ob.pattern) == 2
+                and ob.pattern != cayley_ob
+                and ob.positions[0][1] == ob.positions[1][1]
+                and ob.positions[0][1] in self.point_rows
+            ):
+                continue
+            if len(set(ob.positions)) > 1:
                 crossing_obs.add(ob)
 
         if len(crossing_obs) > 0:

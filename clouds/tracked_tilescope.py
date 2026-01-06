@@ -22,9 +22,9 @@ from .strategies import (
     TrackedRowPlacementFactory,
     TrackedVerticalInsertionEncodableVerificationStrategy,
     TrackedHorizontalInsertionEncodableVerificationStrategy,
+    TrackedCellInsertionFactory,
 )
 from tilescope.strategies import (
-    CellInsertionFactory,
     SubclassVerificationStrategy,
 )
 
@@ -83,7 +83,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
+                    TrackedCellInsertionFactory(),
                     TrackedPointPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
@@ -223,7 +223,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
+                    TrackedCellInsertionFactory(),
                     TrackedPointPlacementFactory(),
                     TrackedRowPlacementFactory(),
                     TrackedColPlacementFactory(),

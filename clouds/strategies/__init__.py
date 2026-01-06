@@ -18,6 +18,7 @@ from .ins_enc_verification_strats import (
     TrackedVerticalInsertionEncodableVerificationStrategy,
     TrackedHorizontalInsertionEncodableVerificationStrategy,
 )
+from .requirement_insertion import TrackedCellInsertionFactory
 
 __all__ = [
     "TrackedFactorStrategy",
@@ -36,4 +37,5 @@ __all__ = [
     "TrackedRemoveEmptyRowsAndColumnsStrategy",
     "TrackedVerticalInsertionEncodableVerificationStrategy",
     "TrackedHorizontalInsertionEncodableVerificationStrategy",
+    "TrackedCellInsertionFactory",
 ]

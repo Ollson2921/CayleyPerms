@@ -7,7 +7,6 @@ from tilescope.strategies import (
     PointPlacementFactory,
     RowInsertionFactory,
     ColInsertionFactory,
-    RequirementInsertionStrategy,
 )
 from tilescope.strategies.point_placements import (
     DIR_LEFT_BOT,
@@ -23,6 +22,7 @@ from clouds.tracked_algos import (
     TrackedPointPlacement,
 )
 from .extra_parameters import ExtraParametersForStrategies
+from .requirement_insertion import TrackedRequirementInsertionStrategy
 
 Cell = tuple[int, int]
 
@@ -127,14 +127,14 @@ class TrackedVerticalInsertionEncodingRequirementInsertionFactory(CellInsertionF
 
     def __call__(
         self, comb_class: TrackedTiling
-    ) -> Iterator[RequirementInsertionStrategy]:
+    ) -> Iterator[TrackedRequirementInsertionStrategy]:
         for col in range(comb_class.dimensions[0]):
             if not comb_class.col_is_positive(col):
                 gcps = tuple(
                     GriddedCayleyPerm(CayleyPermutation([0]), [cell])
                     for cell in comb_class.cells_in_col(col)
                 )
-                yield RequirementInsertionStrategy(gcps, ignore_parent=True)
+                yield TrackedRequirementInsertionStrategy(gcps, ignore_parent=True)
                 return
 
     @classmethod
@@ -176,14 +176,15 @@ class TrackedHorizontalInsertionEncodingRequirementInsertionFactory(
 
     def __call__(
         self, comb_class: TrackedTiling
-    ) -> Iterator[RequirementInsertionStrategy]:
+    ) -> Iterator[TrackedRequirementInsertionStrategy]:
         for row in range(comb_class.dimensions[1]):
             if not comb_class.row_is_positive(row):
                 gcps = tuple(
                     GriddedCayleyPerm(CayleyPermutation([0]), [cell])
                     for cell in comb_class.cells_in_row(row)
                 )
-                yield RequirementInsertionStrategy(gcps, ignore_parent=True)
+                yield TrackedRequirementInsertionStrategy(gcps, ignore_parent=True)
+                return
 
     @classmethod
     def from_dict(

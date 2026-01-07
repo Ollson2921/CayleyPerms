@@ -351,9 +351,19 @@ class CayleyPermutation(tuple[int, ...]):
             stand[v] = i
         return CayleyPermutation([stand[pat] for pat in pattern])
 
+    def complement(self) -> "CayleyPermutation":
+        """Returns the complement of the Cayley permutation."""
+        n = max(self)
+        return CayleyPermutation((n - x for x in self))
+
     def reverse(self) -> "CayleyPermutation":
         """Returns the reverse of the Cayley permutation."""
         return CayleyPermutation(self[::-1])
+
+    def reverse_complement(self) -> "CayleyPermutation":
+        """Returns the reverse complement of the Cayley permutation."""
+        n = max(self)
+        return CayleyPermutation((n - x for x in self[::-1]))
 
     def first_k_entries(self, k: int) -> list[int]:
         """Returns a list of the indices of the first k numbers

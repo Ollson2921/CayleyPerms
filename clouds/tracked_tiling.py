@@ -61,6 +61,9 @@ class TrackedTiling(Tiling):
                 )
             )
 
+    def remove_clouds(self) -> "TrackedTiling":
+        return TrackedTiling(self.tiling)
+
     @cached_property
     def active_col_rows(self) -> tuple[set[int], set[int]]:
         """Returns the columns and rows in the tiling that have active cells."""

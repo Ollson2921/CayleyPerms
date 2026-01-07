@@ -1,4 +1,4 @@
-from clouds import TrackedTiling, TileScopePack
+from clouds import TrackedTiling, TileScopePack, TrackedSearcher
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation, string_to_basis
 from comb_spec_searcher import CombinatorialSpecificationSearcher
@@ -14,20 +14,14 @@ basis = "100_110_001_011"  # done
 basis = "000_010_100_101_210"
 # basis = "210_100_110_010" # done
 
-tiling = Tiling(
-    [GriddedCayleyPerm(p, [(0, 0) for _ in p]) for p in string_to_basis(basis)],
-    [],
-    (1, 1),
-)
-tracked_tiling = TrackedTiling(tiling, [], [])
-
 
 pack = TileScopePack.point_placement()
-searcher = CombinatorialSpecificationSearcher(tracked_tiling, pack, debug=False)
+searcher = TrackedSearcher(basis, pack, debug=False)
 spec = searcher.auto_search(status_update=5)
 
 # print(spec.get_maple_equations())
 
+spec = spec.expand_verified()
 spec.sanity_check(4)
 # spec.show()
 print([spec.count_objects_of_size(i) for i in range(10)])

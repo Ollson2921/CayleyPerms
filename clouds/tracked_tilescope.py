@@ -1,6 +1,8 @@
 """Module containing various strategy packs for running TileScope
 with tracking."""
 
+from typing import Iterable
+from cayley_permutations import CayleyPermutation
 from comb_spec_searcher import StrategyPack, AtomStrategy
 
 from clouds.tracked_tiling import TrackedTiling
@@ -34,6 +36,9 @@ class TileScopePack(StrategyPack):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def add_basis(self, basis: Iterable[CayleyPermutation]) -> "TileScopePack":
+        raise NotImplementedError
 
     @classmethod
     def vertical_ins_enc(cls):

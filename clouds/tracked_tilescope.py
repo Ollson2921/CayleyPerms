@@ -92,7 +92,7 @@ class TileScopePack(StrategyPack):
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="point_placement",
+            name="point_placement_with_fusion",
             symmetries=[],
             iterative=False,
         )
@@ -121,7 +121,7 @@ class TileScopePack(StrategyPack):
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="row_placement",
+            name="row_placement_with_fusion",
             symmetries=[],
             iterative=False,
         )
@@ -172,7 +172,7 @@ class TileScopePack(StrategyPack):
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="col_placement",
+            name="col_placement_with_fusion",
             symmetries=[],
             iterative=False,
         )
@@ -202,7 +202,7 @@ class TileScopePack(StrategyPack):
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="row_and_col_placement",
+            name="row_and_col_placement_with_fusion",
             symmetries=[],
             iterative=False,
         )
@@ -234,7 +234,7 @@ class TileScopePack(StrategyPack):
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="point_row_and_col_placement",
+            name="point_row_and_col_placement_with_fusion",
             symmetries=[],
             iterative=False,
         )

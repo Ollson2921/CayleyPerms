@@ -1,13 +1,472 @@
 import requests
 import time
 from datetime import timedelta
-from cayley_permutations import Av
+from cayley_permutations import Av, CayleyPermutation
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from comb_spec_searcher import CombinatorialSpecificationSearcher
 import json
 from clouds import TrackedTiling, TileScopePack
-from .sorting_bases import sorted_bases as bases
 
+bases = {
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 0, 1)), CayleyPermutation((0, 1, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 0))}),
+    frozenset({CayleyPermutation((1, 0, 1)), CayleyPermutation((0, 1, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 1)), CayleyPermutation((0, 1, 0))}),
+    frozenset(
+        {
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 0, 0))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 0, 0)), CayleyPermutation((1, 1, 0))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((1, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 0)), CayleyPermutation((0, 0, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((2, 1, 0)), CayleyPermutation((1, 1, 0))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 1, 2)), CayleyPermutation((1, 0, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((2, 1, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 0, 0)), CayleyPermutation((0, 1, 0))}),
+    frozenset({CayleyPermutation((1, 1, 0)), CayleyPermutation((0, 0, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 0)), CayleyPermutation((1, 0, 1))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((1, 0, 0)), CayleyPermutation((0, 1, 2))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((1, 0, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 0)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((0, 0, 0)),
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((0, 0, 1)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 1, 2)), CayleyPermutation((0, 0, 0))}),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 1)),
+        }
+    ),
+    frozenset(
+        {
+            CayleyPermutation((1, 0, 0)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((1, 1, 0)),
+            CayleyPermutation((0, 1, 0)),
+            CayleyPermutation((2, 1, 0)),
+        }
+    ),
+    frozenset({CayleyPermutation((0, 1, 2))}),
+    frozenset(
+        {
+            CayleyPermutation((0, 1, 2)),
+            CayleyPermutation((1, 0, 1)),
+            CayleyPermutation((0, 0, 1)),
+        }
+    ),
+}
 
 all_packs = [
     TileScopePack.col_placement(),
@@ -30,6 +489,7 @@ total = len(bases)
 n = 0
 
 for basis in list(bases):
+    basis = tuple(sorted(basis))
     tiling = TrackedTiling(
         Tiling(
             [GriddedCayleyPerm(p, [(0, 0) for _ in p]) for p in basis],
@@ -40,13 +500,16 @@ for basis in list(bases):
         [],
     )
     for pack in all_packs:
+        print(f"Trying basis {Av(basis)} with pack {pack.name}")
         # if tuple(basis) in counted: # for breaking as soon as found a correct spec
         #     break
         searcher = CombinatorialSpecificationSearcher(tiling, pack, debug=False)
         try:
             start_time = time.time()
-            spec = searcher.auto_search(max_expansion_time=600)  # set maxtime
+            spec = searcher.auto_search(max_expansion_time=1800)  # set maxtime
+            # spec.show()
             time_taken = timedelta(seconds=int(time.time() - start_time))
+            print(f"Pack: {pack.name} took {time_taken}")
             basis_str = "_".join(str(p) for p in basis)
             message = f"Computed a spec for Av({basis_str}), Pack: {pack.name}. \nTook {time_taken}."
             json_spec = json.dumps(spec.to_jsonable())
@@ -72,7 +535,6 @@ for basis in list(bases):
         except Exception as e:
             print(f"Didn't compute {Av(basis)} with {pack.name}: {e}")
             continue
-    basis = tuple(basis)
     if basis not in counted:
         didnt_compute.append(basis)
     n += 1

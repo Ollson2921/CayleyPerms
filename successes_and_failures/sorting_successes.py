@@ -36,7 +36,7 @@ def sym_of_basis(cperms: list[CayleyPermutation]) -> list[frozenset[CayleyPermut
 
 
 basis_desc = "3s_4x1"  # change descriptor to change file
-# basis_desc = "3s"
+basis_desc = "3s"
 
 with open(f"all_basis_classes_{basis_desc}.txt", "r") as f:
     all_bases_classes = eval(f.readline())
@@ -80,11 +80,11 @@ print(len(set(actual_successes)) + len(set(actual_failures)))
 print(len(set(all_bases_classes)))
 
 
-with open(f"actual_successes_{basis_desc}.txt", "w") as f:
-    f.write(repr(actual_successes))
+# with open(f"actual_successes_{basis_desc}.txt", "w") as f:
+#     f.write(repr(actual_successes))
 
-with open(f"actual_failures_{basis_desc}.txt", "w") as f:
-    f.write(repr(actual_failures))
+# with open(f"actual_failures_{basis_desc}.txt", "w") as f:
+#     f.write(repr(actual_failures))
 
-with open(f"to_compute_{basis_desc}.txt", "w") as f:
-    f.write(repr(not_computed))
+# with open(f"to_compute_{basis_desc}.txt", "w") as f:
+#     f.write(repr(not_computed))

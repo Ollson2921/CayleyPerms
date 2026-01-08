@@ -5,7 +5,7 @@ import json
 from itertools import combinations
 
 basis_desc = "3s_4x1"  # change descriptor to change file
-# basis_desc = "3s"
+basis_desc = "3s"
 
 print(basis_desc)
 
@@ -14,6 +14,9 @@ with open(f"successes_{basis_desc}.txt", "r") as f:
 
 with open(f"failures_{basis_desc}.txt", "r") as f:
     failures = eval(f.readline())
+
+print(len(successes), "successes")
+print(len(failures), "failures")
 
 """Looking for containment of perms"""
 # def is_perm(cperm: CayleyPermutation) -> bool:

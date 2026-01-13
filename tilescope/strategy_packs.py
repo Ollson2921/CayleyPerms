@@ -83,7 +83,7 @@ class TileScopePack(StrategyPack):
                 VerticalInsertionEncodableVerificationStrategy(),
                 HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="Point Placement",
+            name="point_placement",
             symmetries=[],
             iterative=False,
         )

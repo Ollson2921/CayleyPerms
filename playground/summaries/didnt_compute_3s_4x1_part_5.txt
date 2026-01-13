@@ -1,2 +1,0 @@
-[(CayleyPermutation((2, 0, 1)), CayleyPermutation((0, 1, 0)), CayleyPermutation((0, 0, 1, 1)))]
-Basis didn't compute: 1

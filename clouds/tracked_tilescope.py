@@ -96,6 +96,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_placement_with_fusion",
             symmetries=[],
@@ -125,6 +126,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_placement_with_fusion",
             symmetries=[],
@@ -176,6 +178,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="col_placement_with_fusion",
             symmetries=[],
@@ -206,6 +209,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_and_col_placement_with_fusion",
             symmetries=[],
@@ -238,6 +242,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_row_and_col_placement_with_fusion",
             symmetries=[],
@@ -269,6 +274,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_and_col_placement_with_fusion",
             symmetries=[],
@@ -300,6 +306,7 @@ class TileScopePack(StrategyPack):
                 AtomStrategy(),
                 TrackedVerticalInsertionEncodableVerificationStrategy(),
                 TrackedHorizontalInsertionEncodableVerificationStrategy(),
+                SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_and_row_placement_with_fusion",
             symmetries=[],

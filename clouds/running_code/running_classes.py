@@ -7,7 +7,7 @@ import json
 from clouds import TrackedTiling, TileScopePack, TrackedSearcher
 
 # Load bases from file
-with open("didnt_compute.txt", "r") as f:
+with open("final_to_compute_with_fusion_3s_4x1.txt", "r") as f:
     bases = eval(f.readline())
 
 all_packs = [
@@ -20,11 +20,9 @@ all_packs = [
     TileScopePack.point_and_row_placement(),
 ]
 
-# basis_desc = "3s_4x1"  # change descriptor to change file
+basis_desc = "3s_4x1"  # change descriptor to change file
 # basis_desc = "3s"
 
-# bases_to_run = bases  # can take a subset of the bases in the file
-# part = 34
 
 counted = set()
 wrong_counts = []
@@ -54,10 +52,9 @@ for basis in list(bases):
             # spec.show()
             time_taken = timedelta(seconds=int(time.time() - start_time))
             print(f"Pack: {pack.name} took {time_taken}")
-            basis_str = "_".join(str(p) for p in basis)
-            message = f"Computed a spec for Av({basis_str}), Pack: {pack.name}. \nTook {time_taken}."
+            message = f"Computed a spec for {Av(basis)}, Pack: {pack.name}. \nTook {time_taken}."
             json_spec = json.dumps(spec.to_jsonable())
-            with open(f"{Av(basis)}_{pack.name}.json", "w") as f:
+            with open(f"specs/{Av(basis)}_{pack.name}.json", "w") as f:
                 f.write(json_spec)
 
             print("checking counts")
@@ -71,10 +68,10 @@ for basis in list(bases):
                 message += f" But WRONG counts! Spec counts: \n{spec_count},\n Brute force counts: \n{brute_force_count}"
 
             # Send to discord
-            webhookurl = "https://discord.com/api/webhooks/1446479214629883997/Ct682I4szno9aF4mpskSHVoeCpXA37IfWddC1SVycmI-CYbHmbrFsmQNhAxEC2yCu1mT"
-            headers = {"User-Agent": "hildur", "Content-Type": "application/json"}
-            data = json.dumps({"content": message})
-            requests.post(webhookurl, headers=headers, data=data)
+            # webhookurl = "https://discord.com/api/webhooks/1446479214629883997/Ct682I4szno9aF4mpskSHVoeCpXA37IfWddC1SVycmI-CYbHmbrFsmQNhAxEC2yCu1mT"
+            # headers = {"User-Agent": "hildur", "Content-Type": "application/json"}
+            # data = json.dumps({"content": message})
+            # requests.post(webhookurl, headers=headers, data=data)
             print(message)
         except Exception as e:
             print(f"Didn't compute {Av(basis)} with {pack.name}: {e}")
@@ -89,15 +86,15 @@ for basis in list(bases):
 """Makes a file with a list of tuples where each tuple has a basis and a pack which
 failed to count correctly. Each of these should have a corresponding json spec in
 the wrong_counts folder."""
-with open(f"wrong_counts.txt", "w") as f:
+with open("wrong_counts.txt", "w") as f:
     f.write(repr(wrong_counts))
 
 """Makes a file with a list of bases which didn't compute with any pack."""
-with open(f"didnt_compute.txt", "w") as f:
+with open("didnt_compute.txt", "w") as f:
     f.write(repr(didnt_compute))
     f.write(f"\nBasis didn't compute: {len(didnt_compute)}")
 
 """Makes a file with a list of bases which did compute with any pack."""
-with open(f"did_compute.txt", "w") as f:
+with open("did_compute.txt", "w") as f:
     f.write(repr(counted))
     f.write(f"\nBasis computed correctly: {len(counted)}")

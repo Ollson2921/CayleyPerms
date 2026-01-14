@@ -1,5 +1,5 @@
 from functools import cached_property
-from typing import Iterable
+from typing import Iterable, Optional
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.row_col_map import RowColMap
 
@@ -62,7 +62,52 @@ class TrackedTiling(Tiling):
             )
 
     def remove_clouds(self) -> "TrackedTiling":
+        """Remove all clouds from the tracked tiling."""
         return TrackedTiling(self.tiling)
+
+    def remove_idx_cloud(self, idx_cloud: tuple[int, ...]) -> "TrackedTiling":
+        """Remove an index cloud from the tracked tiling."""
+        new_idx_clouds = tuple(
+            cloud for cloud in self.indices_clouds if cloud != idx_cloud
+        )
+        return TrackedTiling(
+            self.tiling,
+            indices_clouds=new_idx_clouds,
+            value_clouds=self.value_clouds,
+        )
+
+    def remove_val_cloud(self, val_cloud: tuple[int, ...]) -> "TrackedTiling":
+        """Remove a value cloud from the tracked tiling."""
+        new_val_clouds = tuple(
+            cloud for cloud in self.value_clouds if cloud != val_cloud
+        )
+        return TrackedTiling(
+            self.tiling,
+            indices_clouds=self.indices_clouds,
+            value_clouds=new_val_clouds,
+        )
+
+    def add_clouds(
+        self,
+        value_clouds: Optional[Clouds] = None,
+        indices_clouds: Optional[Clouds] = None,
+    ) -> "TrackedTiling":
+        """Add clouds to the tracked tiling."""
+        new_value_clouds = (
+            tuple(sorted(set(self.value_clouds + value_clouds)))
+            if value_clouds is not None
+            else self.value_clouds
+        )
+        new_indices_clouds = (
+            tuple(sorted(set(self.indices_clouds + indices_clouds)))
+            if indices_clouds is not None
+            else self.indices_clouds
+        )
+        return TrackedTiling(
+            self.tiling,
+            indices_clouds=new_indices_clouds,
+            value_clouds=new_value_clouds,
+        )
 
     @cached_property
     def active_col_rows(self) -> tuple[set[int], set[int]]:
@@ -170,37 +215,6 @@ class TrackedTiling(Tiling):
 
         can't fuse rows/cols if a cloud maps onto only part of the rows/cols to be fused,
         must map to all or none of it."""
-        # if fuse_rows:
-        #     if any(
-        #         index in cloud and (index + 1) not in cloud
-        #         for cloud in self.value_clouds
-        #     ) or any(
-        #         index not in cloud and (index + 1) in cloud
-        #         for cloud in self.value_clouds
-        #     ):
-        #         return False
-        #     if any(
-        #         req.positions[1] == index or req.positions[1] == index + 1
-        #         for req_list in self.requirements
-        #         for req in req_list
-        #     ):
-        #         return False
-        # else:
-        #     if any(
-        #         index in cloud and (index + 1) not in cloud
-        #         for cloud in self.indices_clouds
-        #     ) or any(
-        #         index not in cloud and (index + 1) in cloud
-        #         for cloud in self.indices_clouds
-        #     ):
-        #         return False
-        #     if any(
-        #         req.positions[0] == index or req.positions[0] == index + 1
-        #         for req_list in self.requirements
-        #         for req in req_list
-        #     ):
-        #         return False
-
         if fuse_rows:
             test_tiling = self.delete_rows_and_columns(cols=[], rows=[index])
         else:
@@ -277,6 +291,7 @@ class TrackedTiling(Tiling):
         raise ValueError(f"Not a valid parameter: {parameter}")
 
     def get_cloud(self, parameter: str) -> tuple[int, ...]:
+        """Returns the cloud corresponding to the parameter."""
         x, y = parameter.split("_")
         if x == "v":
             return self.value_clouds[int(y)]

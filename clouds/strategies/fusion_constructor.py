@@ -920,6 +920,9 @@ class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
         self.parent = parent
         self.child = child
         self.above = above
+        self.fuse_parameter = fuse_parameter
+        self.left_sided_parameters = left_sided_parameters
+        self.right_sided_parameters = right_sided_parameters
         self.fuse_parameter_idx = child.extra_parameters.index(fuse_parameter)
         self.reversed_extra_parameters: Dict[str, List[str]] = defaultdict(list)
         for parent_var, child_var in extra_parameters.items():
@@ -936,12 +939,49 @@ class PointRowFusionConstructor(Constructor[Tiling, GriddedPerm]):
         self.right_indices = [
             parent.extra_parameters.index(param) for param in right_sided_parameters
         ]
+        self.parent_fusion_parameters = self.reversed_extra_parameters[
+            self.fuse_parameter
+        ]
 
     def equiv(self, other, data=None):
         raise NotImplementedError
 
-    def get_equation(self, lhs_func, rhs_funcs):
-        raise NotImplementedError
+    def get_equation(
+        self, lhs_func: sympy.Function, rhs_funcs: tuple[sympy.Function, ...]
+    ) -> sympy.Eq:
+        rhs_func = rhs_funcs[0]
+
+        # products of all things mapped to
+        subs: Dict[str, Any] = {
+            child: reduce(mul, [sympy.var(k) for k in parent_vars], 1)
+            for child, parent_vars in self.reversed_extra_parameters.items()
+        }
+
+        # make fractions bottom/top and fuse/bottom
+        top, bottom, fusion_params = sympy.Number(1), sympy.Number(1), sympy.Number(1)
+        for parent_fuse_parameter in self.parent_fusion_parameters:
+            fusion_params *= sympy.var(parent_fuse_parameter)
+        for param in self.left_sided_parameters:
+            bottom *= sympy.var(param)
+        for param in self.right_sided_parameters:
+            top *= sympy.var(param)
+
+        # subs to make fuse_parameter in rhs fusion_params / bottom
+        subs1 = {**subs}
+        subs1[self.fuse_parameter] = fusion_params / bottom
+        rhs_func.subs(subs1, simultaneous=True)
+
+        # subs to make fuse_parameter 0 in rhs eqn
+        subs2 = {**subs}
+        subs2[self.fuse_parameter] = 0
+
+        return sympy.Eq(
+            lhs_func,
+            (
+                rhs_func
+                - bottom / top * (rhs_func - rhs_func.subs(subs2, simultaneous=True))
+            ),
+        )
 
     def get_sub_objects(self, subobjs, n):
         raise NotImplementedError

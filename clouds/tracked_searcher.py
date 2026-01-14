@@ -15,7 +15,7 @@ from typing import Iterable, Iterator, Optional, Union
 from cayley_permutations import CayleyPermutation
 from cayley_permutations.simplify_basis import string_to_basis
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from .tracked_tilescope import TileScopePack
+from .tracked_tilescope import TrackedTileScopePack
 from logzero import logger
 
 
@@ -35,7 +35,7 @@ class TrackedSearcher(CombinatorialSpecificationSearcher):
     def __init__(
         self,
         start_class: Union[str, Iterable[CayleyPermutation], TrackedTiling],
-        strategy_pack: TileScopePack,
+        strategy_pack: TrackedTileScopePack,
         max_cvs: Optional[int] = None,
         delay_next: bool = False,
         **kwargs,
@@ -103,7 +103,7 @@ class TrackedSearcher(CombinatorialSpecificationSearcher):
 
 
 class TrackedDefaultQueue(DefaultQueue):
-    def __init__(self, pack: TileScopePack, delay_next: bool):
+    def __init__(self, pack: TrackedTileScopePack, delay_next: bool):
         super().__init__(pack)
         self.next_curr_level: Optional[tuple[deque[int], ...]] = None
         self.delay_next = delay_next
@@ -145,7 +145,7 @@ class TrackedDefaultQueue(DefaultQueue):
 
 class TrackedQueue(CSSQueue):
     def __init__(
-        self, pack: TileScopePack, tilescope: TrackedSearcher, delay_next: bool
+        self, pack: TrackedTileScopePack, tilescope: TrackedSearcher, delay_next: bool
     ):
         self.tilescope = tilescope
         self.pack = pack

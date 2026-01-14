@@ -4,24 +4,26 @@ from datetime import timedelta
 from cayley_permutations import Av, CayleyPermutation
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 import json
-from clouds import TrackedTiling, TileScopePack, TrackedSearcher
+from clouds import TrackedTiling, TrackedTileScopePack, TrackedSearcher
+
+# basis_desc = "3s_4x1"  # change descriptor to change file
+basis_desc = "3s"
 
 # Load bases from file
-with open("final_to_compute_with_fusion_3s_4x1.txt", "r") as f:
+with open(f"fusion_to_run_{basis_desc}.txt", "r") as f:
     bases = eval(f.readline())
 
-all_packs = [
-    TileScopePack.point_placement(),
-    TileScopePack.point_row_and_col_placement(),
-    TileScopePack.col_placement(),
-    TileScopePack.row_and_col_placement(),
-    TileScopePack.row_placement(),
-    TileScopePack.point_and_col_placement(),
-    TileScopePack.point_and_row_placement(),
-]
+# all_packs = [
+#     TileScopePack.point_placement(),
+#     TileScopePack.point_row_and_col_placement(),
+#     TileScopePack.col_placement(),
+#     TileScopePack.row_and_col_placement(),
+#     TileScopePack.row_placement(),
+#     TileScopePack.point_and_col_placement(),
+#     TileScopePack.point_and_row_placement(),
+# ]
 
-basis_desc = "3s_4x1"  # change descriptor to change file
-# basis_desc = "3s"
+all_packs = TrackedTileScopePack.all_packs()
 
 
 counted = set()
@@ -45,7 +47,7 @@ for basis in list(bases):
         print(f"Trying basis {Av(basis)} with pack {pack.name}")
         # if tuple(basis) in counted: # for breaking as soon as found a correct spec
         #     break
-        searcher = TrackedSearcher(tiling, pack, debug=False)
+        searcher = TrackedSearcher(tiling, pack, debug=False, max_cvs=1)
         try:
             start_time = time.time()
             spec = searcher.auto_search(max_expansion_time=3600 * 5)  # set maxtime

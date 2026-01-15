@@ -1,6 +1,7 @@
 """The class for point unplacement"""
 
 from itertools import product
+from typing import Iterable
 
 from cayley_permutations import CayleyPermutation
 
@@ -146,3 +147,115 @@ class PointUnplacement:
         return base_tiling.delete_columns([self.cell[0]]) == tiling.delete_columns(
             [self.cell[0]]
         )
+
+
+class PatialPointUnplacement:
+    """Methods for partial unplacement points"""
+
+    def __init__(self, tiling: Tiling):
+        self.tiling = tiling
+        self.points = tiling.point_cells()
+
+    def auto_unplacement(self) -> Tiling:
+        """Does all valid unplacements for the tiling's point cells"""
+        return self.unplace(*self.valid_cols_and_rows(self.points))
+
+    def unplace(self, unplace_cols: set[int], unplace_rows: set[int]) -> Tiling:
+        """Partially unplaces at all selected cols and rows"""
+        cols_to_remove, rows_to_remove = set[int](), set[int]()
+        for col in unplace_cols:
+            cols_to_remove.update({col, col + 1})
+        for row in unplace_rows:
+            rows_to_remove.update({row, row + 1})
+        temp_tiling = Tiling(
+            self.tiling.obstructions, [], self.tiling.dimensions
+        ).delete_rows_and_columns(cols_to_remove, rows_to_remove)
+        return temp_tiling.add_requirement_list(
+            self.new_reqs(unplace_cols, unplace_rows)
+        )
+
+    def valid_cols_and_rows(self, points: Iterable[Cell]) -> tuple[set[int], set[int]]:
+        """Returns the set of cols that can be unplaced and the set of rows that can be unplaced"""
+        valid_points = {cell for cell in points if self.cell_in_valid_region(cell)}
+        return self.fusable_check(valid_points)
+
+    def cell_in_valid_region(self, cell: Cell) -> bool:
+        """Makes sure we're not unplacing a boundary point."""
+        if (
+            0 in cell
+            or self.tiling.dimensions[0] - 1 == cell[0]
+            or self.tiling.dimensions[1] - 1 == cell[1]
+        ):
+            return False
+        return True
+
+    def fusable_check(self, points: Iterable[Cell]) -> tuple[set[int], set[int]]:
+        """Returns a set of cols that can be fused and the set of rows that can be fused"""
+        temp_tiling = Tiling(self.tiling.obstructions, [], self.tiling.dimensions)
+        check = tuple(map(set[int], zip(*points)))
+        final_cols, final_rows = set[int](), set[int]()
+        base_col_map = {i: i for i in range(temp_tiling.dimensions[0])}
+        base_row_map = {i: i for i in range(temp_tiling.dimensions[1])}
+        # Check row fusability
+        for row in check[1]:
+            obs = {
+                ob
+                for ob in temp_tiling.obstructions
+                if all((pos[1] == row for pos in ob.positions))
+            }
+            reduced_tiling = temp_tiling.delete_rows_and_columns([], [row, row + 1])
+            temp_map = base_row_map.copy()
+            temp_map[row] = row - 1
+            temp_map[row + 1] = row - 1
+            backmap = RowColMap(base_col_map, temp_map)
+            check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
+                obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
+            )
+            if check_tiling == temp_tiling:
+                final_rows.add(row)
+        for col in check[0]:
+            obs = {
+                ob
+                for ob in temp_tiling.obstructions
+                if all((pos[0] == col for pos in ob.positions))
+            }
+            reduced_tiling = temp_tiling.delete_rows_and_columns([col, col + 1], [])
+            temp_map = base_col_map.copy()
+            temp_map[col] = col - 1
+            temp_map[col + 1] = col - 1
+            backmap = RowColMap(temp_map, base_row_map)
+            check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
+                obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
+            )
+            if check_tiling == temp_tiling:
+                final_cols.add(col)
+        return final_cols, final_rows
+
+    def adjustment_map(
+        self, unplaced_cols: set[int], unplaced_rows: set[int]
+    ) -> RowColMap:
+        """Returns a RowColMap that tracks unplacement"""
+        col_correction = dict[int, int]()
+        col_adjust = 0
+        for col in range(self.tiling.dimensions[0]):
+            if {col, col - 1} & unplaced_cols:
+                col_correction[col] = col_correction[col - 1]
+                col_adjust += 1
+            else:
+                col_correction[col] = col - col_adjust
+        row_correction = dict[int, int]()
+        row_adjust = 0
+        for row in range(self.tiling.dimensions[1]):
+            if {row, row - 1} & unplaced_rows:
+                row_correction[row] = row_correction[row - 1]
+                row_adjust += 1
+            else:
+                row_correction[row] = row - row_adjust
+        return RowColMap(col_correction, row_correction)
+
+    def new_reqs(
+        self, unplaced_cols: set[int], unplaced_rows: set[int]
+    ) -> tuple[GriddedCayleyPerm, ...]:
+        """Yields minimal GCPS with their positions adjusted according to unplaced cols and rows"""
+        adjust = self.adjustment_map(unplaced_cols, unplaced_rows)
+        return adjust.map_gridded_cperms(self.tiling.minimal_gridded_cperms())

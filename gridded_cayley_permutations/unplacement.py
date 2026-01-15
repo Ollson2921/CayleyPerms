@@ -149,14 +149,15 @@ class PointUnplacement:
         )
 
 
-class PatialPointUnplacement:
-    """Methods for partial unplacement points"""
+class PartialUnplacement:
+    """Methods for partial unplacement points.
+    PartialUnplacement.auto_unplace"""
 
     def __init__(self, tiling: Tiling):
         self.tiling = tiling
         self.points = tiling.point_cells()
 
-    def auto_unplacement(self) -> Tiling:
+    def auto_unplace(self) -> Tiling:
         """Does all valid unplacements for the tiling's point cells"""
         return self.unplace(*self.valid_cols_and_rows(self.points))
 
@@ -170,7 +171,27 @@ class PatialPointUnplacement:
         temp_tiling = Tiling(
             self.tiling.obstructions, [], self.tiling.dimensions
         ).delete_rows_and_columns(cols_to_remove, rows_to_remove)
-        return temp_tiling.add_requirement_list(
+
+        points = self.points
+        adjust = self.adjustment_map(unplace_cols, unplace_rows)
+        obs = set(temp_tiling.obstructions)
+        for col, row in points:
+            if row in unplace_rows and col not in unplace_cols:
+                obs.remove(
+                    adjust.map_gridded_cperm(GriddedCayleyPerm((0,), ((col, row),)))
+                )
+                obs.update(
+                    set(
+                        adjust.map_gridded_cperms(
+                            (
+                                GriddedCayleyPerm((0, 0), ((col, row), (col, row))),
+                                GriddedCayleyPerm((0, 1), ((col, row), (col, row))),
+                                GriddedCayleyPerm((1, 0), ((col, row), (col, row))),
+                            )
+                        )
+                    )
+                )
+        return Tiling(obs, [], temp_tiling.dimensions).add_requirement_list(
             self.new_reqs(unplace_cols, unplace_rows)
         )
 
@@ -191,11 +212,11 @@ class PatialPointUnplacement:
 
     def fusable_check(self, points: Iterable[Cell]) -> tuple[set[int], set[int]]:
         """Returns a set of cols that can be fused and the set of rows that can be fused"""
-        temp_tiling = Tiling(self.tiling.obstructions, [], self.tiling.dimensions)
+        temp_tiling = Tiling(
+            self.tiling.obstructions, [], self.tiling.dimensions
+        ).add_obstructions({GriddedCayleyPerm((0,), [point]) for point in points})
         check = tuple(map(set[int], zip(*points)))
         final_cols, final_rows = set[int](), set[int]()
-        base_col_map = {i: i for i in range(temp_tiling.dimensions[0])}
-        base_row_map = {i: i for i in range(temp_tiling.dimensions[1])}
         # Check row fusability
         for row in check[1]:
             obs = {
@@ -204,15 +225,13 @@ class PatialPointUnplacement:
                 if all((pos[1] == row for pos in ob.positions))
             }
             reduced_tiling = temp_tiling.delete_rows_and_columns([], [row, row + 1])
-            temp_map = base_row_map.copy()
-            temp_map[row] = row - 1
-            temp_map[row + 1] = row - 1
-            backmap = RowColMap(base_col_map, temp_map)
+            backmap = self.adjustment_map(set[int](), {row})
             check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
                 obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
             )
             if check_tiling == temp_tiling:
                 final_rows.add(row)
+        # Check col fusability
         for col in check[0]:
             obs = {
                 ob
@@ -220,10 +239,7 @@ class PatialPointUnplacement:
                 if all((pos[0] == col for pos in ob.positions))
             }
             reduced_tiling = temp_tiling.delete_rows_and_columns([col, col + 1], [])
-            temp_map = base_col_map.copy()
-            temp_map[col] = col - 1
-            temp_map[col + 1] = col - 1
-            backmap = RowColMap(temp_map, base_row_map)
+            backmap = self.adjustment_map({col}, set[int]())
             check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
                 obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
             )

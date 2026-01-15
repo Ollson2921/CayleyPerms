@@ -30,10 +30,11 @@ from .strategies import (
 from tilescope.strategies import (
     SubclassVerificationStrategy,
 )
-from tilescope import TileScopePack as BaseTileScopePack
+
+# from tilescope import TileScopePack as BaseTileScopePack
 
 
-class TrackedTileScopePack(BaseTileScopePack):
+class TrackedTileScopePack(StrategyPack):
     """Strategy packs for TileScope."""
 
     def __init__(self, *args, **kwargs):
@@ -75,9 +76,23 @@ class TrackedTileScopePack(BaseTileScopePack):
         )
 
     @classmethod
-    def basics(cls):
-        """Minimum strategies for a pack.
-        NOTE: Has no expansion strategies!! Add them in."""
+    def standard_fusion_pack(cls, expansion_methods: Iterable[str] = ["point"]):
+        """Minimum strategies for a pack. Specify the expansion strategies."""
+        if not expansion_methods:
+            raise ValueError("At least one expansion strategy must be specified.")
+        expansion_strats = []
+        name = ""
+        if "point" in expansion_methods:
+            expansion_strats.append(PointPlacementFactory())
+            expansion_strats.append(CellInsertionFactory())
+            name += "point_"
+        if "row" in expansion_methods:
+            expansion_strats.append(RowPlacementFactory())
+            name += "row_"
+        if "col" in expansion_methods:
+            expansion_strats.append(ColPlacementFactory())
+            name += "col_"
+        name += "fusion_pack"
         return TrackedTileScopePack(
             inferral_strats=[
                 RemoveEmptyRowsAndColumnsStrategy(),
@@ -87,29 +102,18 @@ class TrackedTileScopePack(BaseTileScopePack):
                 AddCloudFactory(),
                 FactorStrategy(),
                 LessThanOrEqualRowColSeparationStrategy(),
+                FusionPointRowFactory(),
+                FusionFactory(),
             ],  # Iterable[Strategy]
-            expansion_strats=[],  # Iterable[Iterable[Strategy]]
+            expansion_strats=[expansion_strats],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
+                VerticalInsertionEncodableVerificationStrategy(),
+                HorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
-            name="",
+            name=name,
             symmetries=[],
             iterative=False,
-        )
-
-    @classmethod
-    def standard_fusion_pack(cls, expansion_methods: Iterable[str] = ["point"]):
-        """Standard strategy pack with fusion and full verification, can take
-        as input different expansion methods."""
-        if "point" in expansion_methods:
-            cell_insertion = "expansion"
-        else:
-            cell_insertion = "none"
-        return cls.make_pack(
-            expansions=expansion_methods,
-            cell_insertion=cell_insertion,
-            fusion=3,
-            verify=["vert_ins_enc", "hori_ins_enc"],
         )
 
     @classmethod

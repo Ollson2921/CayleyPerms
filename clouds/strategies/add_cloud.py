@@ -326,23 +326,6 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
             "Reversing not implemented for adding multiple clouds"
         )
 
-    def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
-    ) -> Tuple[Dict[str, str]]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
-            if children is None:
-                raise StrategyDoesNotApply("Strategy does not apply")
-        child = children[0]
-        return (
-            {
-                comb_class.get_assumption_parameter(
-                    ass
-                ): child.get_assumption_parameter(ass)
-                for ass in comb_class.assumptions
-            },
-        )
-
     def formal_step(self) -> str:
         message = ""
         if self.idx_clouds:
@@ -431,5 +414,5 @@ class AddCloudFactory(StrategyFactory[Tiling]):
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "AddAssumptionFactory":
+    def from_dict(cls, d: dict) -> "AddCloudFactory":
         return cls()

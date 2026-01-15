@@ -25,9 +25,9 @@ class TrackedHorizontalInsertionEncodableVerificationStrategy(
     def pack(self, comb_class: Tiling):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
-        from clouds.tracked_tilescope import TileScopePack
+        from clouds.tracked_tilescope import TrackedTileScopePack
 
-        return TileScopePack.horizontal_ins_enc()
+        return TrackedTileScopePack.horizontal_ins_enc()
 
 
 class TrackedVerticalInsertionEncodableVerificationStrategy(
@@ -40,6 +40,6 @@ class TrackedVerticalInsertionEncodableVerificationStrategy(
     def pack(self, comb_class: Tiling):
         # pylint: disable=import-outside-toplevel
         # pylint: disable=cyclic-import
-        from clouds.tracked_tilescope import TileScopePack
+        from clouds.tracked_tilescope import TrackedTileScopePack
 
-        return TileScopePack.vertical_ins_enc()
+        return TrackedTileScopePack.vertical_ins_enc()

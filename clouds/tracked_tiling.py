@@ -18,7 +18,7 @@ class TrackedTiling(Tiling):
         indices_clouds: Iterable[Iterable[int]] = (),
         value_clouds: Iterable[Iterable[int]] = (),
         simplify: bool = False,
-        intersect_clouds_with_active: bool = False,
+        intersect_clouds_with_active: bool = True,
     ) -> None:
         self.tiling = tiling
         super().__init__(

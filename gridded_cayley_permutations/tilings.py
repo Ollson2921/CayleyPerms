@@ -7,7 +7,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 
 from collections import defaultdict
 from functools import cached_property
-from itertools import chain, product, combinations
+from itertools import chain, product, combinations, combinations_with_replacement
 from math import factorial
 from typing import Iterable, Iterator
 
@@ -1008,6 +1008,8 @@ class Tiling(CombinatorialClass):
                 if (col, row) in cell_labels:
                     label = cell_labels[(col, row)]
                 new_row += label + "│"
+            if row in self.point_rows:
+                new_row += "*"
             final_table += [new_row, row_separator]
         final_table.reverse()
         final_table[0] = top_row
@@ -1018,8 +1020,30 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        if self.dimensions == (0, 0):
-            return ""
+        all_cayley_obs = set[GriddedCayleyPerm]()
+        point_cells = self.point_cells()
+        if self.dimensions != (0, 0):
+            is_perm_tiling = True
+            for row, cols in product(
+                range(self.dimensions[1]),
+                combinations_with_replacement(range(self.dimensions[0]), 2),
+            ):
+                if cols[0] == cols[1] and (cols[0], row) in point_cells:
+                    continue
+                if self.active_cells.issuperset({(cols[0], row), (cols[1], row)}):
+                    cayley_ob = GriddedCayleyPerm(
+                        (0, 0), ((cols[0], row), (cols[1], row))
+                    )
+                    if cayley_ob not in self.obstructions:
+                        is_perm_tiling = False
+                        break
+                    all_cayley_obs.add(cayley_ob)
+            if is_perm_tiling and all_cayley_obs:
+                print("Perm Tiling")
+                new_obs = set(self.obstructions) - all_cayley_obs
+                return "Permutation Tiling\n" + str(
+                    Tiling(new_obs, self.requirements, self.dimensions)
+                )
         final_string = "\n".join(self._string_table())
 
         key_dict = dict[str, list[CayleyPermutation]]()
@@ -1046,11 +1070,18 @@ class Tiling(CombinatorialClass):
                     requirements_string += f"{req} \n"
             final_string += requirements_string
 
-        cayley_ob = CayleyPermutation((0, 0))
+        pr_implied = (CayleyPermutation((0, 1)), CayleyPermutation((1, 0)))
         crossing_obs = set[GriddedCayleyPerm]()
         for ob in self.obstructions:
-            if len(set(ob.positions)) > 1 and ob.pattern != cayley_ob:
-                crossing_obs.add(ob)
+            if len(set(ob.positions)) == 1:
+                continue
+            if (
+                ob.pattern in pr_implied
+                and ob.positions[0][1] == ob.positions[1][1]
+                and ob.positions[0][1] in self.point_rows
+            ):
+                continue
+            crossing_obs.add(ob)
 
         if len(crossing_obs) > 0:
             crossing_string = "\nCrossing obstructions: \n"

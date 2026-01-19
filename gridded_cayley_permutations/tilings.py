@@ -354,6 +354,26 @@ class Tiling(CombinatorialClass):
             self.obstructions, self.requirements, self.dimensions
         ).point_rows()
 
+    @cached_property
+    def point_cols(self) -> set[int]:
+        """Returns the set of cols which can only contain one point."""
+        point_cols = set[int]()
+        row_combinations = combinations_with_replacement(range(self.dimensions[1]), 2)
+        for col, rows in product(
+            range(self.dimensions[0]),
+            row_combinations,
+        ):
+            cell1, cell2 = (col, rows[0]), (col, rows[1])
+            if self.active_cells.issuperset({cell1, cell2}):
+                asc = GriddedCayleyPerm((0, 1), (cell1, cell2))
+                des = GriddedCayleyPerm((1, 0), (cell2, cell1))
+                if asc not in self.obstructions:
+                    continue
+                if des not in self.obstructions:
+                    continue
+                point_cols.add(col)
+        return point_cols
+
     def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""
         cells = set()

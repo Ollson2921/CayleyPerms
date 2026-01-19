@@ -358,20 +358,18 @@ class Tiling(CombinatorialClass):
     def point_cols(self) -> set[int]:
         """Returns the set of cols which can only contain one point."""
         point_cols = set[int]()
-        empty_cells = self.empty_cells()
-        ob_set = set(self.obstructions)
-        for col in range(self.dimensions[0]):
-            remaining = tuple(
-                {(col, row) for row in range(self.dimensions[1])} - empty_cells
-            )
-            if len(remaining) != 1:
-                continue
-            cell = remaining[0]
-            if {
-                GriddedCayleyPerm((0, 0), (cell, cell)),
-                GriddedCayleyPerm((0, 1), (cell, cell)),
-                GriddedCayleyPerm((1, 0), (cell, cell)),
-            }.issubset(ob_set):
+        for col, rows in product(
+            range(self.dimensions[0]),
+            combinations_with_replacement(range(self.dimensions[1]), 2),
+        ):
+            cell1, cell2 = (col, rows[0]), (col, rows[1])
+            if self.active_cells.issuperset({cell1, cell2}):
+                asc = GriddedCayleyPerm((0, 1), (cell1, cell2))
+                des = GriddedCayleyPerm((1, 0), (cell2, cell1))
+                if asc not in self.obstructions:
+                    continue
+                if des not in self.obstructions:
+                    continue
                 point_cols.add(col)
         return point_cols
 

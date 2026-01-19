@@ -358,9 +358,10 @@ class Tiling(CombinatorialClass):
     def point_cols(self) -> set[int]:
         """Returns the set of cols which can only contain one point."""
         point_cols = set[int]()
+        row_combinations = combinations_with_replacement(range(self.dimensions[1]), 2)
         for col, rows in product(
             range(self.dimensions[0]),
-            combinations_with_replacement(range(self.dimensions[1]), 2),
+            row_combinations,
         ):
             cell1, cell2 = (col, rows[0]), (col, rows[1])
             if self.active_cells.issuperset({cell1, cell2}):

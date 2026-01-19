@@ -197,42 +197,36 @@ class PartialUnplacement:
 
     def valid_cols_and_rows(self, points: Iterable[Cell]) -> tuple[set[int], set[int]]:
         """Returns the set of cols that can be unplaced and the set of rows that can be unplaced"""
-        valid_points = {cell for cell in points if self.cell_in_valid_region(cell)}
-        return self.fusable_check(valid_points)
+        valid_points, valid_cols, valid_rows = set[Cell](), set[int](), set[int]()
+        for cell in points:
+            col, row = self.cell_in_valid_region(cell)
+            if col and cell[0] in self.tiling.point_cols:
+                valid_cols.add(cell[0])
+                valid_points.add(cell)
+            if row and cell[1] in self.tiling.point_rows:
+                valid_rows.add(cell[1])
+                valid_points.add(cell)
+        return self.fusable_check(valid_points, valid_cols, valid_rows)
 
-    def cell_in_valid_region(self, cell: Cell) -> bool:
+    def cell_in_valid_region(self, cell: Cell) -> tuple[bool, bool]:
         """Makes sure we're not unplacing a boundary point."""
-        if (
-            0 in cell
-            or self.tiling.dimensions[0] - 1 == cell[0]
-            or self.tiling.dimensions[1] - 1 == cell[1]
-        ):
-            return False
-        return True
 
-    def fusable_check(self, points: Iterable[Cell]) -> tuple[set[int], set[int]]:
+        return (
+            cell[0] not in (0, self.tiling.dimensions[0] - 1),
+            cell[1] not in (0, self.tiling.dimensions[1] - 1),
+        )
+
+    def fusable_check(
+        self,
+        points: Iterable[Cell],
+        check_cols: Iterable[int],
+        check_rows: Iterable[int],
+    ) -> tuple[set[int], set[int]]:
         """Returns a set of cols that can be fused and the set of rows that can be fused"""
-        temp_tiling = Tiling(
-            self.tiling.obstructions, [], self.tiling.dimensions
-        ).add_obstructions({GriddedCayleyPerm((0,), [point]) for point in points})
-        check = tuple(map(set[int], zip(*points)))
+        temp_tiling = Tiling(self.tiling.obstructions, [], self.tiling.dimensions)
         final_cols, final_rows = set[int](), set[int]()
-        # Check row fusability
-        for row in check[1]:
-            obs = {
-                ob
-                for ob in temp_tiling.obstructions
-                if all((pos[1] == row for pos in ob.positions))
-            }
-            reduced_tiling = temp_tiling.delete_rows_and_columns([], [row, row + 1])
-            backmap = self.adjustment_map(set[int](), {row})
-            check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
-                obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
-            )
-            if check_tiling == temp_tiling:
-                final_rows.add(row)
         # Check col fusability
-        for col in check[0]:
+        for col in check_cols:
             obs = {
                 ob
                 for ob in temp_tiling.obstructions
@@ -245,6 +239,23 @@ class PartialUnplacement:
             )
             if check_tiling == temp_tiling:
                 final_cols.add(col)
+        temp_tiling = temp_tiling.add_obstructions(
+            {GriddedCayleyPerm((0,), [point]) for point in points}
+        )
+        # Check row fusability
+        for row in check_rows:
+            obs = {
+                ob
+                for ob in temp_tiling.obstructions
+                if all((pos[1] == row for pos in ob.positions))
+            }
+            reduced_tiling = temp_tiling.delete_rows_and_columns([], [row, row + 1])
+            backmap = self.adjustment_map(set[int](), {row})
+            check_tiling = Tiling([], [], temp_tiling.dimensions).add_obstructions(
+                obs | set(backmap.preimage_of_obstructions(reduced_tiling.obstructions))
+            )
+            if check_tiling == temp_tiling:
+                final_rows.add(row)
         return final_cols, final_rows
 
     def adjustment_map(

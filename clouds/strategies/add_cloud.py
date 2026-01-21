@@ -227,9 +227,16 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
     ):
         if not val_clouds and not idx_clouds:
             raise StrategyDoesNotApply("Must be at least one cloud.")
-
-        self.val_clouds = tuple(set(val_clouds)) if val_clouds else tuple()
-        self.idx_clouds = tuple(set(idx_clouds)) if idx_clouds else tuple()
+        self.val_clouds = (
+            tuple(sorted(set(tuple(sorted(set(c))) for c in val_clouds)))
+            if val_clouds
+            else ()
+        )
+        self.idx_clouds = (
+            tuple(sorted(set(tuple(sorted(set(c))) for c in idx_clouds)))
+            if idx_clouds
+            else ()
+        )
         super().__init__(
             ignore_parent=False,
             inferrable=True,

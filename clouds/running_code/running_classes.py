@@ -6,6 +6,9 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 import json
 from clouds import TrackedTiling, TrackedTileScopePack, TrackedSearcher
 
+
+"""Running with only 1 cv, using add cloud factory"""
+
 # basis_desc = "3s_4x1"  # change descriptor to change file
 basis_desc = "3s"
 
@@ -31,8 +34,12 @@ wrong_counts = []
 didnt_compute = []
 total = len(bases)
 n = 0
+count = 0
+
+tot = len(bases)
 
 for basis in list(bases):
+    count += 1
     basis = tuple(sorted(basis))
     tiling = TrackedTiling(
         Tiling(
@@ -44,40 +51,49 @@ for basis in list(bases):
         [],
     )
     for pack in all_packs:
-        print(f"Trying basis {Av(basis)} with pack {pack.name}")
-        # if tuple(basis) in counted: # for breaking as soon as found a correct spec
-        #     break
-        searcher = TrackedSearcher(tiling, pack, debug=False, max_cvs=1)
+        print(f"Class {count} out of {tot}")
+        print(f"Found specs for so far: {len(counted)}")
+        print(Av(basis))
+        print(f"Trying with pack {pack.name}")
         try:
-            start_time = time.time()
-            spec = searcher.auto_search(max_expansion_time=3600 * 5)  # set maxtime
-            # spec.show()
-            time_taken = timedelta(seconds=int(time.time() - start_time))
-            print(f"Pack: {pack.name} took {time_taken}")
-            message = f"Computed a spec for {Av(basis)}, Pack: {pack.name}. \nTook {time_taken}."
-            json_spec = json.dumps(spec.to_jsonable())
-            with open(f"specs/{Av(basis)}_{pack.name}.json", "w") as f:
-                f.write(json_spec)
-
-            print("checking counts")
-            spec_count = [spec.count_objects_of_size(n) for n in range(10)]
-            brute_force_count = Av(basis).counter(9)
-            if spec_count == brute_force_count:
-                counted.add(tuple(basis))
-                message += " Found correct counts."
-            else:
-                wrong_counts.append((basis, pack.name))
-                message += f" But WRONG counts! Spec counts: \n{spec_count},\n Brute force counts: \n{brute_force_count}"
-
-            # Send to discord
-            # webhookurl = "https://discord.com/api/webhooks/1446479214629883997/Ct682I4szno9aF4mpskSHVoeCpXA37IfWddC1SVycmI-CYbHmbrFsmQNhAxEC2yCu1mT"
-            # headers = {"User-Agent": "hildur", "Content-Type": "application/json"}
-            # data = json.dumps({"content": message})
-            # requests.post(webhookurl, headers=headers, data=data)
-            print(message)
-        except Exception as e:
-            print(f"Didn't compute {Av(basis)} with {pack.name}: {e}")
+            with open(f"specs/{Av(basis)}_{pack.name}.json", "r") as f:
+                spec = json.load(f)
+            counted.add(tuple(basis))
             continue
+        except FileNotFoundError:
+            # if tuple(basis) in counted: # for breaking as soon as found a correct spec
+            #     break
+            searcher = TrackedSearcher(tiling, pack, debug=False, max_cvs=1)
+            try:
+                start_time = time.time()
+                spec = searcher.auto_search(max_expansion_time=3600)  # set maxtime
+                # spec.show()
+                time_taken = timedelta(seconds=int(time.time() - start_time))
+                print(f"Pack: {pack.name} took {time_taken}")
+                message = f"Computed a spec for {Av(basis)}, Pack: {pack.name}. \nTook {time_taken}."
+                json_spec = json.dumps(spec.to_jsonable())
+                with open(f"specs/{Av(basis)}_{pack.name}.json", "w") as f:
+                    f.write(json_spec)
+
+                print("checking counts")
+                spec_count = [spec.count_objects_of_size(n) for n in range(10)]
+                brute_force_count = Av(basis).counter(9)
+                if spec_count == brute_force_count:
+                    counted.add(tuple(basis))
+                    message += " Found correct counts."
+                else:
+                    wrong_counts.append((basis, pack.name))
+                    message += f" But WRONG counts! Spec counts: \n{spec_count},\n Brute force counts: \n{brute_force_count}"
+
+                # Send to discord
+                # webhookurl = "https://discord.com/api/webhooks/1446479214629883997/Ct682I4szno9aF4mpskSHVoeCpXA37IfWddC1SVycmI-CYbHmbrFsmQNhAxEC2yCu1mT"
+                # headers = {"User-Agent": "hildur", "Content-Type": "application/json"}
+                # data = json.dumps({"content": message})
+                # requests.post(webhookurl, headers=headers, data=data)
+                print(message)
+            except Exception as e:
+                print(f"Didn't compute {Av(basis)} with {pack.name}: {e}")
+                continue
     if basis not in counted:
         didnt_compute.append(basis)
     n += 1

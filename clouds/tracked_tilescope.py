@@ -92,7 +92,7 @@ class TrackedTileScopePack(StrategyPack):
         if "col" in expansion_methods:
             expansion_strats.append(ColPlacementFactory())
             name += "col_"
-        name += "fusion_pack"
+        name += "placement_fusion_pack"
         return TrackedTileScopePack(
             inferral_strats=[
                 RemoveEmptyRowsAndColumnsStrategy(),

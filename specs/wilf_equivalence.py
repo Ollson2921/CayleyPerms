@@ -19,11 +19,18 @@ if __name__ == "__main__":
     from multiprocessing import freeze_support
 
     freeze_support()
-    run = 1
+    run = 0
     print("run", run)
 
     with open(f"{basis_desc}/non_fusion_successes_{basis_desc}.txt", "r") as f:
-        successes = list(eval(f.readline()))[1800:]
+        all_successes = list(eval(f.readline()))
+
+    to_run = all_successes[:200]
+    to_run += all_successes[400:]
+    successes = to_run
+
+    # with open(f"{basis_desc}/all_non_inenc_basis_classes_{basis_desc}.txt", "r") as f:
+    #     all_bases = list(eval(f.readline()))
 
     # with open(f"took_too_long_{basis_desc}.txt", "r") as f:
     #     successes = eval(f.readline())
@@ -51,7 +58,7 @@ if __name__ == "__main__":
         ) as f:
             spec = json.load(f)
         spec = CombinatorialSpecification.from_dict(spec)
-        try:  # only trying for 3hr currently
+        try:  # only trying for 2hrs currently
             gf = spec.get_genf()
             if gf in gfs_dict:
                 gfs_dict[gf].append(basis)
@@ -67,15 +74,13 @@ if __name__ == "__main__":
     print(f"Out of {len(gfs_dict.items())} bases")
 
     with open(
-        f"{basis_desc}/wilf_equivalence/wilf_equivalence_classes_{basis_desc}_run_{run}.txt",
+        f"fusion_wilf_equivalence_classes_{basis_desc}_run_{run}.txt",
         "w",
     ) as f:
         f.write(repr(gfs_dict))
 
     print("Number of specs that took too long to get gf for:", len(took_too_long))
-    with open(
-        f"{basis_desc}/wilf_equivalence/took_too_long_{basis_desc}_run_{run}.txt", "w"
-    ) as f:
+    with open(f"fusion_took_too_long_{basis_desc}_run_{run}.txt", "w") as f:
         f.write(repr(took_too_long))
 
     input()

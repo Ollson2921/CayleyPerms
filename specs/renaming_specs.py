@@ -10,11 +10,11 @@ pack = TileScopePack.point_placement()
 
 
 basis_desc = "3s_4x1"  # change descriptor to change file
-# basis_desc = "3s"
+basis_desc = "3s"
 
 print(basis_desc)
 
-with open(f"all_non_inenc_basis_classes_{basis_desc}.txt", "r") as f:
+with open(f"{basis_desc}/all_non_inenc_basis_classes_{basis_desc}.txt", "r") as f:
     successes = eval(f.readline())
 
 couldnt_find = set()
@@ -53,20 +53,20 @@ for bases in successes:
                 pass
             if found_spec:
                 break
-            try:
-                with open(
-                    f"{basis_desc}/no fusion/Av({basis_string})_Point Placement.json",
-                    "r",
-                ) as f:
-                    spec = json.load(f)
-                    found_spec = True
-                    print("Found spec!")
-                    found_count += 1
-                    break
-            except FileNotFoundError:
-                continue
-            if found_spec:
-                break
+            # try:
+            #     with open(
+            #         f"{basis_desc}/no fusion/Av({basis_string})_Point Placement.json",
+            #         "r",
+            #     ) as f:
+            #         spec = json.load(f)
+            #         found_spec = True
+            #         print("Found spec!")
+            #         found_count += 1
+            #         break
+            # except FileNotFoundError:
+            #     continue
+            # if found_spec:
+            #     break
         if found_spec:
             break
     if not found_spec:

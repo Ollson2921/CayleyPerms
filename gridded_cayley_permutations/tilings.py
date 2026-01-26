@@ -1038,7 +1038,6 @@ class Tiling(CombinatorialClass):
                         break
                     all_cayley_obs.add(cayley_ob)
             if is_perm_tiling and all_cayley_obs:
-                print("Perm Tiling")
                 new_obs = set(self.obstructions) - all_cayley_obs
                 return "Permutation Tiling\n" + str(
                     Tiling(new_obs, self.requirements, self.dimensions)

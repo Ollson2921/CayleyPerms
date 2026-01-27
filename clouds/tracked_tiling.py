@@ -1,5 +1,6 @@
 from functools import cached_property
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Iterator, Dict
+from itertools import product
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.row_col_map import RowColMap
 
@@ -301,6 +302,13 @@ class TrackedTiling(Tiling):
 
     def get_parameters(self, gcp: GriddedCayleyPerm) -> tuple[int, ...]:
         return tuple(self.get_value(gcp, param) for param in self.extra_parameters)
+
+    def possible_parameters(self, n: int) -> Iterator[Dict[str, int]]:
+        parameters = [
+            self.find_parameter(cloud, False) for cloud in self.indices_clouds
+        ] + [self.find_parameter(cloud, True) for cloud in self.value_clouds]
+        for values in product(*[range(n + 1) for _ in parameters]):
+            yield dict(zip(parameters, values))
 
     def __eq__(self, other):
         if isinstance(other, TrackedTiling):

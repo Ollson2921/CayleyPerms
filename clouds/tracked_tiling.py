@@ -218,6 +218,8 @@ class TrackedTiling(Tiling):
     def split_row_or_col_tracked_tiling(
         self, unfuse_rows: bool, index: int
     ) -> "TrackedTiling":
+        """If unfuse_rows, splits the row at index into two rows,
+        otherwise does the same for cols at index."""
         return TrackedTiling(
             self.tiling.split_row_or_col(unfuse_rows, index),
             indices_clouds=self.indices_clouds,

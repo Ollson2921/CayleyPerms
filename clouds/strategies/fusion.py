@@ -1,18 +1,19 @@
+"""Tracked fusion strategies for tilings."""
+
 from typing import Optional
-from clouds.tracked_tiling import TrackedTiling
 from tilescope.strategies import (
     FusionFactory,
     FusionStrategy,
     FusionPointRowFactory,
     FusionPointRowStrategy,
 )
+from clouds.tracked_tiling import TrackedTiling
 from .extra_parameters import ExtraParametersForStrategies
 from .fusion_constructor import (
     FusionConstructor,
     PointRowFusionConstructor,
     ReverseFusionConstructor,
 )
-from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 
 
 Cell = tuple[int, int]
@@ -121,12 +122,13 @@ class TrackedFusionStrategy(ExtraParametersForStrategies, FusionStrategy):
         fuse_cloud = (self.index,)
         if self.fuse_rows:
             value_clouds = [
-                self.map_cloud(cloud, row_map, child)
+                self.map_cloud(cloud, row_map, child, rows=True)
                 for cloud in comb_class.value_clouds
             ]
             return fuse_cloud in value_clouds
         index_clouds = [
-            self.map_cloud(cloud, col_map, child) for cloud in comb_class.indices_clouds
+            self.map_cloud(cloud, col_map, child, rows=False)
+            for cloud in comb_class.indices_clouds
         ]
         return fuse_cloud in index_clouds
 
@@ -144,6 +146,8 @@ class TrackedFusionFactory(FusionFactory):
 class TrackedFusionPointRowStrategy(
     ExtraParametersForStrategies, FusionPointRowStrategy
 ):
+    """Tracked point row fusion strategy for fusing together rows,
+    at least one of which is a point row."""
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = True):
         super().__init__(fuse_rows=fuse_rows, index=index, tracked=tracked)
@@ -162,8 +166,8 @@ class TrackedFusionPointRowStrategy(
         child = children[0]
         fuse_parameter = child.find_parameter((self.index,), self.fuse_rows)
         extra_parameters = self.extra_parameters(comb_class, children)
-        left_sided_parameters, right_sided_parameters, both_sided_parameters = (
-            self.sided_parameters(comb_class)
+        left_sided_parameters, right_sided_parameters, _ = self.sided_parameters(
+            comb_class
         )
         above = self.index + 1 in comb_class.point_rows
         return PointRowFusionConstructor(
@@ -177,6 +181,7 @@ class TrackedFusionPointRowStrategy(
         )
 
     def sided_parameters(self, comb_class: TrackedTiling):
+        """Determine which parameters are left-sided, right-sided, or both-sided."""
         return TrackedFusionStrategy.sided_parameters(self, comb_class)
 
     def maps_for_clouds(self, comb_class):

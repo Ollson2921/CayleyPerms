@@ -5,7 +5,6 @@ from clouds import TrackedTiling
 from tilescope.strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
 )
-from gridded_cayley_permutations import RowColMap
 from .extra_parameters import ExtraParametersForStrategies
 
 Cell = tuple[int, int]

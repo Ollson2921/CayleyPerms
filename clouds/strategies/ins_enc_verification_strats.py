@@ -21,6 +21,7 @@ VerticalInsertionEncodableVerificationStrategyT = TypeVar(
 class TrackedHorizontalInsertionEncodableVerificationStrategy(
     HorizontalInsertionEncodableVerificationStrategy
 ):
+    """A strategy for verifying if a tiling is horizontal insertion encodable."""
 
     def pack(self, comb_class: Tiling):
         # pylint: disable=import-outside-toplevel

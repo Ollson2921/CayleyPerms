@@ -2,33 +2,29 @@
 with tracking."""
 
 from typing import Iterable
+from comb_spec_searcher import StrategyPack, AtomStrategy, StrategyFactory
 from cayley_permutations import CayleyPermutation
-from comb_spec_searcher import StrategyPack, AtomStrategy
-
-from clouds.tracked_tiling import TrackedTiling
-
-from .strategies import (
-    TrackedVerticalInsertionEncodingPlacementFactory as VerticalInsertionEncodingPlacementFactory,
-    TrackedColPlacementFactory as ColPlacementFactory,
-    TrackedFusionPointRowFactory as FusionPointRowFactory,
-    TrackedFactorStrategy as FactorStrategy,
-    TrackedHorizontalInsertionEncodingPlacementFactory as HorizontalInsertionEncodingPlacementFactory,
-    TrackedHorizontalInsertionEncodingRequirementInsertionFactory as HorizontalInsertionEncodingRequirementInsertionFactory,
-    TrackedVerticalInsertionEncodingRequirementInsertionFactory as VerticalInsertionEncodingRequirementInsertionFactory,
-    TrackedShuffleFactorStrategy as ShuffleFactorStrategy,
-    TrackedLessThanRowColSeparationStrategy as LessThanRowColSeparationStrategy,
-    TrackedLessThanOrEqualRowColSeparationStrategy as LessThanOrEqualRowColSeparationStrategy,
-    TrackedPointPlacementFactory as PointPlacementFactory,
-    TrackedRemoveEmptyRowsAndColumnsStrategy as RemoveEmptyRowsAndColumnsStrategy,
-    TrackedFusionFactory as FusionFactory,
-    TrackedRowPlacementFactory as RowPlacementFactory,
-    TrackedVerticalInsertionEncodableVerificationStrategy as VerticalInsertionEncodableVerificationStrategy,
-    TrackedHorizontalInsertionEncodableVerificationStrategy as HorizontalInsertionEncodableVerificationStrategy,
-    TrackedCellInsertionFactory as CellInsertionFactory,
-    AddCloudFactory,
-)
 from tilescope.strategies import (
     SubclassVerificationStrategy,
+)
+from .strategies import (
+    TrackedVerticalInsertionEncodingPlacementFactory,
+    TrackedColPlacementFactory,
+    TrackedFusionPointRowFactory,
+    TrackedFactorStrategy,
+    TrackedHorizontalInsertionEncodingPlacementFactory,
+    TrackedHorizontalInsertionEncodingRequirementInsertionFactory,
+    TrackedVerticalInsertionEncodingRequirementInsertionFactory,
+    TrackedLessThanRowColSeparationStrategy,
+    TrackedLessThanOrEqualRowColSeparationStrategy,
+    TrackedPointPlacementFactory,
+    TrackedRemoveEmptyRowsAndColumnsStrategy,
+    TrackedFusionFactory,
+    TrackedRowPlacementFactory,
+    TrackedVerticalInsertionEncodableVerificationStrategy,
+    TrackedHorizontalInsertionEncodableVerificationStrategy,
+    TrackedCellInsertionFactory,
+    AddCloudFactory,
 )
 
 # from tilescope import TileScopePack as BaseTileScopePack
@@ -41,6 +37,7 @@ class TrackedTileScopePack(StrategyPack):
         super().__init__(*args, **kwargs)
 
     def add_basis(self, basis: Iterable[CayleyPermutation]) -> "TrackedTileScopePack":
+        """For adding a basis to the pack."""
         raise NotImplementedError
 
     @classmethod
@@ -48,11 +45,11 @@ class TrackedTileScopePack(StrategyPack):
         """Vertical insertion encoding strategy pack."""
         return TrackedTileScopePack(
             initial_strats=[
-                FactorStrategy(),
-                VerticalInsertionEncodingRequirementInsertionFactory(),
+                TrackedFactorStrategy(),
+                TrackedVerticalInsertionEncodingRequirementInsertionFactory(),
             ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
-            expansion_strats=[[VerticalInsertionEncodingPlacementFactory()]],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[TrackedVerticalInsertionEncodingPlacementFactory()]],
             ver_strats=[AtomStrategy()],
             name="vertical_insertion_encoding",
             symmetries=[],
@@ -64,11 +61,11 @@ class TrackedTileScopePack(StrategyPack):
         """Horizontal insertion encoding strategy pack."""
         return TrackedTileScopePack(
             initial_strats=[
-                FactorStrategy(),
-                HorizontalInsertionEncodingRequirementInsertionFactory(),
+                TrackedFactorStrategy(),
+                TrackedHorizontalInsertionEncodingRequirementInsertionFactory(),
             ],
-            inferral_strats=[RemoveEmptyRowsAndColumnsStrategy()],
-            expansion_strats=[[HorizontalInsertionEncodingPlacementFactory()]],
+            inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
+            expansion_strats=[[TrackedHorizontalInsertionEncodingPlacementFactory()]],
             ver_strats=[AtomStrategy()],
             name="horizontal_insertion_encoding",
             symmetries=[],
@@ -80,36 +77,36 @@ class TrackedTileScopePack(StrategyPack):
         """Minimum strategies for a pack. Specify the expansion strategies."""
         if not expansion_methods:
             raise ValueError("At least one expansion strategy must be specified.")
-        expansion_strats = []
+        expansion_strats: list[StrategyFactory] = []
         name = ""
         if "point" in expansion_methods:
-            expansion_strats.append(PointPlacementFactory())
-            expansion_strats.append(CellInsertionFactory())
+            expansion_strats.append(TrackedPointPlacementFactory())
+            expansion_strats.append(TrackedCellInsertionFactory())
             name += "point_"
         if "row" in expansion_methods:
-            expansion_strats.append(RowPlacementFactory())
+            expansion_strats.append(TrackedRowPlacementFactory())
             name += "row_"
         if "col" in expansion_methods:
-            expansion_strats.append(ColPlacementFactory())
+            expansion_strats.append(TrackedColPlacementFactory())
             name += "col_"
         name += "placement_fusion_pack"
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[expansion_strats],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
             ],  # Iterable[Strategy]
             name=name,
             symmetries=[],
@@ -141,26 +138,26 @@ class TrackedTileScopePack(StrategyPack):
 
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
-                    PointPlacementFactory(),
+                    TrackedCellInsertionFactory(),
+                    TrackedPointPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_placement_with_fusion",
@@ -173,25 +170,25 @@ class TrackedTileScopePack(StrategyPack):
         """Row placements strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    RowPlacementFactory(),
+                    TrackedRowPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_placement_with_fusion",
@@ -204,25 +201,25 @@ class TrackedTileScopePack(StrategyPack):
         """Column placements with fusion strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    ColPlacementFactory(),
+                    TrackedColPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="col_placement_with_fusion",
@@ -235,26 +232,26 @@ class TrackedTileScopePack(StrategyPack):
         """Point placements strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    RowPlacementFactory(),
-                    ColPlacementFactory(),
+                    TrackedRowPlacementFactory(),
+                    TrackedColPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="row_and_col_placement_with_fusion",
@@ -267,28 +264,28 @@ class TrackedTileScopePack(StrategyPack):
         """Point, row and column placements strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
                 AddCloudFactory(),
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
-                    PointPlacementFactory(),
-                    RowPlacementFactory(),
-                    ColPlacementFactory(),
+                    TrackedCellInsertionFactory(),
+                    TrackedPointPlacementFactory(),
+                    TrackedRowPlacementFactory(),
+                    TrackedColPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_row_and_col_placement_with_fusion",
@@ -301,26 +298,26 @@ class TrackedTileScopePack(StrategyPack):
         """Point, row and column placements strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
-                    RowPlacementFactory(),
-                    ColPlacementFactory(),
+                    TrackedCellInsertionFactory(),
+                    TrackedRowPlacementFactory(),
+                    TrackedColPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_and_col_placement_with_fusion",
@@ -333,26 +330,26 @@ class TrackedTileScopePack(StrategyPack):
         """Point, row and column placements strategy pack."""
         return TrackedTileScopePack(
             inferral_strats=[
-                RemoveEmptyRowsAndColumnsStrategy(),
-                LessThanRowColSeparationStrategy(),
+                TrackedRemoveEmptyRowsAndColumnsStrategy(),
+                TrackedLessThanRowColSeparationStrategy(),
             ],  # Iterable[Strategy]
             initial_strats=[
-                FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
-                FusionPointRowFactory(),
-                FusionFactory(),
+                TrackedFactorStrategy(),
+                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedFusionPointRowFactory(),
+                TrackedFusionFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[
                 [
-                    CellInsertionFactory(),
-                    PointPlacementFactory(),
-                    RowPlacementFactory(),
+                    TrackedCellInsertionFactory(),
+                    TrackedPointPlacementFactory(),
+                    TrackedRowPlacementFactory(),
                 ]
             ],  # Iterable[Iterable[Strategy]]
             ver_strats=[
                 AtomStrategy(),
-                VerticalInsertionEncodableVerificationStrategy(),
-                HorizontalInsertionEncodableVerificationStrategy(),
+                TrackedVerticalInsertionEncodableVerificationStrategy(),
+                TrackedHorizontalInsertionEncodableVerificationStrategy(),
                 SubclassVerificationStrategy(),
             ],  # Iterable[Strategy]
             name="point_and_row_placement_with_fusion",

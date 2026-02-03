@@ -25,6 +25,7 @@ class TrackedFactors(Factors):
     def positive_point_rows_and_represantive(
         self,
     ) -> tuple[set[int], set[tuple[int, int]]]:
+        """Return the positive point rows and their represantive cells."""
         positive_point_rows = set()
         positive_point_rows_reps = set()
         for point_row in self.tracked_tiling.point_rows:
@@ -43,6 +44,7 @@ class TrackedFactors(Factors):
     def new_value_clouds(
         self, active_cells: set[tuple[int, int]]
     ) -> tuple[tuple[int, ...], ...]:
+        """Return the new value clouds for a factor given its active cells."""
         positive_point_rows, positive_point_rows_reps = (
             self.positive_point_rows_and_represantive
         )

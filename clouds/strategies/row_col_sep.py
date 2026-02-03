@@ -1,3 +1,5 @@
+"""Strategies for row and column separation in tracked tilings."""
+
 from tilescope.strategies import (
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
@@ -18,6 +20,7 @@ class TrackedLessThanRowColSeparationStrategy(
     """A strategy for separating rows and columns with less than constraints."""
 
     def algorithm(self, comb_class):
+        """Return the algorithm for row and column separation."""
         return TrackedLessThanRowColSeparation(comb_class)
 
     def decomposition_function(
@@ -43,6 +46,7 @@ class TrackedLessThanRowColSeparationStrategy(
 class TrackedLessThanOrEqualRowColSeparationStrategy(
     LessThanOrEqualRowColSeparationStrategy, TrackedLessThanRowColSeparationStrategy
 ):
+    # pylint: disable=too-many-ancestors
     """A strategy for separating rows and columns with less than or equal constraints."""
 
     def algorithm(self, comb_class):

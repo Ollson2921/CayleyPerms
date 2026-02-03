@@ -1,3 +1,5 @@
+"""Module with strategies for tracked tilings."""
+
 from .factoring import TrackedFactorStrategy, TrackedShuffleFactorStrategy
 from .fusion import TrackedFusionFactory, TrackedFusionPointRowFactory
 from .point_placement import (

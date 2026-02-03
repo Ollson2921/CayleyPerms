@@ -1,3 +1,5 @@
+"""Strategy for adding clouds to a tiling class."""
+
 from collections import Counter
 from itertools import product
 from random import randint
@@ -102,7 +104,7 @@ class AddAssumptionsConstructor(Constructor):
         subrecs: SubRecs,
         n: int,
         **parameters: int,
-    ):
+    ) -> Tuple[Tuple[Optional[GriddedPerm]], ...]:
         subrec = subrecs[0]
         subsampler = subsamplers[0]
         random_choice = randint(1, parent_count)
@@ -219,6 +221,8 @@ class RemoveAssumptionsConstructor(Constructor):
 
 
 class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPerm]):
+    """A strategy for adding clouds to a tiling class."""
+
     def __init__(
         self,
         val_clouds: Optional[Iterable[Iterable[int]]] = None,
@@ -309,25 +313,37 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
             cloud_added = self.idx_clouds[0]
             param = child.find_parameter(cloud_added, False)
             extra_params = {
-                child.find_parameter(cloud): comb_class.find_parameter(cloud)
+                child.find_parameter(cloud, row=False): comb_class.find_parameter(
+                    cloud, row=False
+                )
                 for cloud in comb_class.indices_clouds
                 if cloud != cloud_added
-            } + {
-                child.find_parameter(cloud): comb_class.find_parameter(cloud)
-                for cloud in comb_class.value_clouds
-            }
+            }.update(
+                {
+                    child.find_parameter(cloud, row=True): comb_class.find_parameter(
+                        cloud, row=True
+                    )
+                    for cloud in comb_class.value_clouds
+                }
+            )
             return RemoveAssumptionsConstructor(child, comb_class, param, extra_params)
         if len(self.idx_clouds) == 0 and len(self.val_clouds) == 1:
             cloud_added = self.val_clouds[0]
             param = child.find_parameter(cloud_added, True)
             extra_params = {
-                child.find_parameter(cloud): comb_class.find_parameter(cloud)
-                for cloud in comb_class.value_clouds
-                if cloud != cloud_added
-            } + {
-                child.find_parameter(cloud): comb_class.find_parameter(cloud)
+                child.find_parameter(cloud, row=False): comb_class.find_parameter(
+                    cloud, row=False
+                )
                 for cloud in comb_class.indices_clouds
-            }
+                if cloud != cloud_added
+            }.update(
+                {
+                    child.find_parameter(cloud, row=True): comb_class.find_parameter(
+                        cloud, row=True
+                    )
+                    for cloud in comb_class.value_clouds
+                }
+            )
             return RemoveAssumptionsConstructor(child, comb_class, param, extra_params)
         raise NotImplementedError(
             "Reversing not implemented for adding multiple clouds"
@@ -395,11 +411,14 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
     def __repr__(self):
         return (
             self.__class__.__name__
-            + f"(idx_clouds={repr(self.idx_clouds)}, val_clouds={repr(self.val_clouds)}, workable={self.workable})"
+            + f"(idx_clouds={repr(self.idx_clouds)}, val_clouds={repr(self.val_clouds)},"
+            + f" workable={self.workable})"
         )
 
 
 class AddCloudFactory(StrategyFactory[Tiling]):
+    """A factory for adding clouds to a tiling class."""
+
     def __call__(self, comb_class: Tiling) -> Iterator[Rule]:
         for val_cloud in comb_class.value_clouds:
             without = comb_class.remove_val_cloud(val_cloud)

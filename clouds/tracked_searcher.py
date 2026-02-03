@@ -4,19 +4,19 @@ A tracked searcher adapted from Tilings for use with GriddedCayleyPermutations.
 Original: https://github.com/PermutaTriangle/Tilings/blob/develop/tilings/tilescope.py
 """
 
+from typing import Iterable, Iterator, Optional, Union
 from collections import Counter, deque
+from logzero import logger
 from comb_spec_searcher import CombinatorialSpecificationSearcher
 from comb_spec_searcher.typing import CSSstrategy, CombinatorialClassType, WorkPacket
 from comb_spec_searcher.strategies.rule import AbstractRule
 from comb_spec_searcher.class_queue import DefaultQueue, CSSQueue
 import tabulate
-from .tracked_tiling import TrackedTiling
-from typing import Iterable, Iterator, Optional, Union
 from cayley_permutations import CayleyPermutation
 from cayley_permutations.simplify_basis import string_to_basis
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from .tracked_tilescope import TrackedTileScopePack
-from logzero import logger
+from .tracked_tiling import TrackedTiling
 
 
 class TrackedSearcher(CombinatorialSpecificationSearcher):
@@ -103,20 +103,25 @@ class TrackedSearcher(CombinatorialSpecificationSearcher):
 
 
 class TrackedDefaultQueue(DefaultQueue):
+    """A deafult queue for tracked tilings."""
+
     def __init__(self, pack: TrackedTileScopePack, delay_next: bool):
         super().__init__(pack)
         self.next_curr_level: Optional[tuple[deque[int], ...]] = None
         self.delay_next = delay_next
 
     def is_empty(self) -> bool:
+        """Return whether the queue is empty."""
         return bool(
             not self.working and not self.next_level and not any(self.curr_level)
         )
 
     def set_next_curr_level(self, other: "TrackedDefaultQueue"):
+        """Set the next current level for this default queue."""
         self.next_curr_level = other.curr_level
 
     def set_tracked_queue(self, tracked_queue: "TrackedQueue") -> None:
+        """Set the tracked queue for this default queue."""
         self._inferral_expanded = tracked_queue.inferral_expanded
         self._initial_expanded = tracked_queue.initial_expanded
         self.ignore = tracked_queue.ignore
@@ -147,6 +152,8 @@ class TrackedQueue(CSSQueue):
     def __init__(
         self, pack: TrackedTileScopePack, tilescope: TrackedSearcher, delay_next: bool
     ):
+        """A queue of labels"""
+        # pylint: disable=too-many-instance-attributes
         self.tilescope = tilescope
         self.pack = pack
         self.delay_next = delay_next
@@ -170,6 +177,7 @@ class TrackedQueue(CSSQueue):
         return len(self.queues) - 2
 
     def add_new_queue(self) -> None:
+        """Add a new queue for the next level of underlying tilings."""
         last_queue = self.queues[-1]
         new_queue = TrackedDefaultQueue(self.pack, self.delay_next)
         new_queue.set_tracked_queue(self)
@@ -177,6 +185,7 @@ class TrackedQueue(CSSQueue):
         self.queues.append(new_queue)
 
     def get_underlying_label(self, label: int) -> int:
+        """Return the underlying label for a given label."""
         underlying_label = self.label_to_underlying.get(label)
         if underlying_label is None:
             tiling = self.tilescope.classdb.get_class(label)

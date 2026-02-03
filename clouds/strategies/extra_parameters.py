@@ -1,9 +1,10 @@
-from typing import Optional
-from comb_spec_searcher import Strategy
-from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
-from clouds.tracked_tiling import TrackedTiling
-from gridded_cayley_permutations import GriddedCayleyPerm, RowColMap
+"""Class with extra parameters functions for strategies"""
+
 import abc
+from typing import Optional
+from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
+from gridded_cayley_permutations import RowColMap
+from clouds.tracked_tiling import TrackedTiling
 
 
 class ExtraParametersForStrategies:
@@ -19,6 +20,8 @@ class ExtraParametersForStrategies:
         child: TrackedTiling,
         rows: bool,
     ) -> tuple[int, ...]:
+        """Maps a cloud from the parent to the child using the provided map
+        from a row/col on the parent to a tuple of rows/cols on the child."""
         child_cloud = []
         for i in cloud:
             if i in map_cloud:
@@ -34,11 +37,12 @@ class ExtraParametersForStrategies:
         comb_class: TrackedTiling,
         children: Optional[tuple[TrackedTiling, ...]] = None,
     ) -> tuple[dict[str, str], ...]:
+        """Returns a tuple of dictionaries of extra parameters for each child."""
         if children is None:
             children = self.decomposition_function(comb_class)
         if children is None:
             raise StrategyDoesNotApply("Strategy does not apply")
-        dicts = tuple(dict() for _ in range(len(children)))
+        dicts: tuple[dict[str, str], ...] = tuple({} for _ in range(len(children)))
         maps_for_clouds = self.maps_for_clouds(comb_class)
         for cloud in comb_class.indices_clouds:
             parent_param = comb_class.find_parameter(cloud, row=False)
@@ -63,4 +67,7 @@ class ExtraParametersForStrategies:
     @abc.abstractmethod
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
-        pass
+
+    @abc.abstractmethod
+    def decomposition_function(self, comb_class: TrackedTiling) -> tuple[TrackedTiling]:
+        """Return the decomposition function for the strategy."""

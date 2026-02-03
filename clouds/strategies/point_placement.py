@@ -1,6 +1,17 @@
+"""Various requirement placement strategies for tracked tilings:
+- TrackedRequirementPlacementStrategy
+- TrackedPointPlacementFactory
+- TrackedRowPlacementFactory
+- TrackedColPlacementFactory
+- TrackedVerticalInsertionEncodingRequirementInsertionFactory
+- TrackedVerticalInsertionEncodingPlacementFactory
+- TrackedHorizontalInsertionEncodingRequirementInsertionFactory
+- TrackedHorizontalInsertionEncodingPlacementFactory
+"""
+
 from typing import Iterator
 from cayley_permutations import CayleyPermutation
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm, RowColMap
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from tilescope.strategies import (
     RequirementPlacementStrategy,
     CellInsertionFactory,

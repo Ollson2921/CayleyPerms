@@ -3,11 +3,12 @@
 import abc
 from typing import Optional
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
-from gridded_cayley_permutations import RowColMap
+from comb_spec_searcher import Strategy
+from gridded_cayley_permutations import RowColMap, GriddedCayleyPerm
 from clouds.tracked_tiling import TrackedTiling
 
 
-class ExtraParametersForStrategies:
+class ExtraParametersForStrategies(Strategy[TrackedTiling, GriddedCayleyPerm]):
     """Strategies inherit to implement extra_parameters function.
     Need to also implement map_for_clouds function on the strategy,
     which returns a tuple of RowColMaps for each child, mapping from the parent to the child.
@@ -67,7 +68,3 @@ class ExtraParametersForStrategies:
     @abc.abstractmethod
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
-
-    @abc.abstractmethod
-    def decomposition_function(self, comb_class: TrackedTiling) -> tuple[TrackedTiling]:
-        """Return the decomposition function for the strategy."""

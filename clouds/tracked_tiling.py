@@ -215,17 +215,6 @@ class TrackedTiling(Tiling):
             value_clouds=value_clouds,
         )
 
-    def split_row_or_col_tracked_tiling(
-        self, unfuse_rows: bool, index: int
-    ) -> "TrackedTiling":
-        """If unfuse_rows, splits the row at index into two rows,
-        otherwise does the same for cols at index."""
-        return TrackedTiling(
-            self.tiling.split_row_or_col(unfuse_rows, index),
-            indices_clouds=self.indices_clouds,
-            value_clouds=self.value_clouds,
-        )
-
     def is_fusable(self, fuse_rows: bool, index: int) -> bool:
         """If fuse rows, checks if the rows at index and index+1 are fuseable,
         otherwise does the same for cols at index and index+1.
@@ -236,7 +225,7 @@ class TrackedTiling(Tiling):
             test_tiling = self.delete_rows_and_columns(cols=[], rows=[index])
         else:
             test_tiling = self.delete_rows_and_columns(cols=[index], rows=[])
-        test_tiling = test_tiling.split_row_or_col_tracked_tiling(fuse_rows, index)
+        test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
         return test_tiling == self
 
     def add_obstructions(self, gcps: Iterable[GriddedCayleyPerm]) -> "Tiling":

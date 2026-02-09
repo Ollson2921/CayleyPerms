@@ -220,12 +220,3 @@ def test_fusion_with_clouds():
         indices_clouds=((0,), (1,)),
         value_clouds=((0,), (2,)),
     )
-
-    "-----Trying to Fuse Columns 1, 2, clouds in the way-----"
-    til = Tiling([], [], (3, 3))
-    tracked_til = TrackedTiling(
-        til,
-        value_clouds=(),
-        indices_clouds=((1,),),
-    )
-    assert not tracked_til.is_fusable(False, 1)

@@ -31,6 +31,6 @@ class TrackedRemoveEmptyRowsAndColumnsStrategy(
         )[1]
         col_map = rc_map.col_map
         row_map = rc_map.row_map
-        col_map = {k: col_map[k] for k in col_map.keys()}
-        row_map = {k: row_map[k] for k in row_map.keys()}
+        col_map = {k: (col_map[k],) for k in col_map.keys()}
+        row_map = {k: (row_map[k],) for k in row_map.keys()}
         return ((col_map, row_map),)

@@ -1,7 +1,5 @@
-from clouds import TrackedTiling, TrackedTileScopePack, TrackedSearcher
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from cayley_permutations import CayleyPermutation, string_to_basis, Av
-from comb_spec_searcher import CombinatorialSpecificationSearcher
+from clouds import TrackedTileScopePack, TrackedSearcher
+from cayley_permutations import Av
 
 
 def test_some_classes_clouds():

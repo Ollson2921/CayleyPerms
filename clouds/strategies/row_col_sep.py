@@ -1,8 +1,8 @@
 """Strategies for row and column separation in tracked tilings."""
 
 from tilescope.strategies import (
-    LessThanRowColSeparationStrategy,
-    LessThanOrEqualRowColSeparationStrategy,
+    AbstractLessThanRowColSeparationStrategy,
+    AbstractLessThanOrEqualRowColSeparationStrategy,
 )
 from .extra_parameters import ExtraParametersForStrategies
 from ..tracked_tiling import TrackedTiling
@@ -15,7 +15,8 @@ Cell = tuple[int, int]
 
 
 class TrackedLessThanRowColSeparationStrategy(
-    ExtraParametersForStrategies, LessThanRowColSeparationStrategy
+    ExtraParametersForStrategies,
+    AbstractLessThanRowColSeparationStrategy[TrackedTiling],
 ):
     """A strategy for separating rows and columns with less than constraints."""
 
@@ -37,7 +38,8 @@ class TrackedLessThanRowColSeparationStrategy(
 
 
 class TrackedLessThanOrEqualRowColSeparationStrategy(
-    LessThanOrEqualRowColSeparationStrategy, TrackedLessThanRowColSeparationStrategy
+    AbstractLessThanOrEqualRowColSeparationStrategy,
+    TrackedLessThanRowColSeparationStrategy,
 ):
     # pylint: disable=too-many-ancestors
     """A strategy for separating rows and columns with less than or equal constraints."""

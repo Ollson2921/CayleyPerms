@@ -6,7 +6,7 @@ Original: https://github.com/PermutaTriangle/Tilings/blob/develop/tilings/tilesc
 
 from typing import Iterable, Iterator, Optional, Union
 from collections import Counter, deque
-from logzero import logger
+from logzero import logger  # type: ignore[import-untyped]
 from comb_spec_searcher import CombinatorialSpecificationSearcher
 from comb_spec_searcher.typing import CSSstrategy, CombinatorialClassType, WorkPacket
 from comb_spec_searcher.strategies.rule import AbstractRule
@@ -63,20 +63,23 @@ class TrackedSearcher(CombinatorialSpecificationSearcher):
 
         else:
             # Handle the non-Tiling cases
-            if isinstance(start_class, str):
-                basis = string_to_basis(start_class)
-            else:
-                basis = start_class
-
-            # Now create start_tiling from basis
-            start_tiling = Tiling(
-                obstructions=[
-                    GriddedCayleyPerm(patt, [(0, 0) for _ in patt]) for patt in basis
-                ],
-                requirements=[],
-                dimensions=(1, 1),
+            basis = (
+                string_to_basis(start_class)
+                if isinstance(start_class, str)
+                else start_class
             )
-        return TrackedTiling(start_tiling)
+            # Now create start_tiling from basis
+            start_tiling = TrackedTiling(
+                Tiling(
+                    obstructions=[
+                        GriddedCayleyPerm(patt, [(0, 0) for _ in patt])
+                        for patt in basis
+                    ],
+                    requirements=[],
+                    dimensions=(1, 1),
+                )
+            )
+        return start_tiling
 
     def _rules_from_strategy(  # type: ignore
         self, comb_class: CombinatorialClassType, strategy: CSSstrategy

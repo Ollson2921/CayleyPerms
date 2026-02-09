@@ -16,6 +16,8 @@ class TrackedTiling(Tiling):
     One type of cloud tracks the number of values in the cells and the other
     tracks the number of indices in the cells."""
 
+    # pylint:disable=too-many-public-methods
+
     def __init__(
         self,
         tiling: Tiling,
@@ -188,7 +190,12 @@ class TrackedTiling(Tiling):
             indices_clouds=new_indices_clouds,
         )
 
-    def fuse(self, fuse_rows: bool, index: int) -> "Tiling":
+    def remove_empty_rows_and_columns(self) -> "TrackedTiling":
+        """Deletes any rows and columns in the gridding that are empty"""
+        empty_cols, empty_rows = self.find_empty_rows_and_columns()
+        return self.delete_rows_and_columns(empty_cols, empty_rows)
+
+    def fuse(self, fuse_rows: bool, index: int) -> "TrackedTiling":
         """If fuse_rows, tries to fuse rows, otherwise, tries to fuse cols.
         Creates a cloud at index 'index' of rows if fuse_rows else columns."""
         new_cloud = (index,)
@@ -225,10 +232,10 @@ class TrackedTiling(Tiling):
             test_tiling = self.delete_rows_and_columns(cols=[], rows=[index])
         else:
             test_tiling = self.delete_rows_and_columns(cols=[index], rows=[])
-        test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
-        return test_tiling == self
+        new_test_tiling = test_tiling.split_row_or_col(fuse_rows, index)
+        return new_test_tiling == self
 
-    def add_obstructions(self, gcps: Iterable[GriddedCayleyPerm]) -> "Tiling":
+    def add_obstructions(self, gcps: Iterable[GriddedCayleyPerm]) -> "TrackedTiling":
         """
         Returns a new tiling with the given gridded Cayley permutations added as obstructions.
         """
@@ -241,7 +248,7 @@ class TrackedTiling(Tiling):
 
     def add_requirements(
         self, requirements: Iterable[Iterable[GriddedCayleyPerm]]
-    ) -> "Tiling":
+    ) -> "TrackedTiling":
         """
         Returns a new tiling with the given requirements added.
         """
@@ -254,6 +261,14 @@ class TrackedTiling(Tiling):
             indices_clouds=self.indices_clouds,
             value_clouds=self.value_clouds,
         )
+
+    def add_requirement_list(
+        self, requirement_list: Iterable[GriddedCayleyPerm]
+    ) -> "TrackedTiling":
+        """
+        Returns a new tiling with the given requirement list added.
+        """
+        return self.add_requirements([requirement_list])
 
     # CSS methods
     @property

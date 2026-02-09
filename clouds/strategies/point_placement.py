@@ -11,13 +11,13 @@
 
 from typing import Iterator
 from cayley_permutations import CayleyPermutation
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
+from gridded_cayley_permutations import GriddedCayleyPerm
 from tilescope.strategies import (
-    RequirementPlacementStrategy,
-    CellInsertionFactory,
-    PointPlacementFactory,
-    RowInsertionFactory,
-    ColInsertionFactory,
+    AbstractRequirementPlacementStrategy,
+    AbstractCellInsertionFactory,
+    AbstractPointPlacementFactory,
+    AbstractRowInsertionFactory,
+    AbstractColInsertionFactory,
 )
 from tilescope.strategies.point_placements import (
     DIR_LEFT_BOT,
@@ -40,7 +40,7 @@ Cell = tuple[int, int]
 
 class TrackedRequirementPlacementStrategy(
     ExtraParametersForStrategies,
-    RequirementPlacementStrategy,
+    AbstractRequirementPlacementStrategy[TrackedTiling],
 ):
     """
     A strategy for placing requirements with tracked clouds.
@@ -73,7 +73,7 @@ class TrackedRequirementPlacementStrategy(
         return tuple(maps_for_children)
 
 
-class TrackedPointPlacementFactory(PointPlacementFactory):
+class TrackedPointPlacementFactory(AbstractPointPlacementFactory[TrackedTiling]):
     """
     A factory for creating point placement strategies for tracked tilings.
     """
@@ -87,11 +87,17 @@ class TrackedPointPlacementFactory(PointPlacementFactory):
                 indices = (0,)
                 yield TrackedRequirementPlacementStrategy(gcps, indices, direction)
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "TrackedPointPlacementFactory":
+        return cls(**d)
 
-class TrackedRowPlacementFactory(RowInsertionFactory):
+
+class TrackedRowPlacementFactory(AbstractRowInsertionFactory):
     """A factory for placing the minimum points in the rows of tilings."""
 
-    def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
+    def __call__(
+        self, comb_class: TrackedTiling
+    ) -> Iterator[TrackedRequirementPlacementStrategy]:
         not_point_rows = set(range(comb_class.dimensions[1])) - comb_class.point_rows
         for row in not_point_rows:
             all_gcps = []
@@ -104,8 +110,12 @@ class TrackedRowPlacementFactory(RowInsertionFactory):
             for direction in [DIR_LEFT_BOT, DIR_RIGHT_BOT, DIR_LEFT_TOP, DIR_RIGHT_TOP]:
                 yield TrackedRequirementPlacementStrategy(all_gcps, indices, direction)
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "TrackedRowPlacementFactory":
+        return cls(**d)
 
-class TrackedColPlacementFactory(ColInsertionFactory):
+
+class TrackedColPlacementFactory(AbstractColInsertionFactory):
     """A factory for placing the leftmost or rightmost points in
     the columns of tilings."""
 
@@ -125,8 +135,14 @@ class TrackedColPlacementFactory(ColInsertionFactory):
             for direction in [DIR_LEFT, DIR_RIGHT]:
                 yield TrackedRequirementPlacementStrategy(all_gcps, indices, direction)
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "TrackedColPlacementFactory":
+        return cls(**d)
 
-class TrackedVerticalInsertionEncodingRequirementInsertionFactory(CellInsertionFactory):
+
+class TrackedVerticalInsertionEncodingRequirementInsertionFactory(
+    AbstractCellInsertionFactory
+):
     """A factory for making columns positive in Tracked tilings for vertical insertion encoding."""
 
     def __call__(
@@ -156,7 +172,7 @@ class TrackedVerticalInsertionEncodingPlacementFactory(TrackedRowPlacementFactor
 
     def __call__(
         self, comb_class: TrackedTiling
-    ) -> Iterator[RequirementPlacementStrategy]:
+    ) -> Iterator[TrackedRequirementPlacementStrategy]:
         cells = comb_class.active_cells
         gcps = tuple(
             GriddedCayleyPerm(CayleyPermutation([0]), [cell]) for cell in cells
@@ -174,7 +190,7 @@ class TrackedVerticalInsertionEncodingPlacementFactory(TrackedRowPlacementFactor
 
 
 class TrackedHorizontalInsertionEncodingRequirementInsertionFactory(
-    CellInsertionFactory
+    AbstractCellInsertionFactory
 ):
     """A factory for making rows positive in Tracked tilings for horizontal insertion encoding."""
 

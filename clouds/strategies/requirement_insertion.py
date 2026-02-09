@@ -2,15 +2,16 @@
 
 from typing import Iterator
 from tilescope.strategies.requirement_insertions import (
-    RequirementInsertionStrategy,
-    CellInsertionFactory,
+    AbstractRequirementInsertionStrategy,
+    AbstractCellInsertionFactory,
 )
 from .extra_parameters import ExtraParametersForStrategies
 from ..tracked_tiling import TrackedTiling
 
 
 class TrackedRequirementInsertionStrategy(
-    ExtraParametersForStrategies, RequirementInsertionStrategy
+    ExtraParametersForStrategies,
+    AbstractRequirementInsertionStrategy[TrackedTiling],
 ):
     """A strategy for inserting requirements into a tracked tiling."""
 
@@ -20,10 +21,18 @@ class TrackedRequirementInsertionStrategy(
             col_map = {i: (i,) for i in range(comb_class.dimensions[0])}
             row_map = {i: (i,) for i in range(comb_class.dimensions[1])}
             res.append((col_map, row_map))
-        return res
+        return tuple(res)
+
+    def decomposition_function(
+        self, comb_class: TrackedTiling
+    ) -> tuple[TrackedTiling, ...]:
+        return (
+            comb_class.add_obstructions(self.gcps),
+            comb_class.add_requirement_list(self.gcps),
+        )
 
 
-class TrackedCellInsertionFactory(CellInsertionFactory):
+class TrackedCellInsertionFactory(AbstractCellInsertionFactory[TrackedTiling]):
     """Factory for inserting cell requirements into a tracked tiling."""
 
     def __call__(

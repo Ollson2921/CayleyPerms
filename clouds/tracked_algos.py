@@ -125,7 +125,7 @@ class TrackedPointPlacement(PointPlacement):
         requirement_list: tuple[GriddedCayleyPerm, ...],
         indices: tuple[int, ...],
         direction: int,
-    ) -> tuple[TrackedTiling]:
+    ) -> tuple[TrackedTiling, ...]:
         """Yield the tilings with tracked clouds after point placement."""
         if direction not in self.DIRECTIONS:
             raise ValueError(f"Direction {direction} is not a valid direction.")

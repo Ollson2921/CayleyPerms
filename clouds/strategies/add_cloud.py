@@ -5,7 +5,7 @@ from itertools import product
 from random import randint
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 
-from sympy import Eq, Expr, Function, Number, Symbol, var
+from sympy import Eq, Expr, Function, Number, Symbol, var  # type: ignore[import-untyped]
 
 from comb_spec_searcher import Constructor, Strategy, StrategyFactory
 from comb_spec_searcher.exception import StrategyDoesNotApply
@@ -106,6 +106,7 @@ class AddAssumptionsConstructor(Constructor):
         n: int,
         **parameters: int,
     ) -> Tuple[Tuple[Optional[GriddedPerm]], ...]:
+
         subrec = subrecs[0]
         subsampler = subsamplers[0]
         random_choice = randint(1, parent_count)
@@ -117,6 +118,7 @@ class AddAssumptionsConstructor(Constructor):
             res += subrec(n, **new_params)
             if random_choice <= res:
                 return (subsampler(n, **new_params),)
+        raise RuntimeError("Should not reach here")
 
     def equiv(
         self, other: "Constructor", data: Optional[object] = None
@@ -319,7 +321,8 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
                 )
                 for cloud in comb_class.indices_clouds
                 if cloud != cloud_added
-            }.update(
+            }
+            extra_params.update(
                 {
                     child.find_parameter(cloud, row=True): comb_class.find_parameter(
                         cloud, row=True
@@ -337,7 +340,8 @@ class AddCloudsStrategy(ExtraParametersForStrategies, Strategy[Tiling, GriddedPe
                 )
                 for cloud in comb_class.indices_clouds
                 if cloud != cloud_added
-            }.update(
+            }
+            extra_params.update(
                 {
                     child.find_parameter(cloud, row=True): comb_class.find_parameter(
                         cloud, row=True

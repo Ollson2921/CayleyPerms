@@ -1,8 +1,7 @@
 """Strategies for factoring tracked tilings."""
 
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
-from gridded_cayley_permutations import RowColMap
-from tilescope.strategies import FactorStrategy, ShuffleFactorStrategy
+from tilescope.strategies import AbstractFactorStrategy, AbstractShuffleFactorStrategy
 from ..tracked_tiling import TrackedTiling
 from ..tracked_algos import TrackedFactors, TrackedShuffleFactors
 from .extra_parameters import ExtraParametersForStrategies
@@ -10,7 +9,10 @@ from .extra_parameters import ExtraParametersForStrategies
 Cell = tuple[int, int]
 
 
-class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
+class TrackedFactorStrategy(
+    ExtraParametersForStrategies,
+    AbstractFactorStrategy[TrackedTiling],
+):
     """
     A strategy for finding factors in a tracked tiling.
     """
@@ -23,7 +25,7 @@ class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
             raise StrategyDoesNotApply
         return factors
 
-    def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
+    def maps_for_clouds(self, comb_class: TrackedTiling):
         positive_point_rows, represantives = TrackedFactors(
             comb_class
         ).positive_point_rows_and_represantive
@@ -37,10 +39,12 @@ class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
                 or factor.active_cells.intersection(represantives)
             }
             res.append((col_map, row_map))
-        return res
+        return tuple(res)
 
 
-class TrackedShuffleFactorStrategy(ExtraParametersForStrategies, ShuffleFactorStrategy):
+class TrackedShuffleFactorStrategy(
+    ExtraParametersForStrategies, AbstractShuffleFactorStrategy
+):
     # pylint:disable=too-many-ancestors
     """
     A strategy for finding factors in a tracked tiling.
@@ -53,7 +57,7 @@ class TrackedShuffleFactorStrategy(ExtraParametersForStrategies, ShuffleFactorSt
             raise StrategyDoesNotApply(
                 "TrackedTiling is not a row or column shuffle of factors."
             )
-        factors = TrackedShuffleFactors(comb_class).find_tracked_factors()
+        factors = tuple(TrackedShuffleFactors(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors

@@ -173,6 +173,35 @@ class Tiling(CombinatorialClass):
                 empty.add(ob.positions[0])
         return empty
 
+    def single_value_cells(self) -> set[Cell]:
+        """Returns the set of cells with at most one value"""
+        cells = set[Cell]()
+        for cell in self.active_cells:
+            if (
+                GriddedCayleyPerm((0, 1), (cell, cell)) in self.obstructions
+                and GriddedCayleyPerm((1, 0), (cell, cell)) in self.obstructions
+            ):
+                cells.add(cell)
+        return cells
+
+    def single_position_cells(self) -> set[Cell]:
+        """Returns the set of cells with at most one position"""
+        cells = set[Cell]()
+        for cell in self.active_cells:
+            if (
+                GriddedCayleyPerm((0, 1), (cell, cell)) in self.obstructions
+                and GriddedCayleyPerm((1, 0), (cell, cell)) in self.obstructions
+                and GriddedCayleyPerm((0, 0), (cell, cell)) in self.obstructions
+            ):
+                cells.add(cell)
+        return cells
+
+    def requirement_cells(self) -> set[Cell]:
+        """Returns every cell that contains a requirement"""
+        if not self.requirements:
+            return set[Cell]()
+        return set(chain(*(set(req.positions) for req in chain(*self.requirements))))
+
     def delete_columns(self, cols: Iterable[int]) -> "Tiling":
         """
         Deletes columns at indices specified
@@ -255,6 +284,11 @@ class Tiling(CombinatorialClass):
         )
         return empty_cols, empty_rows
 
+    def requirement_columns_and_rows(self) -> tuple[set[int], set[int]]:
+        """Returns the sets of columns and rows that contain a requirement"""
+        cols, rows = tuple(map(set, zip(*self.requirement_cells())))
+        return cols, rows
+
     def find_blank_columns_and_rows(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
         """Returns a list of the indices of blank columns and
         a list of the indices of blank rows."""
@@ -263,6 +297,26 @@ class Tiling(CombinatorialClass):
         if not self.obstructions and not self.requirements:
             return tuple(range(self.dimensions[0])), tuple(range(self.dimensions[1]))
         not_blank_cols, not_blank_rows = zip(*self.not_blank_cells())
+        blank_cols = tuple(set(range(self.dimensions[0])) - set(not_blank_cols))
+        blank_rows = tuple(set(range(self.dimensions[1])) - set(not_blank_rows))
+        return blank_cols, blank_rows
+
+    def blank_and_near_blank(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
+        """Finds blank rows and cols allowing point row/col intersection"""
+        if self.dimensions == (0, 0):
+            return tuple(), tuple()
+        if not self.obstructions and not self.requirements:
+            return tuple(range(self.dimensions[0])), tuple(range(self.dimensions[1]))
+        req_cells = tuple(
+            chain(*(set(req.positions) for req in chain(*self.requirements)))
+        )
+        check_cells = (
+            cell
+            for cell in self.not_blank_cells()
+            if cell in req_cells
+            or (cell[0] not in self.point_cols and cell[1] not in self.point_rows)
+        )
+        not_blank_cols, not_blank_rows = zip(*check_cells)
         blank_cols = tuple(set(range(self.dimensions[0])) - set(not_blank_cols))
         blank_rows = tuple(set(range(self.dimensions[1])) - set(not_blank_rows))
         return blank_cols, blank_rows

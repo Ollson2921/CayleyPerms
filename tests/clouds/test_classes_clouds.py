@@ -3,6 +3,7 @@ from cayley_permutations import Av
 
 
 def test_some_classes_clouds():
+    """Check that we can still find specs for these classes."""
     bases = [
         "012_101_001_010",
         "012_101_010",
@@ -19,20 +20,8 @@ def test_some_classes_clouds():
         searcher = TrackedSearcher(basis, pack, debug=False, max_cvs=1)
         spec = searcher.auto_search(status_update=5)
 
-        # print(spec.get_maple_equations())
-
         spec = spec.expand_verified()
-        # spec.show()
         spec.sanity_check(4)
-        # # spec.show()
         spec_counts = [spec.count_objects_of_size(i) for i in range(10)]
         root_counts = Av(basis).counter(9)
         assert spec_counts == root_counts
-
-        # print("[", end="")
-        # for i in range(10):
-        #     print(spec.root_rule.comb_class.get_terms(i)[tuple()], end="", flush=True)
-        #     if i == 9:
-        #         print("]")
-        #     else:
-        #         print(", ", end="")

@@ -27,8 +27,6 @@ from .strategies import (
     AddCloudFactory,
 )
 
-# from tilescope import TileScopePack as BaseTileScopePack
-
 
 class TrackedTileScopePack(StrategyPack):
     """Strategy packs for TileScope."""
@@ -75,6 +73,7 @@ class TrackedTileScopePack(StrategyPack):
     @classmethod
     def standard_fusion_pack(cls, expansion_methods: Iterable[str] = ["point"]):
         """Minimum strategies for a pack. Specify the expansion strategies."""
+        # pylint: disable=dangerous-default-value
         if not expansion_methods:
             raise ValueError("At least one expansion strategy must be specified.")
         expansion_strats: list[StrategyFactory] = []

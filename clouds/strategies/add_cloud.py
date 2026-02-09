@@ -20,8 +20,8 @@ from comb_spec_searcher.typing import (
     SubTerms,
     Terms,
 )
-from clouds import TrackedTiling as Tiling
 from gridded_cayley_permutations import GriddedCayleyPerm as GriddedPerm
+from ..tracked_tiling import TrackedTiling as Tiling
 from .extra_parameters import ExtraParametersForStrategies
 
 Cell = Tuple[int, int]
@@ -97,6 +97,7 @@ class AddAssumptionsConstructor(Constructor):
         for param, gps in subobjs[0](n).items():
             yield self.child_param_map(param), (gps,)
 
+    # pylint:disable=inconsistent-return-statements
     def random_sample_sub_objects(
         self,
         parent_count: int,

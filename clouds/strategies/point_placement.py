@@ -28,8 +28,8 @@ from tilescope.strategies.point_placements import (
     DIR_RIGHT,
     Directions,
 )
-from clouds import TrackedTiling
-from clouds.tracked_algos import (
+from ..tracked_tiling import TrackedTiling
+from ..tracked_algos import (
     TrackedPointPlacement,
 )
 from .extra_parameters import ExtraParametersForStrategies
@@ -66,16 +66,9 @@ class TrackedRequirementPlacementStrategy(
         for cell in self.algorithm(comb_class).cells_to_place_in(
             self.gcps, self.indices
         ):
-            preimage_rc_map = self.algorithm(comb_class).multiplex_map(cell)
-            col_map = {
-                idx: preimage_rc_map.preimages_of_col(idx)
-                for idx in range(comb_class.dimensions[0])
-            }
-            row_map = {
-                idx: preimage_rc_map.preimages_of_row(idx)
-                for idx in range(comb_class.dimensions[1])
-            }
-            rc_map = (col_map, row_map)
+            rc_map = self.rc_map_for_cloud(
+                self.algorithm(comb_class).multiplex_map(cell), comb_class
+            )
             maps_for_children.append(rc_map)
         return tuple(maps_for_children)
 

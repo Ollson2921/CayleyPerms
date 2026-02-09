@@ -3,9 +3,9 @@
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from gridded_cayley_permutations import RowColMap
 from tilescope.strategies import FactorStrategy, ShuffleFactorStrategy
+from ..tracked_tiling import TrackedTiling
+from ..tracked_algos import TrackedFactors, TrackedShuffleFactors
 from .extra_parameters import ExtraParametersForStrategies
-from clouds import TrackedTiling
-from clouds.tracked_algos import TrackedFactors, TrackedShuffleFactors
 
 Cell = tuple[int, int]
 
@@ -41,6 +41,7 @@ class TrackedFactorStrategy(ExtraParametersForStrategies, FactorStrategy):
 
 
 class TrackedShuffleFactorStrategy(ExtraParametersForStrategies, ShuffleFactorStrategy):
+    # pylint:disable=too-many-ancestors
     """
     A strategy for finding factors in a tracked tiling.
     """

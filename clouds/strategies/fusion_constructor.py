@@ -17,6 +17,8 @@ See https://github.com/PermutaTriangle/Tilings/blob/develop/tilings/strategies/f
 
 """
 
+# pylint: skip-file
+
 import enum
 from collections import Counter, defaultdict
 from functools import reduce
@@ -35,7 +37,7 @@ from comb_spec_searcher.typing import (
     SubTerms,
     Terms,
 )
-from clouds import TrackedTiling as Tiling
+from ..tracked_tiling import TrackedTiling as Tiling
 from gridded_cayley_permutations import GriddedCayleyPerm as GriddedPerm
 
 __all__ = ["FusionConstructor"]

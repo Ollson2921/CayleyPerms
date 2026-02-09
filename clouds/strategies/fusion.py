@@ -7,7 +7,7 @@ from tilescope.strategies import (
     FusionPointRowFactory,
     FusionPointRowStrategy,
 )
-from clouds.tracked_tiling import TrackedTiling
+from ..tracked_tiling import TrackedTiling
 from .extra_parameters import ExtraParametersForStrategies
 from .fusion_constructor import (
     FusionConstructor,

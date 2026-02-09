@@ -149,6 +149,10 @@ class TrackedDefaultQueue(DefaultQueue):
 
 
 class TrackedQueue(CSSQueue):
+    """A queue for tracked tilings."""
+
+    # pylint: disable=too-many-instance-attributes
+
     def __init__(
         self, pack: TrackedTileScopePack, tilescope: TrackedSearcher, delay_next: bool
     ):

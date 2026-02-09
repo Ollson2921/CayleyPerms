@@ -1,12 +1,12 @@
 """Strategy and Factory for requirement insertion on TrackedTilings."""
 
 from typing import Iterator
-from clouds.tracked_tiling import TrackedTiling
 from tilescope.strategies.requirement_insertions import (
     RequirementInsertionStrategy,
     CellInsertionFactory,
 )
 from .extra_parameters import ExtraParametersForStrategies
+from ..tracked_tiling import TrackedTiling
 
 
 class TrackedRequirementInsertionStrategy(

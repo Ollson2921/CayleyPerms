@@ -1,11 +1,11 @@
 """The strategies for tracked tilings."""
 
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
-from clouds import TrackedTiling
 from tilescope.strategies import (
     RemoveEmptyRowsAndColumnsStrategy,
 )
 from .extra_parameters import ExtraParametersForStrategies
+from ..tracked_tiling import TrackedTiling
 
 Cell = tuple[int, int]
 

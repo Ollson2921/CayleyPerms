@@ -9,7 +9,7 @@ from tilescope.strategies.row_column_separation import (
     LessThanRowColSeparation,
     LessThanOrEqualRowColSeparation,
 )
-from clouds import TrackedTiling
+from .tracked_tiling import TrackedTiling
 
 Cell = tuple[int, int]
 

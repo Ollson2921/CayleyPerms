@@ -5,7 +5,7 @@ from typing import Optional
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
 from comb_spec_searcher import Strategy
 from gridded_cayley_permutations import RowColMap, GriddedCayleyPerm
-from clouds.tracked_tiling import TrackedTiling
+from ..tracked_tiling import TrackedTiling
 
 
 class ExtraParametersForStrategies(Strategy[TrackedTiling, GriddedCayleyPerm]):
@@ -68,3 +68,15 @@ class ExtraParametersForStrategies(Strategy[TrackedTiling, GriddedCayleyPerm]):
     @abc.abstractmethod
     def maps_for_clouds(self, comb_class: TrackedTiling) -> tuple[RowColMap, ...]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
+
+    def rc_map_for_cloud(self, preimage_rc_map: RowColMap, comb_class: TrackedTiling):
+        """For a given rc map, returns the map for a cloud."""
+        col_map = {
+            idx: preimage_rc_map.preimages_of_col(idx)
+            for idx in range(comb_class.dimensions[0])
+        }
+        row_map = {
+            idx: preimage_rc_map.preimages_of_row(idx)
+            for idx in range(comb_class.dimensions[1])
+        }
+        return (col_map, row_map)

@@ -4,12 +4,12 @@ from tilescope.strategies import (
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
 )
-from clouds import TrackedTiling
-from clouds.tracked_algos import (
+from .extra_parameters import ExtraParametersForStrategies
+from ..tracked_tiling import TrackedTiling
+from ..tracked_algos import (
     TrackedLessThanOrEqualRowColSeparation,
     TrackedLessThanRowColSeparation,
 )
-from .extra_parameters import ExtraParametersForStrategies
 
 Cell = tuple[int, int]
 
@@ -31,16 +31,9 @@ class TrackedLessThanRowColSeparationStrategy(
         return (next(algo.tracked_row_col_separation()),)
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        preimage_rc_map = self.algorithm(comb_class).row_col_map
-        col_map = {
-            idx: preimage_rc_map.preimages_of_col(idx)
-            for idx in range(comb_class.dimensions[0])
-        }
-        row_map = {
-            idx: preimage_rc_map.preimages_of_row(idx)
-            for idx in range(comb_class.dimensions[1])
-        }
-        return ((col_map, row_map),)
+        return (
+            self.rc_map_for_cloud(self.algorithm(comb_class).row_col_map, comb_class),
+        )
 
 
 class TrackedLessThanOrEqualRowColSeparationStrategy(
@@ -60,16 +53,10 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
         return tuple(algo.tracked_row_col_separation())
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        preimage_rc_map = self.algorithm(comb_class).row_col_map
-        col_map = {
-            idx: preimage_rc_map.preimages_of_col(idx)
-            for idx in range(comb_class.dimensions[0])
-        }
-        row_map = {
-            idx: preimage_rc_map.preimages_of_row(idx)
-            for idx in range(comb_class.dimensions[1])
-        }
+        rc_map = (
+            self.rc_map_for_cloud(self.algorithm(comb_class).row_col_map, comb_class),
+        )
         all_maps = []
         for _ in self.decomposition_function(comb_class):
-            all_maps.append((col_map, row_map))
+            all_maps.append(rc_map)
         return tuple(all_maps)

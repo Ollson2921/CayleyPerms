@@ -48,9 +48,7 @@ class TrackedFactors(Factors):
         (
             positive_point_rows,
             positive_point_rows_reps,
-        ) = (
-            self.positive_point_rows_and_represantive
-        )
+        ) = self.positive_point_rows_and_represantive
         return tuple(
             tuple(
                 row

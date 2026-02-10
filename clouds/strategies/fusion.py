@@ -95,9 +95,7 @@ class TrackedFusionStrategy(
             left_sided_parameters,
             right_sided_parameters,
             both_sided_parameters,
-        ) = (
-            self.sided_parameters(comb_class)
-        )
+        ) = self.sided_parameters(comb_class)
         return FusionConstructor(
             comb_class,
             child,

@@ -45,9 +45,10 @@ class TrackedFactors(Factors):
         self, active_cells: set[tuple[int, int]]
     ) -> tuple[tuple[int, ...], ...]:
         """Return the new value clouds for a factor given its active cells."""
-        positive_point_rows, positive_point_rows_reps = (
-            self.positive_point_rows_and_represantive
-        )
+        (
+            positive_point_rows,
+            positive_point_rows_reps,
+        ) = self.positive_point_rows_and_represantive
         return tuple(
             tuple(
                 row
@@ -90,10 +91,7 @@ class TrackedLessThanRowColSeparation(LessThanRowColSeparation):
     def tracked_row_col_separation(self) -> Iterable[TrackedTiling]:
         """Yield the separated tilings with tracked clouds."""
         for separated_tiling in self.row_col_separation():
-            (
-                indices_clouds,
-                value_clouds,
-            ) = TrackedTiling.map_clouds(
+            (indices_clouds, value_clouds) = TrackedTiling.map_clouds(
                 indices_clouds=self.tracked_tiling.indices_clouds,
                 value_clouds=self.tracked_tiling.value_clouds,
                 tiling_map=self.row_col_map,

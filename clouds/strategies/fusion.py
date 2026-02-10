@@ -91,7 +91,7 @@ class TrackedFusionStrategy(
         child = children[0]
         fuse_parameter = child.find_parameter((self.index,), self.fuse_rows)
         extra_parameters = self.extra_parameters(comb_class, children)
-        left_sided_parameters, right_sided_parameters, both_sided_parameters = (
+        (left_sided_parameters, right_sided_parameters, both_sided_parameters) = (
             self.sided_parameters(comb_class)
         )
         return FusionConstructor(

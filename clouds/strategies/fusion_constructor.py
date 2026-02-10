@@ -25,7 +25,7 @@ from functools import reduce
 from operator import mul
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple
 
-import sympy
+import sympy  # type: ignore[import-untyped]
 
 from comb_spec_searcher import Constructor
 from comb_spec_searcher.typing import (

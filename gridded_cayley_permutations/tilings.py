@@ -1038,18 +1038,18 @@ class Tiling(CombinatorialClass):
                     requirements_string += f"{req} \n"
             final_string += requirements_string
 
-        cayley_ob = CayleyPermutation((0, 0))
+        pr_implied = (CayleyPermutation((0, 1)), CayleyPermutation((1, 0)))
         crossing_obs = set[GriddedCayleyPerm]()
         for ob in self.obstructions:
+            if len(set(ob.positions)) == 1:
+                continue
             if (
-                len(ob.pattern) == 2
-                and ob.pattern != cayley_ob
+                ob.pattern in pr_implied
                 and ob.positions[0][1] == ob.positions[1][1]
                 and ob.positions[0][1] in self.point_rows
             ):
                 continue
-            if len(set(ob.positions)) > 1:
-                crossing_obs.add(ob)
+            crossing_obs.add(ob)
 
         if len(crossing_obs) > 0:
             crossing_string = "\nCrossing obstructions: \n"

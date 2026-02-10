@@ -7,7 +7,7 @@ dimension, that avoid a set of obstructions and contain a set of requirements.
 
 from collections import defaultdict
 from functools import cached_property
-from itertools import chain, product, combinations
+from itertools import chain, product, combinations, combinations_with_replacement
 from math import factorial
 from typing import Iterable, Iterator
 
@@ -364,6 +364,26 @@ class Tiling(CombinatorialClass):
         return SimplifyObstructionsAndRequirements(
             self.obstructions, self.requirements, self.dimensions
         ).point_rows()
+
+    @cached_property
+    def point_cols(self) -> set[int]:
+        """Returns the set of cols which can only contain one point."""
+        point_cols = set[int]()
+        row_combinations = combinations_with_replacement(range(self.dimensions[1]), 2)
+        for col, rows in product(
+            range(self.dimensions[0]),
+            row_combinations,
+        ):
+            cell1, cell2 = (col, rows[0]), (col, rows[1])
+            if self.active_cells.issuperset({cell1, cell2}):
+                asc = GriddedCayleyPerm((0, 1), (cell1, cell2))
+                des = GriddedCayleyPerm((1, 0), (cell2, cell1))
+                if asc not in self.obstructions:
+                    continue
+                if des not in self.obstructions:
+                    continue
+                point_cols.add(col)
+        return point_cols
 
     def cells_in_row(self, row: int) -> set[tuple[int, int]]:
         """Returns the set of active cells in the given row."""
@@ -1010,8 +1030,29 @@ class Tiling(CombinatorialClass):
         # pylint: disable=too-many-branches
         # pylint: disable=too-many-locals
 
-        if self.dimensions == (0, 0):
-            return ""
+        all_cayley_obs = set[GriddedCayleyPerm]()
+        point_cells = self.point_cells()
+        if self.dimensions != (0, 0):
+            is_perm_tiling = True
+            for row, cols in product(
+                range(self.dimensions[1]),
+                combinations_with_replacement(range(self.dimensions[0]), 2),
+            ):
+                if cols[0] == cols[1] and (cols[0], row) in point_cells:
+                    continue
+                if self.active_cells.issuperset({(cols[0], row), (cols[1], row)}):
+                    cayley_ob = GriddedCayleyPerm(
+                        (0, 0), ((cols[0], row), (cols[1], row))
+                    )
+                    if cayley_ob not in self.obstructions:
+                        is_perm_tiling = False
+                        break
+                    all_cayley_obs.add(cayley_ob)
+            if is_perm_tiling and all_cayley_obs:
+                new_obs = set(self.obstructions) - all_cayley_obs
+                return "Permutation Tiling\n" + str(
+                    Tiling(new_obs, self.requirements, self.dimensions)
+                )
         final_string = "\n".join(self._string_table())
 
         key_dict = dict[str, list[CayleyPermutation]]()

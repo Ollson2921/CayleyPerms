@@ -59,6 +59,8 @@ def string_to_basis(patts: str) -> tuple[CayleyPermutation, ...]:
 
 
 def lex_min(patts: Iterable[CayleyPermutation]):
+    """Finds the lexicographically minimal tuple of Cayley permutations among
+    the input and its reverse, complement and reverse complement."""
     basis = tuple(sorted(patts))
     return min(
         basis,

@@ -6,13 +6,13 @@ from comb_spec_searcher.exception import StrategyDoesNotApply
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations import GriddedCayleyPerm
-from .abstract_strategies import TilingType
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 
 
 class AbstractRemoveEmptyRowsAndColumnsStrategy(
-    DisjointUnionStrategy[TilingType, GriddedCayleyPerm]
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
     """Removes all the empty rows and columns."""
 
@@ -29,17 +29,17 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
 
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -74,6 +74,6 @@ class RemoveEmptyRowsAndColumnsStrategy(
         return (comb_class.remove_empty_rows_and_columns(),)
 
     def extra_parameters(
-        self, comb_class: TilingType, children: Optional[Tuple[TilingType, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))

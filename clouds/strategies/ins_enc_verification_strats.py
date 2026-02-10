@@ -1,20 +1,9 @@
 """Strategy for verifying when a tiling is insertion encodable."""
 
-from typing import TypeVar
 from gridded_cayley_permutations import Tiling
 from tilescope.strategies import (
     VerticalInsertionEncodableVerificationStrategy,
     HorizontalInsertionEncodableVerificationStrategy,
-)
-
-HorizontalInsertionEncodableVerificationStrategyT = TypeVar(
-    "HorizontalInsertionEncodableVerificationStrategyT",
-    bound="HorizontalInsertionEncodableVerificationStrategy",
-)
-
-VerticalInsertionEncodableVerificationStrategyT = TypeVar(
-    "VerticalInsertionEncodableVerificationStrategyT",
-    bound="VerticalInsertionEncodableVerificationStrategy",
 )
 
 

@@ -1,19 +1,18 @@
 """Strategies and factories for inserting points of a requirement into a tiling."""
 
-import abc
 from typing import Dict, Iterable, Iterator, Optional, Tuple
 from itertools import product
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation, Av
-from .abstract_strategies import TilingType
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 
 
 class AbstractRequirementInsertionStrategy(
-    DisjointUnionStrategy[TilingType, GriddedCayleyPerm]
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
     """Insert a point of a requirement."""
 
@@ -26,17 +25,17 @@ class AbstractRequirementInsertionStrategy(
 
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -128,7 +127,7 @@ class HorizontalInsertionEncodingRequirementInsertionFactory(StrategyFactory[Til
         return "Make rows positive"
 
 
-class AbstractCellInsertionFactory(StrategyFactory[TilingType]):
+class AbstractCellInsertionFactory(StrategyFactory[TilingT]):
     """
     The cell insertion strategy.
 
@@ -154,7 +153,7 @@ class AbstractCellInsertionFactory(StrategyFactory[TilingType]):
         self.one_cell_only = one_cell_only
 
     def req_lists_to_insert(
-        self, tiling: TilingType
+        self, tiling: TilingT
     ) -> Iterator[Tuple[GriddedCayleyPerm, ...]]:
         """Yields all requirement lists to insert into the tiling."""
         if self.one_cell_only:

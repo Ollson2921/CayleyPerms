@@ -20,7 +20,7 @@ DIR_LEFT = 3
 DIR_LEFT_BOT = 4
 DIR_RIGHT_BOT = 5
 
-Directions = [
+DIRECTIONS = [
     DIR_RIGHT,
     DIR_RIGHT_TOP,
     DIR_LEFT_TOP,

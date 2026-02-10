@@ -5,10 +5,10 @@ from comb_spec_searcher import StrategyFactory, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from .abstract_strategies import TilingType
+from .factor import TilingT
 
 
-class AbstractFusionStrategy(Strategy[TilingType, GriddedCayleyPerm]):
+class AbstractFusionStrategy(Strategy[TilingT, GriddedCayleyPerm]):
     """Abstract strategy for fusing two rows or columns of a tiling together."""
 
     def __init__(self, fuse_rows: bool, index: int, tracked: bool = False):
@@ -24,26 +24,26 @@ class AbstractFusionStrategy(Strategy[TilingType, GriddedCayleyPerm]):
     def can_be_equivalent(self) -> bool:
         return False
 
-    def is_two_way(self, comb_class: TilingType) -> bool:
+    def is_two_way(self, comb_class: TilingT) -> bool:
         return False
 
-    def is_reversible(self, comb_class: TilingType) -> bool:
+    def is_reversible(self, comb_class: TilingT) -> bool:
         """TODO: We told this to return true to make it work but
         for tracked tilings and counting will need to change"""
         return True
 
     def shifts(
-        self, comb_class: TilingType, children: Optional[Tuple[TilingType, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[int, ...]:
         return (0,)
 
     def left_right_both_sided_parameters(
-        self, comb_class: TilingType
+        self, comb_class: TilingT
     ) -> Tuple[Set[str], Set[str], Set[str]]:
         """Returns parameters."""
         raise NotImplementedError
 
-    def _fuse_parameter(self, comb_class: TilingType) -> str:
+    def _fuse_parameter(self, comb_class: TilingT) -> str:
         raise NotImplementedError
 
     def formal_step(self) -> str:
@@ -54,9 +54,9 @@ class AbstractFusionStrategy(Strategy[TilingType, GriddedCayleyPerm]):
     # pylint: disable=arguments-differ
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
         left_points: Optional[int] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         """
@@ -67,9 +67,9 @@ class AbstractFusionStrategy(Strategy[TilingType, GriddedCayleyPerm]):
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         """
         The forward direction of the underlying bijection used for object
@@ -141,7 +141,7 @@ class FusionStrategy(AbstractFusionStrategy[Tiling]):
         raise NotImplementedError
 
 
-class AbstractFusionFactory(StrategyFactory[TilingType]):
+class AbstractFusionFactory(StrategyFactory[TilingT]):
     """Abstract factory for doing fusion."""
 
     @classmethod

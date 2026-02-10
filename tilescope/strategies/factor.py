@@ -8,10 +8,10 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 
 
-TilingType = TypeVar("TilingType", bound="Tiling")
+TilingT = TypeVar("TilingT", bound="Tiling")
 
 
-class AbstractFactorStrategy(CartesianProductStrategy[TilingType, GriddedCayleyPerm]):
+class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm]):
     """Abstract strategy for factoring a tiling."""
 
     def __init__(
@@ -24,7 +24,7 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingType, GriddedCayleyP
         )
 
     def extra_parameters(
-        self, comb_class: TilingType, children: Optional[Tuple[TilingType, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
         if children is None:
             children = self.decomposition_function(comb_class)
@@ -37,17 +37,17 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingType, GriddedCayleyP
 
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[GriddedCayleyPerm, ...]:
         raise NotImplementedError
 
@@ -83,13 +83,13 @@ class FactorStrategy(AbstractFactorStrategy[Tiling]):
 
 
 class AbstractShuffleFactorStrategy(
-    AbstractFactorStrategy[TilingType],
-    Strategy[TilingType, GriddedCayleyPerm],
+    AbstractFactorStrategy[TilingT],
+    Strategy[TilingT, GriddedCayleyPerm],
 ):
     """Abstract strategy for finding shuffle factors."""
 
     def constructor(
-        self, comb_class: TilingType, children: Tuple[TilingType, ...] | None = None
+        self, comb_class: TilingT, children: Tuple[TilingT, ...] | None = None
     ) -> Constructor:
         """TODO: shouldn't be catesian product"""
         raise NotImplementedError
@@ -97,23 +97,23 @@ class AbstractShuffleFactorStrategy(
     def can_be_equivalent(self) -> bool:
         return True
 
-    def is_reversible(self, comb_class: TilingType) -> bool:
+    def is_reversible(self, comb_class: TilingT) -> bool:
         return False
 
-    def is_two_way(self, comb_class: TilingType) -> bool:
+    def is_two_way(self, comb_class: TilingT) -> bool:
         return False
 
     def reverse_constructor(
         self,
         idx: int,
-        comb_class: TilingType,
-        children: Tuple[TilingType, ...] | None = None,
+        comb_class: TilingT,
+        children: Tuple[TilingT, ...] | None = None,
     ) -> Constructor:
         """TODO: shouldn't be catesian product"""
         raise NotImplementedError
 
     def shifts(
-        self, comb_class: TilingType, children: Optional[Tuple[TilingType, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[int, ...]:
         if children is None:
             children = self.decomposition_function(comb_class)

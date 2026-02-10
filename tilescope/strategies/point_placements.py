@@ -13,7 +13,7 @@ from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations.point_placements import (
     PointPlacement,
-    Directions,
+    DIRECTIONS,
     DIR_RIGHT,
     DIR_RIGHT_TOP,
     DIR_LEFT_TOP,
@@ -23,14 +23,14 @@ from gridded_cayley_permutations.point_placements import (
 )
 from gridded_cayley_permutations import GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
-from .abstract_strategies import TilingType
+from .factor import TilingT
 
 
 Cell = Tuple[int, int]
 
 
 class AbstractRequirementPlacementStrategy(
-    DisjointUnionStrategy[TilingType, GriddedCayleyPerm]
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
     """Abstract strategy for placing a point of a requirement in a tiling in a direction.
 
@@ -41,7 +41,7 @@ class AbstractRequirementPlacementStrategy(
     4 = bottom leftmost
     5 = bottom rightmost"""
 
-    DIRECTIONS = Directions
+    DIRECTIONS = DIRECTIONS
 
     def __init__(
         self,
@@ -57,15 +57,15 @@ class AbstractRequirementPlacementStrategy(
         super().__init__(ignore_parent=ignore_parent)
 
     @abc.abstractmethod
-    def algorithm(self, tiling: TilingType) -> PointPlacement:
+    def algorithm(self, tiling: TilingT) -> PointPlacement:
         """Return the algorithm to be used for point placement."""
 
     @abc.abstractmethod
-    def decomposition_function(self, comb_class: TilingType) -> Tuple[TilingType, ...]:
+    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
         """Return the decomposition function for the strategy."""
 
     def extra_parameters(
-        self, comb_class: TilingType, children: Optional[Tuple[TilingType, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
@@ -77,17 +77,17 @@ class AbstractRequirementPlacementStrategy(
 
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingType, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -176,7 +176,7 @@ class HorizontalInsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
         return "Place next point of insertion encoding"
 
 
-class AbstractPointPlacementFactory(StrategyFactory[TilingType]):
+class AbstractPointPlacementFactory(StrategyFactory[TilingT]):
     """Abstract factory for creating RequirementPlacementStrategy to place points."""
 
     @classmethod
@@ -195,13 +195,13 @@ class PointPlacementFactory(AbstractPointPlacementFactory[Tiling]):
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
         for cell in comb_class.positive_cells():
-            for direction in Directions:
+            for direction in DIRECTIONS:
                 gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)
                 indices = (0,)
                 yield RequirementPlacementStrategy(gcps, indices, direction)
 
 
-class AbstractRowInsertionFactory(StrategyFactory[TilingType]):
+class AbstractRowInsertionFactory(StrategyFactory[TilingT]):
     """Abstract actory for having a point requirement on a row."""
 
     def __repr__(self) -> str:
@@ -231,7 +231,7 @@ class RowInsertionFactory(AbstractRowInsertionFactory[Tiling]):
         return cls(**d)
 
 
-class AbstractColInsertionFactory(StrategyFactory[TilingType]):
+class AbstractColInsertionFactory(StrategyFactory[TilingT]):
     """Abstract factory for having a point requirement on a column."""
 
     def __repr__(self) -> str:

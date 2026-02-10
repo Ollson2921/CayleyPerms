@@ -68,7 +68,7 @@ class ExtraParametersForStrategies(Strategy[TrackedTiling, GriddedCayleyPerm]):
     @abc.abstractmethod
     def maps_for_clouds(
         self, comb_class: TrackedTiling
-    ) -> tuple[tuple[dict[int, tuple[int]], dict[int, tuple[int, ...]]]]:
+    ) -> tuple[tuple[dict[int, tuple[int, ...]], dict[int, tuple[int, ...]]]]:
         """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
 
     def rc_map_for_cloud(self, preimage_rc_map: RowColMap, comb_class: TrackedTiling):

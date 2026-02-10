@@ -26,7 +26,7 @@ from tilescope.strategies.point_placements import (
     DIR_RIGHT_TOP,
     DIR_LEFT,
     DIR_RIGHT,
-    Directions,
+    DIRECTIONS,
 )
 from ..tracked_tiling import TrackedTiling
 from ..tracked_algos import (
@@ -36,6 +36,8 @@ from .extra_parameters import ExtraParametersForStrategies
 from .requirement_insertion import TrackedRequirementInsertionStrategy
 
 Cell = tuple[int, int]
+
+# pylint:disable=duplicate-code
 
 
 class TrackedRequirementPlacementStrategy(
@@ -82,7 +84,7 @@ class TrackedPointPlacementFactory(AbstractPointPlacementFactory[TrackedTiling])
         self, comb_class: TrackedTiling
     ) -> Iterator[TrackedRequirementPlacementStrategy]:
         for cell in comb_class.positive_cells():
-            for direction in Directions:
+            for direction in DIRECTIONS:
                 gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)
                 indices = (0,)
                 yield TrackedRequirementPlacementStrategy(gcps, indices, direction)

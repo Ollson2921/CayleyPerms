@@ -16,7 +16,7 @@ from comb_spec_searcher import DisjointUnionStrategy
 from gridded_cayley_permutations.row_col_map import RowColMap
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
-from .abstract_strategies import TilingType
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 Obstructions = Tuple[GriddedCayleyPerm, ...]
@@ -673,7 +673,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
 
 
 class AbstractLessThanRowColSeparationStrategy(
-    DisjointUnionStrategy[TilingType, GriddedCayleyPerm]
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
     """Abstract strategy for row and column separation."""
 
@@ -690,17 +690,17 @@ class AbstractLessThanRowColSeparationStrategy(
 
     def backward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[tuple[TilingType, ...]] = None,
+        children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingType,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[tuple[TilingType, ...]] = None,
+        children: Optional[tuple[TilingT, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 

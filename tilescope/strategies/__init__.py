@@ -2,23 +2,39 @@
 
 from .requirement_insertions import (
     RequirementInsertionStrategy,
+    AbstractCellInsertionFactory,
     VerticalInsertionEncodingRequirementInsertionFactory,
     HorizontalInsertionEncodingRequirementInsertionFactory,
     CellInsertionFactory,
+    AbstractRequirementInsertionStrategy,
 )
 from .point_placements import (
     RequirementPlacementStrategy,
+    AbstractRequirementPlacementStrategy,
     VerticalInsertionEncodingPlacementFactory,
     HorizontalInsertionEncodingPlacementFactory,
     PointPlacementFactory,
+    AbstractPointPlacementFactory,
     RowInsertionFactory,
+    AbstractRowInsertionFactory,
     ColInsertionFactory,
+    AbstractColInsertionFactory,
 )
-from .remove_empty_rows_and_cols import RemoveEmptyRowsAndColumnsStrategy
-from .factor import FactorStrategy, ShuffleFactorStrategy
+from .remove_empty_rows_and_cols import (
+    RemoveEmptyRowsAndColumnsStrategy,
+    AbstractRemoveEmptyRowsAndColumnsStrategy,
+)
+from .factor import (
+    FactorStrategy,
+    ShuffleFactorStrategy,
+    AbstractFactorStrategy,
+    AbstractShuffleFactorStrategy,
+)
 from .row_column_separation import (
     LessThanRowColSeparationStrategy,
     LessThanOrEqualRowColSeparationStrategy,
+    AbstractLessThanRowColSeparationStrategy,
+    AbstractLessThanOrEqualRowColSeparationStrategy,
 )
 from .subclass_verification import SubclassVerificationStrategy
 from .fusion import (
@@ -26,6 +42,8 @@ from .fusion import (
     FusionStrategy,
     FusionPointRowFactory,
     FusionPointRowStrategy,
+    AbstractFusionStrategy,
+    AbstractFusionFactory,
 )
 from .insertion_encodable_verification import (
     HorizontalInsertionEncodableVerificationStrategy,
@@ -34,23 +52,36 @@ from .insertion_encodable_verification import (
 
 __all__ = (
     "RequirementInsertionStrategy",
+    "AbstractCellInsertionFactory",
     "VerticalInsertionEncodingRequirementInsertionFactory",
     "HorizontalInsertionEncodingRequirementInsertionFactory",
     "CellInsertionFactory",
     "RequirementPlacementStrategy",
+    "AbstractRequirementPlacementStrategy",
     "VerticalInsertionEncodingPlacementFactory",
     "HorizontalInsertionEncodingPlacementFactory",
     "PointPlacementFactory",
+    "AbstractPointPlacementFactory",
     "RowInsertionFactory",
+    "AbstractRowInsertionFactory",
     "CellInsertionFactory",
+    "AbstractRequirementInsertionStrategy",
     "ColInsertionFactory",
+    "AbstractColInsertionFactory",
     "RemoveEmptyRowsAndColumnsStrategy",
+    "AbstractRemoveEmptyRowsAndColumnsStrategy",
     "FactorStrategy",
+    "AbstractFactorStrategy",
     "ShuffleFactorStrategy",
+    "AbstractShuffleFactorStrategy",
     "LessThanOrEqualRowColSeparationStrategy",
     "LessThanRowColSeparationStrategy",
+    "AbstractLessThanRowColSeparationStrategy",
+    "AbstractLessThanOrEqualRowColSeparationStrategy",
     "FusionFactory",
+    "AbstractFusionFactory",
     "FusionStrategy",
+    "AbstractFusionStrategy",
     "HorizontalInsertionEncodableVerificationStrategy",
     "VerticalInsertionEncodableVerificationStrategy",
     "SubclassVerificationStrategy",

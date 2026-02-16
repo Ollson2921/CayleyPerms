@@ -57,19 +57,25 @@ class TileScopePack(StrategyPack):
             - "point": PointPlacementFactory
             - "row": RowInsertionFactory
             - "col": ColInsertionFactory
+
         cell_insertion: Where to include CellInsertionFactory. Must be included for point placement.
             - "initial": included as an initial strategy.
             - "expansion": included as an expansion strategy.
             - "none": not included.
+
         point_placement_initial: If True, includes PointPlacementFactory as an initial strategy.
+
         verify: If True then includes all verification strategies, otherwise just AtomStrategy.
         The root tiling must also be provided for subclass verification.
         Or input to verify can be a list of strings specifying which verification strategies to add.
             - "vert_ins_enc": VerticalInsertionEncodableVerificationStrategy
             - "hori_ins_enc": HorizontalInsertionEncodableVerificationStrategy
             - "subclass": SubclassVerificationStrategy
+
         root: The root tiling. Only needed if verify is True.
+
         fusion: If 0, no fusion. If 1, standard fusion. If 2, point row fusion. If 3, both.
+
         shuffle_factors: If True, replaces FactorStrategy with ShuffleFactorStrategy.
         """
         # pylint:disable=too-many-arguments

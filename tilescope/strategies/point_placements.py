@@ -6,13 +6,14 @@
 4 = bottommost, taking the leftmost if there are multiple
 5 = bottommost, taking the rightmost if there are multiple"""
 
+import abc
 from typing import Dict, Iterable, Iterator, Optional, Tuple
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations.point_placements import (
     PointPlacement,
-    Directions,
+    DIRECTIONS,
     DIR_RIGHT,
     DIR_RIGHT_TOP,
     DIR_LEFT_TOP,
@@ -22,15 +23,25 @@ from gridded_cayley_permutations.point_placements import (
 )
 from gridded_cayley_permutations import GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
+from .factor import TilingT
 
 
 Cell = Tuple[int, int]
 
 
-class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
-    """Insert a point of into a tiling in a direction."""
+class AbstractRequirementPlacementStrategy(
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
+):
+    """Abstract strategy for placing a point of a requirement in a tiling in a direction.
 
-    DIRECTIONS = Directions
+    0 = rightmost
+    1 = top rightmost
+    2 = top leftmost
+    3 = leftmost
+    4 = bottom leftmost
+    5 = bottom rightmost"""
+
+    DIRECTIONS = DIRECTIONS
 
     def __init__(
         self,
@@ -45,18 +56,16 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         assert direction in self.DIRECTIONS
         super().__init__(ignore_parent=ignore_parent)
 
-    def algorithm(self, tiling: Tiling) -> PointPlacement:
+    @abc.abstractmethod
+    def algorithm(self, tiling: TilingT) -> PointPlacement:
         """Return the algorithm to be used for point placement."""
-        return PointPlacement(tiling)
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+    @abc.abstractmethod
+    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
         """Return the decomposition function for the strategy."""
-        return (comb_class.add_obstructions(self.gcps),) + self.algorithm(
-            comb_class
-        ).point_placement(self.gcps, self.indices, self.direction)
 
     def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
@@ -68,17 +77,17 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
 
     def backward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -101,10 +110,22 @@ class RequirementPlacementStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "RequirementPlacementStrategy":
+    def from_dict(cls, d: dict) -> "AbstractRequirementPlacementStrategy":
         """Return a strategy from a dictionary."""
         gcps = tuple(GriddedCayleyPerm.from_dict(gcp) for gcp in d.pop("gcps"))
         return cls(gcps=gcps, **d)
+
+
+class RequirementPlacementStrategy(AbstractRequirementPlacementStrategy[Tiling]):
+    """Insert a point of a requirement into a tiling in a direction."""
+
+    def algorithm(self, tiling: Tiling) -> PointPlacement:
+        return PointPlacement(tiling)
+
+    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        return (comb_class.add_obstructions(self.gcps),) + self.algorithm(
+            comb_class
+        ).point_placement(self.gcps, self.indices, self.direction)
 
 
 class VerticalInsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
@@ -155,18 +176,11 @@ class HorizontalInsertionEncodingPlacementFactory(StrategyFactory[Tiling]):
         return "Place next point of insertion encoding"
 
 
-class PointPlacementFactory(StrategyFactory[Tiling]):
-    """Factory for doing point placements."""
-
-    def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
-        for cell in comb_class.positive_cells():
-            for direction in Directions:
-                gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)
-                indices = (0,)
-                yield RequirementPlacementStrategy(gcps, indices, direction)
+class AbstractPointPlacementFactory(StrategyFactory[TilingT]):
+    """Abstract factory for creating RequirementPlacementStrategy to place points."""
 
     @classmethod
-    def from_dict(cls, d: dict) -> "PointPlacementFactory":
+    def from_dict(cls, d: dict) -> "AbstractPointPlacementFactory":
         return cls(**d)
 
     def __repr__(self) -> str:
@@ -176,7 +190,28 @@ class PointPlacementFactory(StrategyFactory[Tiling]):
         return "Point placement"
 
 
-class RowInsertionFactory(StrategyFactory[Tiling]):
+class PointPlacementFactory(AbstractPointPlacementFactory[Tiling]):
+    """Factory for doing point placements."""
+
+    def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
+        for cell in comb_class.positive_cells():
+            for direction in DIRECTIONS:
+                gcps = (GriddedCayleyPerm(CayleyPermutation([0]), (cell,)),)
+                indices = (0,)
+                yield RequirementPlacementStrategy(gcps, indices, direction)
+
+
+class AbstractRowInsertionFactory(StrategyFactory[TilingT]):
+    """Abstract actory for having a point requirement on a row."""
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
+    def __str__(self) -> str:
+        return "Row insertion"
+
+
+class RowInsertionFactory(AbstractRowInsertionFactory[Tiling]):
     """Factory for having a point requirement on a row."""
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
@@ -195,14 +230,18 @@ class RowInsertionFactory(StrategyFactory[Tiling]):
     def from_dict(cls, d: dict) -> "RowInsertionFactory":
         return cls(**d)
 
+
+class AbstractColInsertionFactory(StrategyFactory[TilingT]):
+    """Abstract factory for having a point requirement on a column."""
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}()"
 
     def __str__(self) -> str:
-        return "Row insertion"
+        return "Column insertion"
 
 
-class ColInsertionFactory(StrategyFactory[Tiling]):
+class ColInsertionFactory(AbstractColInsertionFactory[Tiling]):
     """Factory for having a point requirement on a column."""
 
     def __call__(self, comb_class: Tiling) -> Iterator[RequirementPlacementStrategy]:
@@ -222,9 +261,3 @@ class ColInsertionFactory(StrategyFactory[Tiling]):
     @classmethod
     def from_dict(cls, d: dict) -> "ColInsertionFactory":
         return cls(**d)
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}()"
-
-    def __str__(self) -> str:
-        return "Column insertion"

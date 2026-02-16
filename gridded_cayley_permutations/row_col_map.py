@@ -37,6 +37,13 @@ class RowColMap:
             x == y for x, y in self.col_map.items()
         )
 
+    @classmethod
+    def identity_map(cls, dimensions: tuple[int, int]) -> "RowColMap":
+        """Returns the identity map for the given dimensions."""
+        col_map = {i: i for i in range(dimensions[0])}
+        row_map = {i: i for i in range(dimensions[1])}
+        return cls(col_map, row_map)
+
     def map_gridded_cperm(self, gcp: GriddedCayleyPerm) -> GriddedCayleyPerm:
         """
         Map a gridded Cayley permutation according to the row and column maps.

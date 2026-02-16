@@ -6,46 +6,43 @@ from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation, Av
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 
 
-class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
-    """Insert a point of a requirement into a tiling."""
+class AbstractRequirementInsertionStrategy(
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
+):
+    """Insert a point of a requirement."""
 
     def __init__(self, gcps: Iterable[GriddedCayleyPerm], ignore_parent: bool = False):
         super().__init__(ignore_parent=ignore_parent)
         self.gcps = frozenset(gcps)
-
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
-        return (
-            comb_class.add_obstructions(self.gcps),
-            comb_class.add_requirement_list(self.gcps),
-        )
-
-    def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
-    ) -> Tuple[Dict[str, str], ...]:
-        return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self):
         return f"Either avoid or contain {self.gcps}"
 
     def backward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "AbstractRequirementInsertionStrategy":
+        gcps = tuple(GriddedCayleyPerm.from_dict(gcp) for gcp in d.pop("gcps"))
+        return cls(gcps=gcps, **d)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(" f"ignore_parent={self.ignore_parent})"
@@ -59,10 +56,20 @@ class RequirementInsertionStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPe
         d["gcps"] = [gcp.to_jsonable() for gcp in self.gcps]
         return d
 
-    @classmethod
-    def from_dict(cls, d: dict) -> "RequirementInsertionStrategy":
-        gcps = tuple(GriddedCayleyPerm.from_dict(gcp) for gcp in d.pop("gcps"))
-        return cls(gcps=gcps, **d)
+
+class RequirementInsertionStrategy(AbstractRequirementInsertionStrategy[Tiling]):
+    """Insert a point of a requirement into a tiling."""
+
+    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        return (
+            comb_class.add_obstructions(self.gcps),
+            comb_class.add_requirement_list(self.gcps),
+        )
+
+    def extra_parameters(
+        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
+    ) -> Tuple[Dict[str, str], ...]:
+        return tuple({} for _ in self.decomposition_function(comb_class))
 
 
 class VerticalInsertionEncodingRequirementInsertionFactory(StrategyFactory[Tiling]):
@@ -120,7 +127,7 @@ class HorizontalInsertionEncodingRequirementInsertionFactory(StrategyFactory[Til
         return "Make rows positive"
 
 
-class CellInsertionFactory(StrategyFactory[Tiling]):
+class AbstractCellInsertionFactory(StrategyFactory[TilingT]):
     """
     The cell insertion strategy.
 
@@ -146,7 +153,7 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
         self.one_cell_only = one_cell_only
 
     def req_lists_to_insert(
-        self, tiling: Tiling
+        self, tiling: TilingT
     ) -> Iterator[Tuple[GriddedCayleyPerm, ...]]:
         """Yields all requirement lists to insert into the tiling."""
         if self.one_cell_only:
@@ -174,20 +181,13 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
                 if not any(patt in cperm for cperm in bdict[cell][1])
             )
 
-    def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
-        """
-        Iterator over all the requirement insertion rules.
-        """
-        for req_list in self.req_lists_to_insert(comb_class):
-            yield RequirementInsertionStrategy(req_list, self.ignore_parent)
-
     def to_jsonable(self) -> dict:
         d: dict = super().to_jsonable()
         d["one_cell_only"] = self.one_cell_only
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "CellInsertionFactory":
+    def from_dict(cls, d: dict) -> "AbstractCellInsertionFactory":
         return cls(**d)
 
     def __str__(self) -> str:
@@ -204,3 +204,26 @@ class CellInsertionFactory(StrategyFactory[Tiling]):
             ]
         )
         return f"{self.__class__.__name__}({args})"
+
+
+class CellInsertionFactory(AbstractCellInsertionFactory[Tiling]):
+    """
+    The cell insertion strategy.
+
+    The cell insertion strategy is a disjoint union strategy.
+    For each active cell, the strategy considers all patterns (up to some maximum
+    length given by `maxreqlen`) and returns two tilings; one which requires the
+    pattern in the cell and one where the pattern is obstructed.
+
+    The one_cell_only flag will ensure that the strategy only inserts into the
+    'smallest' non-positive cell. This is used for 'insertion' packs where
+    we are intending to make every cell positive, so with this setting we have
+    a unique path to the fully positive tilings.
+    """
+
+    def __call__(self, comb_class: Tiling) -> Iterator[RequirementInsertionStrategy]:
+        """
+        Iterator over all the requirement insertion rules.
+        """
+        for req_list in self.req_lists_to_insert(comb_class):
+            yield RequirementInsertionStrategy(req_list, self.ignore_parent)

@@ -1,0 +1,84 @@
+"""Class with extra parameters functions for strategies"""
+
+import abc
+from typing import Optional
+from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
+from comb_spec_searcher import Strategy
+from gridded_cayley_permutations import RowColMap, GriddedCayleyPerm
+from ..tracked_tiling import TrackedTiling
+
+
+class ExtraParametersForStrategies(Strategy[TrackedTiling, GriddedCayleyPerm]):
+    """Strategies inherit to implement extra_parameters function.
+    Need to also implement map_for_clouds function on the strategy,
+    which returns a tuple of RowColMaps for each child, mapping from the parent to the child.
+    """
+
+    def map_cloud(
+        self,
+        cloud: tuple[int, ...],
+        map_cloud: dict[int, tuple[int, ...]],
+        child: TrackedTiling,
+        rows: bool,
+    ) -> tuple[int, ...]:
+        """Maps a cloud from the parent to the child using the provided map
+        from a row/col on the parent to a tuple of rows/cols on the child."""
+        child_cloud = []
+        for i in cloud:
+            if i in map_cloud:
+                child_cloud += [
+                    col
+                    for col in map_cloud[i]
+                    if col in child.active_col_rows[int(rows)]
+                ]
+        return tuple(sorted(set(child_cloud)))
+
+    def extra_parameters(
+        self,
+        comb_class: TrackedTiling,
+        children: Optional[tuple[TrackedTiling, ...]] = None,
+    ) -> tuple[dict[str, str], ...]:
+        """Returns a tuple of dictionaries of extra parameters for each child."""
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        if children is None:
+            raise StrategyDoesNotApply("Strategy does not apply")
+        dicts: tuple[dict[str, str], ...] = tuple({} for _ in range(len(children)))
+        maps_for_clouds = self.maps_for_clouds(comb_class)
+        for cloud in comb_class.indices_clouds:
+            parent_param = comb_class.find_parameter(cloud, row=False)
+            for idx, child in enumerate(children):
+                child_cloud = self.map_cloud(
+                    cloud, maps_for_clouds[idx][0], child, False
+                )
+                if child_cloud:
+                    child_param = child.find_parameter(child_cloud, row=False)
+                    dicts[idx][parent_param] = child_param
+        for cloud in comb_class.value_clouds:
+            parent_param = comb_class.find_parameter(cloud, row=True)
+            for idx, child in enumerate(children):
+                child_cloud = self.map_cloud(
+                    cloud, maps_for_clouds[idx][1], child, True
+                )
+                if child_cloud:
+                    child_param = child.find_parameter(child_cloud, row=True)
+                    dicts[idx][parent_param] = child_param
+        return dicts
+
+    @abc.abstractmethod
+    def maps_for_clouds(
+        self, comb_class: TrackedTiling
+    ) -> tuple[tuple[dict[int, tuple[int, ...]], dict[int, tuple[int, ...]]]]:
+        """Returns a tuple of RowColMaps for each child, mapping from the parent to the child."""
+
+    def rc_map_for_cloud(self, preimage_rc_map: RowColMap, comb_class: TrackedTiling):
+        """For a given rc map, returns the map for a cloud."""
+        col_map = {
+            idx: preimage_rc_map.preimages_of_col(idx)
+            for idx in range(comb_class.dimensions[0])
+        }
+        row_map = {
+            idx: preimage_rc_map.preimages_of_row(idx)
+            for idx in range(comb_class.dimensions[1])
+        }
+        return (col_map, row_map)

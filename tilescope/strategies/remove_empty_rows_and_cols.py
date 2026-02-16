@@ -6,14 +6,15 @@ from comb_spec_searcher.exception import StrategyDoesNotApply
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations import GriddedCayleyPerm
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 
 
-class RemoveEmptyRowsAndColumnsStrategy(
-    DisjointUnionStrategy[Tiling, GriddedCayleyPerm]
+class AbstractRemoveEmptyRowsAndColumnsStrategy(
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
-    """Removes all the empty rows and columns from a tiling."""
+    """Removes all the empty rows and columns."""
 
     # pylint: disable=duplicate-code
     def __init__(
@@ -23,33 +24,22 @@ class RemoveEmptyRowsAndColumnsStrategy(
     ):
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
-        rows_and_cols = comb_class.find_empty_rows_and_columns()
-        if len(rows_and_cols[0]) == 0 and len(rows_and_cols[1]) == 0:
-            raise StrategyDoesNotApply("No empty rows or columns")
-        return (comb_class.remove_empty_rows_and_columns(),)
-
-    def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
-    ) -> Tuple[Dict[str, str], ...]:
-        return tuple({} for _ in self.decomposition_function(comb_class))
-
     def formal_step(self):
         return "Removed empty rows and columns"
 
     def backward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -68,5 +58,22 @@ class RemoveEmptyRowsAndColumnsStrategy(
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "RemoveEmptyRowsAndColumnsStrategy":
+    def from_dict(cls, d: dict) -> "AbstractRemoveEmptyRowsAndColumnsStrategy":
         return cls(**d)
+
+
+class RemoveEmptyRowsAndColumnsStrategy(
+    AbstractRemoveEmptyRowsAndColumnsStrategy[Tiling]
+):
+    """Removes all the empty rows and columns from a tiling."""
+
+    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        rows_and_cols = comb_class.find_empty_rows_and_columns()
+        if len(rows_and_cols[0]) == 0 and len(rows_and_cols[1]) == 0:
+            raise StrategyDoesNotApply("No empty rows or columns")
+        return (comb_class.remove_empty_rows_and_columns(),)
+
+    def extra_parameters(
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
+    ) -> Tuple[Dict[str, str], ...]:
+        return tuple({} for _ in self.decomposition_function(comb_class))

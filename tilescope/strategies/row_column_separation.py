@@ -16,6 +16,7 @@ from comb_spec_searcher import DisjointUnionStrategy
 from gridded_cayley_permutations.row_col_map import RowColMap
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
+from .factor import TilingT
 
 Cell = Tuple[int, int]
 Obstructions = Tuple[GriddedCayleyPerm, ...]
@@ -671,10 +672,10 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         return less_than_col, less_than_row
 
 
-class LessThanRowColSeparationStrategy(
-    DisjointUnionStrategy[Tiling, GriddedCayleyPerm]
+class AbstractLessThanRowColSeparationStrategy(
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
 ):
-    """A strategy that separates rows and columns."""
+    """Abstract strategy for row and column separation."""
 
     # pylint: disable=duplicate-code
     def __init__(
@@ -682,36 +683,24 @@ class LessThanRowColSeparationStrategy(
         ignore_parent: bool = True,
         possibly_empty: bool = True,
     ):
-        """Initialize the strategy."""
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
-
-    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
-        """Return the decomposition function."""
-        algo = LessThanRowColSeparation(comb_class)
-        return (next(algo.row_col_separation()),)
-
-    def extra_parameters(
-        self, comb_class: Tiling, children: Optional[tuple[Tiling, ...]] = None
-    ) -> tuple[dict[str, str], ...]:
-        """Return the extra parameters for the strategy."""
-        return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self) -> str:
         return "Separate rows and columns"
 
     def backward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[tuple[Tiling, ...]] = None,
+        children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[tuple[Tiling, ...]] = None,
+        children: Optional[tuple[TilingT, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -729,21 +718,46 @@ class LessThanRowColSeparationStrategy(
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "LessThanRowColSeparationStrategy":
+    def from_dict(cls, d: dict) -> "AbstractLessThanRowColSeparationStrategy":
         return cls(
             ignore_parent=d["ignore_parent"],
             possibly_empty=d["possibly_empty"],
         )
 
 
-class LessThanOrEqualRowColSeparationStrategy(LessThanRowColSeparationStrategy):
+class LessThanRowColSeparationStrategy(
+    AbstractLessThanRowColSeparationStrategy[Tiling]
+):
+    """A strategy that separates rows and columns."""
+
+    def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
+        """Return the decomposition function."""
+        algo = LessThanRowColSeparation(comb_class)
+        return (next(algo.row_col_separation()),)
+
+    def extra_parameters(
+        self, comb_class: Tiling, children: Optional[tuple[Tiling, ...]] = None
+    ) -> tuple[dict[str, str], ...]:
+        """Return the extra parameters for the strategy."""
+        return tuple({} for _ in self.decomposition_function(comb_class))
+
+
+class AbstractLessThanOrEqualRowColSeparationStrategy(
+    AbstractLessThanRowColSeparationStrategy
+):
+    """A strategy that allows interleaving in the top/bottom rows when separating"""
+
+    def formal_step(self) -> str:
+        """Return a string that describe the operation performed on the tiling."""
+        return super().formal_step() + " allowing interleaving in top/bottom rows"
+
+
+class LessThanOrEqualRowColSeparationStrategy(
+    AbstractLessThanOrEqualRowColSeparationStrategy
+):
     """A strategy that allows interleaving in the top/bottom rows when separating"""
 
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
         algo = LessThanOrEqualRowColSeparation(comb_class)
         return tuple(algo.row_col_separation())
-
-    def formal_step(self) -> str:
-        """Return a string that describe the operation performed on the tiling."""
-        return super().formal_step() + " allowing interleaving in top/bottom rows"

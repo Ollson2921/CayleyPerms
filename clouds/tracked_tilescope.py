@@ -26,6 +26,7 @@ from .strategies import (
     TrackedCellInsertionFactory,
     AddCloudFactory,
 )
+from .tracked_tiling import TrackedTiling
 
 
 class TrackedTileScopePack(StrategyPack):

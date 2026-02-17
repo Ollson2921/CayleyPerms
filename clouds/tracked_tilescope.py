@@ -26,6 +26,7 @@ from .strategies import (
     TrackedCellInsertionFactory,
     AddCloudFactory,
 )
+from .tracked_tiling import TrackedTiling
 
 
 class TrackedTileScopePack(StrategyPack):
@@ -71,7 +72,12 @@ class TrackedTileScopePack(StrategyPack):
         )
 
     @classmethod
-    def standard_fusion_pack(cls, expansion_methods: Iterable[str] = ["point"]):
+    def standard_fusion_pack(
+        cls,
+        expansion_methods: Iterable[str] = ["point"],
+        subclass_verification: bool = False,
+        base_tiling: TrackedTiling | None = None,
+    ):
         """Minimum strategies for a pack. Specify the expansion strategies."""
         # pylint: disable=dangerous-default-value
         if not expansion_methods:
@@ -89,7 +95,7 @@ class TrackedTileScopePack(StrategyPack):
             expansion_strats.append(TrackedColPlacementFactory())
             name += "col_"
         name += "placement_fusion_pack"
-        return TrackedTileScopePack(
+        pack = TrackedTileScopePack(
             inferral_strats=[
                 TrackedRemoveEmptyRowsAndColumnsStrategy(),
                 TrackedLessThanRowColSeparationStrategy(),
@@ -111,6 +117,9 @@ class TrackedTileScopePack(StrategyPack):
             symmetries=[],
             iterative=False,
         )
+        if subclass_verification:
+            pack.add_verification(SubclassVerificationStrategy(root=base_tiling))
+        return pack
 
     @classmethod
     def all_packs(cls) -> Iterable["TrackedTileScopePack"]:
@@ -135,223 +144,42 @@ class TrackedTileScopePack(StrategyPack):
     def point_placement(cls):
         """Point placements strategy pack with both types of fusion."""
 
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                AddCloudFactory(),
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedCellInsertionFactory(),
-                    TrackedPointPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="point_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
-        )
+        return TrackedTileScopePack.standard_fusion_pack(expansion_methods=["point"])
 
     @classmethod
     def row_placement(cls):
         """Row placements strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                AddCloudFactory(),
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedRowPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="row_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
-        )
+        return TrackedTileScopePack.standard_fusion_pack(expansion_methods=["row"])
 
     @classmethod
     def col_placement(cls):
         """Column placements with fusion strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                AddCloudFactory(),
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedColPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="col_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
-        )
+        return TrackedTileScopePack.standard_fusion_pack(expansion_methods=["col"])
 
     @classmethod
     def row_and_col_placement(cls):
         """Point placements strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                AddCloudFactory(),
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedRowPlacementFactory(),
-                    TrackedColPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="row_and_col_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
+        return TrackedTileScopePack.standard_fusion_pack(
+            expansion_methods=["row", "col"]
         )
 
     @classmethod
     def point_row_and_col_placement(cls):
         """Point, row and column placements strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                AddCloudFactory(),
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedCellInsertionFactory(),
-                    TrackedPointPlacementFactory(),
-                    TrackedRowPlacementFactory(),
-                    TrackedColPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="point_row_and_col_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
+        return TrackedTileScopePack.standard_fusion_pack(
+            expansion_methods=["point", "row", "col"]
         )
 
     @classmethod
     def point_and_col_placement(cls):
         """Point, row and column placements strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedCellInsertionFactory(),
-                    TrackedRowPlacementFactory(),
-                    TrackedColPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="point_and_col_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
+        return TrackedTileScopePack.standard_fusion_pack(
+            expansion_methods=["point", "col"]
         )
 
     @classmethod
     def point_and_row_placement(cls):
         """Point, row and column placements strategy pack."""
-        return TrackedTileScopePack(
-            inferral_strats=[
-                TrackedRemoveEmptyRowsAndColumnsStrategy(),
-                TrackedLessThanRowColSeparationStrategy(),
-            ],  # Iterable[Strategy]
-            initial_strats=[
-                TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
-                TrackedFusionPointRowFactory(),
-                TrackedFusionFactory(),
-            ],  # Iterable[Strategy]
-            expansion_strats=[
-                [
-                    TrackedCellInsertionFactory(),
-                    TrackedPointPlacementFactory(),
-                    TrackedRowPlacementFactory(),
-                ]
-            ],  # Iterable[Iterable[Strategy]]
-            ver_strats=[
-                AtomStrategy(),
-                TrackedVerticalInsertionEncodableVerificationStrategy(),
-                TrackedHorizontalInsertionEncodableVerificationStrategy(),
-                SubclassVerificationStrategy(),
-            ],  # Iterable[Strategy]
-            name="point_and_row_placement_with_fusion",
-            symmetries=[],
-            iterative=False,
+        return TrackedTileScopePack.standard_fusion_pack(
+            expansion_methods=["point", "row"]
         )

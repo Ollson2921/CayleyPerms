@@ -183,14 +183,16 @@ class SimplifyObstructionsAndRequirements:
             for other_gcp in other_requirement
         )
 
+    @staticmethod
     def requirement_implied_by_some_requirement(
-        self,
         requirement: tuple["GriddedCayleyPerm", ...],
         requirements: Iterable[tuple["GriddedCayleyPerm", ...]],
     ) -> bool:
         """Check if one of the requirements implies the containment of requirement."""
         return any(
-            self.requirement_implied_by_requirement(requirement, req)
+            SimplifyObstructionsAndRequirements.requirement_implied_by_requirement(
+                requirement, req
+            )
             for req in requirements
         )
 

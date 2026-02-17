@@ -1,4 +1,8 @@
-"""Strategy for adding clouds to a tiling class."""
+"""Strategy for adding clouds to a tiling class.
+
+Adapted from Tilings' assumption insertion strategy, which can be found here:
+https://github.com/PermutaTriangle/Tilings/blob/develop/tilings/strategies/assumption_insertion.py
+"""
 
 from collections import Counter
 from itertools import product

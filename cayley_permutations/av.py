@@ -3,7 +3,7 @@ generates Cayley permutations avoiding a given basis."""
 
 from typing import Iterable
 from .cayley import CayleyPermutation
-from .simplify_basis import string_to_basis
+from .simplify_basis import string_to_basis, lex_min, minimise
 
 
 class Av:
@@ -11,7 +11,7 @@ class Av:
     Generates Cayley permutations avoiding the input.
     """
 
-    def __init__(self, basis: Iterable[CayleyPermutation] | str):
+    def __init__(self, basis: Iterable[CayleyPermutation] | str, simplify=False):
         """Input can be a list of Cayley permutations or a string of zero-based
         or one-based Cayley permutations separated by anything.
         Cache is a list of dictionaries. The nth dictionary contains the Cayley
@@ -20,7 +20,10 @@ class Av:
         and the second is the indices where the same maximum can be inserted."""
         if isinstance(basis, str):
             basis = string_to_basis(basis)
-        self.basis = basis
+        if simplify:
+            self.basis = lex_min(minimise(set(basis)))
+        else:
+            self.basis = tuple(basis)
         self.cache: list[dict[CayleyPermutation, tuple[list[int], list[int]]]] = [
             {CayleyPermutation([]): ([0], [])}
         ]

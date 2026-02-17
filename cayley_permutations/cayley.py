@@ -38,12 +38,13 @@ class CayleyPermutation(tuple[int, ...]):
 
     def as_one_based(self) -> "str":
         """Returns Cayley permutation as a one based string from zero based.
+        Adds parentheses for values greater than 9.
 
         Example:
         >>> CayleyPermutation([1, 2, 3, 0]).as_one_based()
         '2341'
         """
-        return "".join(str(x + 1) for x in self)
+        return "".join(str(x + 1) if x < 9 else f"({x + 1})" for x in self)
 
     @classmethod
     def from_one_based(cls, cperm: Iterable[int]) -> "CayleyPermutation":

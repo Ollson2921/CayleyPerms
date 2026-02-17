@@ -21,7 +21,7 @@ class Av:
         if isinstance(basis, str):
             basis = string_to_basis(basis)
         if simplify:
-            self.basis = lex_min(minimise(set(basis)))
+            self.basis = minimise(set(basis))
         else:
             self.basis = tuple(basis)
         self.cache: list[dict[CayleyPermutation, tuple[list[int], list[int]]]] = [
@@ -137,7 +137,7 @@ class Av:
         and ending in 'and'"""
         return (
             f"{', '.join(str(x.as_one_based()) for x in self.basis[:-1])}"
-            + f"and {str(self.basis[-1].as_one_based())}"
+            + f" and {str(self.basis[-1].as_one_based())}"
         )
 
     def __str__(self) -> str:

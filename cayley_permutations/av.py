@@ -3,7 +3,7 @@ generates Cayley permutations avoiding a given basis."""
 
 from typing import Iterable
 from .cayley import CayleyPermutation
-from .simplify_basis import string_to_basis, lex_min, minimise
+from .simplify_basis import string_to_basis, minimise
 
 
 class Av:

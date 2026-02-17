@@ -41,7 +41,7 @@ class CayleyPermutation(tuple[int, ...]):
 
         Example:
         >>> CayleyPermutation([1, 2, 3, 0]).as_one_based()
-        2341
+        '2341'
         """
         return "".join(str(x + 1) for x in self)
 

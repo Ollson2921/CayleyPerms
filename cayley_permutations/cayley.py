@@ -36,14 +36,14 @@ class CayleyPermutation(tuple[int, ...]):
         """Return True if input is correct"""
         return len(self) == 0 or all(val in self for val in range(max(self) + 1))
 
-    def as_one_based(self) -> "list[int]":
-        """Returns Cayley permutation as a one based list from zero based.
+    def as_one_based(self) -> "str":
+        """Returns Cayley permutation as a one based string from zero based.
 
         Example:
         >>> CayleyPermutation([1, 2, 3, 0]).as_one_based()
-        [2, 3, 4, 1]
+        2341
         """
-        return [x + 1 for x in self]
+        return "".join(str(x + 1) for x in self)
 
     @classmethod
     def from_one_based(cls, cperm: Iterable[int]) -> "CayleyPermutation":

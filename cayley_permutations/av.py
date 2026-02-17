@@ -129,6 +129,11 @@ class Av:
         in a more readable format."""
         return f"{','.join(str(x) for x in self.generate_cperms(size))}"
 
+    def as_one_based(self) -> str:
+        """Returns a string of the basis in one based form, separated by commas
+        and ending in 'and'"""
+        return f"{', '.join(str(x.as_one_based()) for x in self.basis[:-1])} and {str(self.basis[-1].as_one_based())}"
+
     def __str__(self) -> str:
         return f"Av({','.join(str(x) for x in self.basis)})"
 

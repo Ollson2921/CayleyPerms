@@ -55,8 +55,8 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
         return tuple(algo.tracked_row_col_separation())
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        rc_map = (
-            self.rc_map_for_cloud(self.algorithm(comb_class).row_col_map, comb_class),
+        rc_map = self.rc_map_for_cloud(
+            self.algorithm(comb_class).row_col_map, comb_class
         )
         all_maps = []
         for _ in self.decomposition_function(comb_class):

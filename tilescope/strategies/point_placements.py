@@ -115,7 +115,8 @@ class AbstractRequirementPlacementStrategy(
 class RequirementPlacementStrategy(AbstractRequirementPlacementStrategy[Tiling]):
     """Insert a point of a requirement into a tiling in a direction."""
 
-    def algorithm(self, tiling: Tiling) -> PointPlacement:
+    def algorithm(self, tiling: Tiling) -> PointPlacement:  #
+        """Return the point placement algorithm to use for the strategy."""
         return PointPlacement(tiling)
 
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:

@@ -12,19 +12,17 @@ from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations.point_placements import (
-    PointPlacement,
+    PointPlacement, AbstractPointPlacement,
     DIRECTIONS,
     DIR_RIGHT,
     DIR_RIGHT_TOP,
     DIR_LEFT_TOP,
     DIR_LEFT,
     DIR_LEFT_BOT,
-    DIR_RIGHT_BOT,
+    DIR_RIGHT_BOT, TilingT
 )
 from gridded_cayley_permutations import GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
-from .factor import TilingT
-
 
 Cell = Tuple[int, int]
 
@@ -57,18 +55,18 @@ class AbstractRequirementPlacementStrategy(
         super().__init__(ignore_parent=ignore_parent)
 
     @abc.abstractmethod
-    def algorithm(self, tiling: TilingT) -> PointPlacement:
+    def algorithm(self, tiling: TilingT) -> AbstractPointPlacement:
         """Return the algorithm to be used for point placement."""
-
-    @abc.abstractmethod
-    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
-        """Return the decomposition function for the strategy."""
 
     def extra_parameters(
         self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
+    @abc.abstractmethod
+    def decomposition_function(self, comb_class: TilingT) -> Tuple[Tiling, ...]:
+
+    
     def formal_step(self):
         return (
             f"Placed the point of the requirement {self.gcps} "

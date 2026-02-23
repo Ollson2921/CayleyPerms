@@ -4,8 +4,9 @@ which includes methods for placing point of a tiling and adding
 obstructions and requirements to make the placements unique.
 """
 
+import abc
 from itertools import combinations, chain
-from typing import Iterable
+from typing import Iterable, TypeVar
 
 from cayley_permutations import CayleyPermutation
 
@@ -28,6 +29,9 @@ DIRECTIONS = [
     DIR_LEFT_BOT,
     DIR_RIGHT_BOT,
 ]
+
+TilingT = TypeVar("TilingT", bound="Tiling")
+
 
 Cell = tuple[int, int]
 
@@ -92,7 +96,55 @@ class PartialMultiplexMap(MultiplexMap):
         return {i: i for i in range(self.dimensions[1])}
 
 
-class PointPlacement:
+class AbstractPointPlacement:
+    """Abstract class for point placements."""
+
+    DIRECTIONS = [
+        DIR_RIGHT,
+        DIR_RIGHT_TOP,
+        DIR_LEFT_TOP,
+        DIR_LEFT,
+        DIR_LEFT_BOT,
+        DIR_RIGHT_BOT,
+    ]
+
+    def __init__(self, tiling: TilingT) -> None:
+        self.tiling = tiling
+        self.directionless_dict = dict[Cell, Tiling]()
+
+    def point_placement(
+        self,
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
+        direction: int,
+    ) -> tuple[Tiling, ...]:
+        """
+        Return the tilings that are obtained by placing the points of the gridded permutations
+        in requirement_list in the given direction."""
+        if direction not in self.DIRECTIONS:
+            raise ValueError(f"Direction {direction} is not a valid direction.")
+        cells = []
+        for idx, gcp in zip(indices, requirement_list):
+            cells.append(gcp.positions[idx])
+        cells = sorted(set(cells))
+        return tuple(
+            self.point_placement_in_cell(requirement_list, indices, direction, cell)
+            for cell in cells
+        )
+
+    @abc.abstractmethod
+    def point_placement_in_cell(
+        self,
+        requirement_list: tuple[GriddedCayleyPerm, ...],
+        indices: tuple[int, ...],
+        direction: int,
+        cell: Cell,
+    ) -> Tiling:
+        """Return the tiling which has placed the point in cell with respect to the given
+        requirement_list and indices."""
+
+
+class PointPlacement(AbstractPointPlacement):
     """
     A class for placing points in a tiling
             + - + - + - +
@@ -108,18 +160,11 @@ class PointPlacement:
     contains only one value.
     """
 
-    DIRECTIONS = [
-        DIR_RIGHT,
-        DIR_RIGHT_TOP,
-        DIR_LEFT_TOP,
-        DIR_LEFT,
-        DIR_LEFT_BOT,
-        DIR_RIGHT_BOT,
-    ]
-
     def __init__(self, tiling: Tiling) -> None:
-        self.tiling = tiling
-        self.directionless_dict = dict[Cell, Tiling]()
+        super().__init__(tiling)
+
+    #     self.tiling = tiling
+    #     self.directionless_dict = dict[Cell, Tiling]()
 
     def point_obstructions_and_requirements(
         self, cell: tuple[int, int]
@@ -214,19 +259,20 @@ class PointPlacement:
         indices: tuple[int, ...],
         direction: int,
     ) -> tuple[Tiling, ...]:
-        """
-        Return the tilings that are obtained by placing the points of the gridded permutations
-        in requirement_list in the given direction."""
-        if direction not in self.DIRECTIONS:
-            raise ValueError(f"Direction {direction} is not a valid direction.")
-        cells = []
-        for idx, gcp in zip(indices, requirement_list):
-            cells.append(gcp.positions[idx])
-        cells = sorted(set(cells))
-        return tuple(
-            self.point_placement_in_cell(requirement_list, indices, direction, cell)
-            for cell in cells
-        )
+        #     """
+        #     Return the tilings that are obtained by placing the points of the gridded permutations
+        #     in requirement_list in the given direction."""
+        #     if direction not in self.DIRECTIONS:
+        #         raise ValueError(f"Direction {direction} is not a valid direction.")
+        #     cells = []
+        #     for idx, gcp in zip(indices, requirement_list):
+        #         cells.append(gcp.positions[idx])
+        #     cells = sorted(set(cells))
+        #     return tuple(
+        #         self.point_placement_in_cell(requirement_list, indices, direction, cell)
+        #         for cell in cells
+        #     )
+        return super().point_placement(requirement_list, indices, direction)
 
     def point_placement_in_cell(
         self,

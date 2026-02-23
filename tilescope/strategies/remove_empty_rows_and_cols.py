@@ -6,7 +6,7 @@ from comb_spec_searcher.exception import StrategyDoesNotApply
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations import GriddedCayleyPerm
-from .factor import TilingT
+from gridded_cayley_permutations.point_placements import TilingT
 
 Cell = Tuple[int, int]
 

@@ -57,10 +57,6 @@ class AbstractRequirementPlacementStrategy(
         super().__init__(ignore_parent=ignore_parent)
 
     @abc.abstractmethod
-    def algorithm(self, tiling: TilingT) -> PointPlacement:
-        """Return the algorithm to be used for point placement."""
-
-    @abc.abstractmethod
     def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
         """Return the decomposition function for the strategy."""
 

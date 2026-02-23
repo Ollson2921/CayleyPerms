@@ -253,27 +253,6 @@ class PointPlacement(AbstractPointPlacement):
             return cell1[1] < cell2[1] or (cell1[1] == cell2[1] and cell1[0] > cell2[0])
         raise ValueError(f"Direction {direction} is not valid.")
 
-    def point_placement(
-        self,
-        requirement_list: tuple[GriddedCayleyPerm, ...],
-        indices: tuple[int, ...],
-        direction: int,
-    ) -> tuple[Tiling, ...]:
-        #     """
-        #     Return the tilings that are obtained by placing the points of the gridded permutations
-        #     in requirement_list in the given direction."""
-        #     if direction not in self.DIRECTIONS:
-        #         raise ValueError(f"Direction {direction} is not a valid direction.")
-        #     cells = []
-        #     for idx, gcp in zip(indices, requirement_list):
-        #         cells.append(gcp.positions[idx])
-        #     cells = sorted(set(cells))
-        #     return tuple(
-        #         self.point_placement_in_cell(requirement_list, indices, direction, cell)
-        #         for cell in cells
-        #     )
-        return super().point_placement(requirement_list, indices, direction)
-
     def point_placement_in_cell(
         self,
         requirement_list: tuple[GriddedCayleyPerm, ...],

@@ -1,6 +1,6 @@
 """Factors the tiling into sections that are independent of each other."""
 
-from typing import Dict, Iterator, Optional, Tuple, TypeVar
+from typing import Dict, Iterator, Optional, Tuple
 from comb_spec_searcher import CartesianProductStrategy, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor

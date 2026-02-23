@@ -561,6 +561,13 @@ class Tiling(CombinatorialClass):
     # Construction methods
 
     @staticmethod
+    def permutation_tiling() -> "Tiling":
+        """Returns the 1x1 tiling representing all permutations."""
+        return Tiling(
+            [GriddedCayleyPerm(CayleyPermutation((0, 0)), ((0, 0), (0, 0)))], [], (1, 1)
+        )
+
+    @staticmethod
     def create_vincular_or_bivincular(
         cperm: CayleyPermutation | str,
         adjacent_indices: Iterable[int] = [],

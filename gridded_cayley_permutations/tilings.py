@@ -1148,7 +1148,7 @@ class Tiling(CombinatorialClass):
 
         if len(crossing_obs) > 0:
             crossing_string = "\nCrossing obstructions: \n"
-            crossing_string += "\n".join(map(str, crossing_obs))
+            crossing_string += "\n".join(map(str, sorted(crossing_obs)))
             final_string += crossing_string
 
         return final_string

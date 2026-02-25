@@ -252,6 +252,26 @@ class TileScopePack(StrategyPack):
         )
 
     @classmethod
+    def all_packs(cls, root: Tiling):
+        """Reuturns a list of all strategy packs with verification."""
+        return [
+            cls.point_placement_with_verification(root),
+            cls.row_and_col_placement_with_verification(root),
+            cls.point_and_row_and_col_placement_with_verification(root),
+            cls.row_placement_with_verification(root),
+            cls.col_placement_with_verification(root),
+            cls.initial_point_placement_with_verification(root),
+            cls.point_placement_initial_cell_insertion_with_insertion_encoding_verification(),
+            cls.point_placement_with_shuffle_factors_with_verification(root),
+            cls.point_placement_initial_cell_insertion_with_shuffle_factors_with_verification(
+                root
+            ),
+            cls.point_and_row_and_col_placement_initial_cell_insertion_with_verification(
+                root
+            ),
+        ]
+
+    @classmethod
     def point_placement(cls):
         """Point placement strategy pack."""
         return cls.make_pack(expansions=["point"], cell_insertion="expansion")

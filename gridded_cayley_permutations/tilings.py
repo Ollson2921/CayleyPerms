@@ -560,15 +560,16 @@ class Tiling(CombinatorialClass):
 
     # Construction methods
 
-    @staticmethod
-    def permutation_tiling() -> "Tiling":
+    @classmethod
+    def permutation_tiling(cls) -> "Tiling":
         """Returns the 1x1 tiling representing all permutations."""
-        return Tiling(
+        return cls(
             [GriddedCayleyPerm(CayleyPermutation((0, 0)), ((0, 0), (0, 0)))], [], (1, 1)
         )
 
-    @staticmethod
+    @classmethod
     def create_vincular_or_bivincular(
+        cls,
         cperm: CayleyPermutation | str,
         adjacent_indices: Iterable[int] = [],
         adjacent_values: Iterable[int] = [],
@@ -665,7 +666,7 @@ class Tiling(CombinatorialClass):
         ):  # this puts the point requirement and the 00 obstruction according to the permutation
             all_reqs.append([GriddedCayleyPerm(CayleyPermutation([0]), [cell])])
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
-        return Tiling(
+        return cls(
             all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1)
         ).delete_rows_and_columns(
             cols=[i * 2 + 2 for i in adjacent_indices],
@@ -1047,7 +1048,7 @@ class Tiling(CombinatorialClass):
     @classmethod
     def empty_tiling(cls) -> "Tiling":
         """Return the tiling that is the empty set."""
-        return Tiling([GriddedCayleyPerm(CayleyPermutation([]), [])], [], (0, 0))
+        return cls([GriddedCayleyPerm(CayleyPermutation([]), [])], [], (0, 0))
 
     def copy(self) -> "Tiling":
         """Return a copy of the tiling."""

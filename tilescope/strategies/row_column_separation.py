@@ -427,11 +427,11 @@ class LessThanRowColSeparation:
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[tuple[Obstructions, Requirements]]:
+    ) -> list[tuple[Obstructions, Requirements]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
-        yield (), ()
+        return [((), ())]
 
     @property
     def new_obstructions(self) -> Obstructions:
@@ -537,27 +537,37 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         if any(self.tiling.find_empty_rows_and_columns()):
             yield self.tiling
             return
-        row_col_map = self.row_col_map  # should only split by 1
+        row_col_map = self.row_col_map
         if row_col_map.is_identity():
             yield self.tiling
             return
         new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
         new_dimensions = self.new_dimensions
-        for (
-            obs,
-            reqs,
-        ) in self.point_row_obs_and_reqs():  # making things empty/adding req lists
+        for obs, reqs in self.point_row_obs_and_reqs():
             yield Tiling(
                 new_obstructions + obs, new_requirements + reqs, new_dimensions
             )
 
     def point_row_obs_and_reqs(
         self,
-    ) -> Iterator[tuple[Obstructions, Requirements]]:
+    ) -> list[tuple[Obstructions, Requirements]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
+        obs_and_reqs_to_add: dict[
+            int,
+            list[
+                tuple[
+                    Obstructions,
+                    Requirements,
+                ]
+            ],
+        ] = (
+            {}
+        )  # mapping row to a list of (obstructions, requirements) to add for the separations in that row
+        count = 0  # count number of extensions
         for row in self.point_rows:
+            obs_and_reqs_to_add[row] = []
             splitting_row = self.row_col_map.row_map[row]
             cells_to_split = self.active_cells_in_row(splitting_row)
             point_row_obs = self.point_row_obs(
@@ -565,6 +575,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
             )
 
             for n in range(1, len(cells_to_split)):
+                count += 1
                 indices_of_above = [cell[0] for cell in cells_to_split[:n]]
                 indices_of_below = [cell[0] for cell in cells_to_split[n:]]
                 point_obs = []
@@ -584,11 +595,41 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                     point_reqs_right.append(
                         GriddedCayleyPerm(CayleyPermutation([0]), ((idx, row),))
                     )
-                yield tuple(point_obs) + point_row_obs, (
-                    tuple(point_reqs_left),
-                    tuple(point_reqs_right),
+                obsreqs_middle_row = (
+                    tuple(point_obs + list(point_row_obs)),
+                    (
+                        tuple(point_reqs_left),
+                        tuple(point_reqs_right),
+                    ),
                 )
-                yield tuple(point_obs + point_reqs_left + point_reqs_right), ()
+
+                obsreqs_no_middle_row = (
+                    tuple(point_obs + point_reqs_left + point_reqs_right),
+                    (),
+                )
+                obs_and_reqs_to_add[row].append(obsreqs_middle_row)
+                obs_and_reqs_to_add[row].append(obsreqs_no_middle_row)
+
+        obs_reqs_lists: list[
+            tuple[
+                Obstructions,
+                Requirements,
+            ]
+        ] = [
+            ((), ())
+        ]  # list of (obstructions, requirements) for each combination of separations in rows
+        for row in self.point_rows:
+            new_obs_reqs_lists = []
+            for obsreqs_to_add in obs_and_reqs_to_add[row]:
+                for old_obs_reqs_list in obs_reqs_lists:
+                    new_obs_reqs_lists.append(
+                        (
+                            old_obs_reqs_list[0] + obsreqs_to_add[0],
+                            old_obs_reqs_list[1] + obsreqs_to_add[1],
+                        )
+                    )
+            obs_reqs_lists = new_obs_reqs_lists
+        return new_obs_reqs_lists
 
     def point_row_obs(self, active_cells_in_row: list[Cell]) -> Obstructions:
         """Return the point row obstructions."""
@@ -605,27 +646,6 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
             point_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 1]), [cell, cell]))
             point_obs.append(GriddedCayleyPerm(CayleyPermutation([1, 0]), [cell, cell]))
         return tuple(point_obs)
-
-    # @property
-    # def new_active_cells(self) -> set[Cell]:
-    #     """Return the new active cells of the tiling."""
-    #     new_active_cells = [self.map_cell(cell) for cell in self.tiling.active_cells]
-    #     point_row_active_cells = []
-    #     for row in self.point_rows:
-    #         for cell in new_active_cells:
-    #             if cell[1] == row - 1 or cell[1] == row + 1:
-    #                 point_row_active_cells.append((cell[0], row))
-    #     return set(new_active_cells + point_row_active_cells)
-
-    # def point_row_cells(self, row: int) -> list[Cell]:
-    #     """TODO: find the active cells of point rows, currently just adding them all.
-
-    #     AO: this iterated over self.new_dimensions[0], but self.new_dimensions[0] is an
-    #     integer, I think this is still correct?"""
-    #     point_row_cells = []
-    #     i = self.new_dimensions[0]
-    #     point_row_cells.append((i, row))
-    #     return point_row_cells
 
     def active_cells_in_row(self, row: int) -> list[Cell]:
         """Returns the cells in the row of the original tiling that are active."""
@@ -665,34 +685,6 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                 self.row_col_map.preimages_of_row(i)[1::2]
             )  # finds the odd indices
         return point_rows
-
-    # def map_cell(self, cell: Cell) -> Cell:
-    #     """
-    #     Map the cell to its new position.
-    #     """
-    #     print(cell)
-    #     print(self.row_order)
-    #     for idx, col in enumerate(self.col_order):
-    #         if cell in col:
-    #             count = 0
-    #             previous = None
-    #             seen_twice = 0
-    #             for row in self.row_order:
-    #                 val = next(iter(row))[1]
-    #                 if val == previous:
-    #                     # first 'n-1' times, cells could go below or above - keep same or add 2
-    #                     pass
-    #                     # count += 1
-    #                 # if val != previous:
-    #                 #     seen_twice = 0
-    #                 # if seen_twice > 1:
-    #                 #     count -= 1
-    #                 # print("val", val)
-    #                 if cell in row:
-    #                     return (idx, count)
-    #                 count += 1
-    #                 previous = val
-    #     raise ValueError(f"Cell {cell} not found in the orders.")
 
     def column_row_inequalities(
         self,

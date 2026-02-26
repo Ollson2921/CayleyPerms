@@ -554,6 +554,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         """
         Return the obstructions and requirements for the points in the rows.
         """
+        # pylint:disable=too-many-locals
         obs_and_reqs_to_add: dict[
             int,
             list[
@@ -562,10 +563,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                     Requirements,
                 ]
             ],
-        ] = (
-            {}
-        )  # mapping row to a list of (obstructions, requirements) to add for the separations in that row
-        count = 0  # count number of extensions
+        ] = {}  # mapping row to a list of (obstructions, requirements) to add
         for row in self.point_rows:
             obs_and_reqs_to_add[row] = []
             splitting_row = self.row_col_map.row_map[row]
@@ -575,7 +573,6 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
             )
 
             for n in range(1, len(cells_to_split)):
-                count += 1
                 indices_of_above = [cell[0] for cell in cells_to_split[:n]]
                 indices_of_below = [cell[0] for cell in cells_to_split[n:]]
                 point_obs = []

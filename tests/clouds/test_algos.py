@@ -107,9 +107,9 @@ def test_lte_rc_sep_clouds():
         indices_clouds=(),
         intersect_clouds_with_active=False,
     )
-    assert list(
+    assert set(
         TrackedLessThanOrEqualRowColSeparation(track_til).tracked_row_col_separation()
-    ) == [
+    ) == {
         TrackedTiling(
             tiling=Tiling(
                 (
@@ -145,7 +145,7 @@ def test_lte_rc_sep_clouds():
             indices_clouds=(),
             value_clouds=((0, 1, 2),),
         ),
-    ]
+    }
 
 
 def test_point_placement_clouds():

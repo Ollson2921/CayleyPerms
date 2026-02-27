@@ -573,8 +573,16 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
             )
 
             for n in range(1, len(cells_to_split)):
-                indices_of_above = [cell[0] for cell in cells_to_split[:n]]
-                indices_of_below = [cell[0] for cell in cells_to_split[n:]]
+                if (
+                    cells_to_split[1],
+                    cells_to_split[0],
+                ) in self.column_row_inequalities()[1]:
+                    indices_of_above = [cell[0] for cell in cells_to_split[:n]]
+                    indices_of_below = [cell[0] for cell in cells_to_split[n:]]
+                else:
+                    indices_of_below = [cell[0] for cell in cells_to_split[:n]]
+                    indices_of_above = [cell[0] for cell in cells_to_split[n:]]
+
                 point_obs = []
                 point_reqs_left = []
                 for idx in indices_of_above:

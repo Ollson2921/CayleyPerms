@@ -615,12 +615,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
                 obs_and_reqs_to_add[row].append(obsreqs_middle_row)
                 obs_and_reqs_to_add[row].append(obsreqs_no_middle_row)
 
-        obs_reqs_lists: list[
-            tuple[
-                Obstructions,
-                Requirements,
-            ]
-        ] = [
+        obs_reqs_lists: list[tuple[Obstructions, Requirements,]] = [
             ((), ())
         ]  # list of (obstructions, requirements) for each combination of separations in rows
         for row in self.point_rows:

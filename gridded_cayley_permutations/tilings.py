@@ -9,7 +9,7 @@ from collections import defaultdict
 from functools import cached_property
 from itertools import chain, product, combinations, combinations_with_replacement
 from math import factorial
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 from comb_spec_searcher import CombinatorialClass
 
@@ -789,6 +789,16 @@ class Tiling(CombinatorialClass):
             all_reqs.append([GriddedCayleyPerm(CayleyPermutation([0]), [cell])])
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
         return Tiling(all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1))
+
+    def compare_to(
+        self, other: "Tiling", depth: int = 4
+    ) -> tuple[
+        bool, Optional[tuple[list[int], list[int]]], Optional[GriddedCayleyPerm]
+    ]:
+        """Compares the gcps that live on self to the gcps on other up to size depth"""
+        original = self.initial_conditions(depth)
+        new = other.initial_conditions(depth)
+        return (original == new, (original, new), None)
 
     # CSS methods
 

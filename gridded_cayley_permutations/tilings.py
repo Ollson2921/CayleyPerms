@@ -792,25 +792,13 @@ class Tiling(CombinatorialClass):
 
     def compare_to(
         self, other: "Tiling", depth: int = 4
-    ) -> tuple[bool, Optional[GriddedCayleyPerm]]:
+    ) -> tuple[
+        bool, Optional[tuple[list[int], list[int]]], Optional[GriddedCayleyPerm]
+    ]:
         """Compares the gcps that live on self to the gcps on other up to size depth"""
-
-        base = Tiling(
-            [],
-            [],
-            (
-                max(self.dimensions[0], other.dimensions[0]),
-                max(self.dimensions[1], other.dimensions[1]),
-            ),
-        )
-
-        i = 0
-        while i < depth:
-            for gcp in base.objects_of_size(i):
-                if self.gcp_in_tiling(gcp) != other.gcp_in_tiling(gcp):
-                    return False, gcp
-            i += 1
-        return True, None
+        original = self.initial_conditions(depth)
+        new = other.initial_conditions(depth)
+        return (original == new, (original, new), None)
 
     # CSS methods
 

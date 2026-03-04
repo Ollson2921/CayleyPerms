@@ -32,7 +32,7 @@ from .factor import (
 )
 from .row_column_separation import (
     LessThanRowColSeparationStrategy,
-    LessThanOrEqualRowColSeparationStrategy,
+    LessThanOrEqualRowColSeparationFactory,
     AbstractLessThanRowColSeparationStrategy,
     AbstractLessThanOrEqualRowColSeparationStrategy,
 )
@@ -74,7 +74,7 @@ __all__ = (
     "AbstractFactorStrategy",
     "ShuffleFactorStrategy",
     "AbstractShuffleFactorStrategy",
-    "LessThanOrEqualRowColSeparationStrategy",
+    "LessThanOrEqualRowColSeparationFactory",
     "LessThanRowColSeparationStrategy",
     "AbstractLessThanRowColSeparationStrategy",
     "AbstractLessThanOrEqualRowColSeparationStrategy",

@@ -16,7 +16,7 @@ from .strategies import (
     TrackedHorizontalInsertionEncodingRequirementInsertionFactory,
     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
     TrackedLessThanRowColSeparationStrategy,
-    TrackedLessThanOrEqualRowColSeparationStrategy,
+    TrackedLessThanOrEqualRowColSeparationFactory,
     TrackedPointPlacementFactory,
     TrackedRemoveEmptyRowsAndColumnsStrategy,
     TrackedFusionFactory,
@@ -103,7 +103,7 @@ class TrackedTileScopePack(StrategyPack):
             initial_strats=[
                 AddCloudFactory(),
                 TrackedFactorStrategy(),
-                TrackedLessThanOrEqualRowColSeparationStrategy(),
+                TrackedLessThanOrEqualRowColSeparationFactory(),
                 TrackedFusionPointRowFactory(),
                 TrackedFusionFactory(),
             ],  # Iterable[Strategy]

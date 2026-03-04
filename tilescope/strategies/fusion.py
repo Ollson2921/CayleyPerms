@@ -5,7 +5,7 @@ from comb_spec_searcher import StrategyFactory, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from .factor import TilingT
+from gridded_cayley_permutations.point_placements import TilingT
 
 
 class AbstractFusionStrategy(Strategy[TilingT, GriddedCayleyPerm]):

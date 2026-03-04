@@ -5,8 +5,9 @@ from itertools import product
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
+from gridded_cayley_permutations.point_placements import TilingT
 from cayley_permutations import CayleyPermutation, Av
-from .factor import TilingT
+
 
 Cell = Tuple[int, int]
 

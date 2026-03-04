@@ -1,14 +1,12 @@
 """Factors the tiling into sections that are independent of each other."""
 
-from typing import Dict, Iterator, Optional, Tuple, TypeVar
+from typing import Dict, Iterator, Optional, Tuple
 from comb_spec_searcher import CartesianProductStrategy, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
-
-
-TilingT = TypeVar("TilingT", bound="Tiling")
+from gridded_cayley_permutations.point_placements import TilingT
 
 
 class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm]):

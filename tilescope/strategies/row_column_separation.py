@@ -530,20 +530,21 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
     separating cells in a row.
     """
 
-    def __init__(
-        self,
-        tiling: Tiling,
-        row_order: Optional[list[set[Cell]]],
-        col_order: Optional[list[set[Cell]]],
-    ) -> None:
-        super().__init__(tiling)
-        if row_order is None or col_order is None:
-            col_ineq, row_ineq = self.column_row_inequalities()
-            col_order, row_order = RowColOrder(
-                self.tiling.active_cells, col_ineq, row_ineq
-            ).max_column_row_order
-        self.row_order = row_order
-        self.col_order = col_order
+    # def __init__(
+    #     self,
+    #     tiling: Tiling,
+    #     row_order: Optional[list[set[Cell]]],
+    #     col_order: Optional[list[set[Cell]]],
+    # ) -> None:
+    #     super().__init__(tiling)
+    #     if row_order is None or col_order is None:
+    #         col_ineq, row_ineq = self.column_row_inequalities()
+    #         col_order, row_order = RowColOrder(
+    #             self.tiling.active_cells, col_ineq, row_ineq
+    #         ).max_column_row_order
+    #     print(f"Row order: {row_order}")
+    #     self.row_order = row_order
+    #     self.col_order = col_order
 
     # @property
     # def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
@@ -788,9 +789,7 @@ class LessThanOrEqualRowColSeparationStrategy(
 
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
-        algo = LessThanOrEqualRowColSeparation(
-            comb_class, row_order=self.row_order, col_order=self.col_order
-        )
+        algo = LessThanOrEqualRowColSeparation(comb_class)
         return tuple(algo.row_col_separation())
 
 

@@ -1,6 +1,9 @@
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
 from itertools import combinations
+from tilescope.strategies.row_column_separation import (
+    LessThanOrEqualRowColSeparationFactory,
+)
 
 """Error from spec Av(012,1020), fusion"""
 til_error_1 = Tiling(
@@ -83,3 +86,9 @@ til_multiple_rows = Tiling(
     (),
     (3, 3),
 )
+
+
+print(til_error_1)
+for strat in LessThanOrEqualRowColSeparationFactory()(til_error_1):
+    print(strat)
+    print(strat(til_error_1))

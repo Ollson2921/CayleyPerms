@@ -49,6 +49,7 @@ class TrackedRequirementPlacementStrategy(
     """
 
     def algorithm(self, tiling):
+        """Return the point placement algorithm to use for the strategy."""
         return TrackedPointPlacement(tiling)
 
     def decomposition_function(

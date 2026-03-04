@@ -118,7 +118,8 @@ class AbstractRequirementPlacementStrategy(
 class RequirementPlacementStrategy(AbstractRequirementPlacementStrategy[Tiling]):
     """Insert a point of a requirement into a tiling in a direction."""
 
-    def algorithm(self, tiling: Tiling) -> PointPlacement:
+    def algorithm(self, tiling: Tiling) -> PointPlacement:  #
+        """Return the point placement algorithm to use for the strategy."""
         return PointPlacement(tiling)
 
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
@@ -209,6 +210,10 @@ class AbstractRowInsertionFactory(StrategyFactory[TilingT]):
     def __str__(self) -> str:
         return "Row insertion"
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "AbstractRowInsertionFactory":
+        return cls(**d)
+
 
 class RowInsertionFactory(AbstractRowInsertionFactory[Tiling]):
     """Factory for having a point requirement on a row."""
@@ -225,10 +230,6 @@ class RowInsertionFactory(AbstractRowInsertionFactory[Tiling]):
             for direction in [DIR_LEFT_BOT, DIR_RIGHT_BOT, DIR_LEFT_TOP, DIR_RIGHT_TOP]:
                 yield RequirementPlacementStrategy(all_gcps, indices, direction)
 
-    @classmethod
-    def from_dict(cls, d: dict) -> "RowInsertionFactory":
-        return cls(**d)
-
 
 class AbstractColInsertionFactory(StrategyFactory[TilingT]):
     """Abstract factory for having a point requirement on a column."""
@@ -238,6 +239,10 @@ class AbstractColInsertionFactory(StrategyFactory[TilingT]):
 
     def __str__(self) -> str:
         return "Column insertion"
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "AbstractColInsertionFactory":
+        return cls(**d)
 
 
 class ColInsertionFactory(AbstractColInsertionFactory[Tiling]):
@@ -256,7 +261,3 @@ class ColInsertionFactory(AbstractColInsertionFactory[Tiling]):
             indices = tuple(0 for _ in all_gcps)
             for direction in [DIR_LEFT, DIR_RIGHT]:
                 yield RequirementPlacementStrategy(all_gcps, indices, direction)
-
-    @classmethod
-    def from_dict(cls, d: dict) -> "ColInsertionFactory":
-        return cls(**d)

@@ -9,7 +9,7 @@ from collections import defaultdict
 from functools import cached_property
 from itertools import chain, product, combinations, combinations_with_replacement
 from math import factorial
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, Optional
 
 from comb_spec_searcher import CombinatorialClass
 
@@ -560,8 +560,16 @@ class Tiling(CombinatorialClass):
 
     # Construction methods
 
-    @staticmethod
+    @classmethod
+    def permutation_tiling(cls) -> "Tiling":
+        """Returns the 1x1 tiling representing all permutations."""
+        return cls(
+            [GriddedCayleyPerm(CayleyPermutation((0, 0)), ((0, 0), (0, 0)))], [], (1, 1)
+        )
+
+    @classmethod
     def create_vincular_or_bivincular(
+        cls,
         cperm: CayleyPermutation | str,
         adjacent_indices: Iterable[int] = [],
         adjacent_values: Iterable[int] = [],
@@ -658,7 +666,7 @@ class Tiling(CombinatorialClass):
         ):  # this puts the point requirement and the 00 obstruction according to the permutation
             all_reqs.append([GriddedCayleyPerm(CayleyPermutation([0]), [cell])])
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
-        return Tiling(
+        return cls(
             all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1)
         ).delete_rows_and_columns(
             cols=[i * 2 + 2 for i in adjacent_indices],
@@ -781,6 +789,16 @@ class Tiling(CombinatorialClass):
             all_reqs.append([GriddedCayleyPerm(CayleyPermutation([0]), [cell])])
             all_obs.append(GriddedCayleyPerm(CayleyPermutation([0, 0]), [cell, cell]))
         return Tiling(all_obs, all_reqs, (2 * dimensions[0] + 1, 2 * dimensions[1] + 1))
+
+    def compare_to(
+        self, other: "Tiling", depth: int = 4
+    ) -> tuple[
+        bool, Optional[tuple[list[int], list[int]]], Optional[GriddedCayleyPerm]
+    ]:
+        """Compares the gcps that live on self to the gcps on other up to size depth"""
+        original = self.initial_conditions(depth)
+        new = other.initial_conditions(depth)
+        return (original == new, (original, new), None)
 
     # CSS methods
 
@@ -1040,7 +1058,7 @@ class Tiling(CombinatorialClass):
     @classmethod
     def empty_tiling(cls) -> "Tiling":
         """Return the tiling that is the empty set."""
-        return Tiling([GriddedCayleyPerm(CayleyPermutation([]), [])], [], (0, 0))
+        return cls([GriddedCayleyPerm(CayleyPermutation([]), [])], [], (0, 0))
 
     def copy(self) -> "Tiling":
         """Return a copy of the tiling."""
@@ -1148,7 +1166,7 @@ class Tiling(CombinatorialClass):
 
         if len(crossing_obs) > 0:
             crossing_string = "\nCrossing obstructions: \n"
-            crossing_string += "\n".join(map(str, crossing_obs))
+            crossing_string += "\n".join(map(str, sorted(crossing_obs)))
             final_string += crossing_string
 
         return final_string

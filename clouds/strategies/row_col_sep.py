@@ -1,8 +1,10 @@
 """Strategies for row and column separation in tracked tilings."""
 
+from typing import Iterator
 from tilescope.strategies import (
     AbstractLessThanRowColSeparationStrategy,
     AbstractLessThanOrEqualRowColSeparationStrategy,
+    AbstractLessThanOrEqualRowColSeparationFactory,
 )
 from .extra_parameters import ExtraParametersForStrategies
 from ..tracked_tiling import TrackedTiling
@@ -62,3 +64,21 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
         for _ in self.decomposition_function(comb_class):
             all_maps.append(rc_map)
         return tuple(all_maps)
+
+
+class TrackedLessThanOrEqualRowColSeparationFactory(
+    AbstractLessThanOrEqualRowColSeparationFactory
+):
+    def algorithm(self, comb_class):
+        return TrackedLessThanOrEqualRowColSeparation(comb_class)
+
+    def __call__(
+        self, comb_class: TrackedTiling
+    ) -> Iterator[AbstractLessThanOrEqualRowColSeparationStrategy[TrackedTiling]]:
+        """Finds max expansion and if any row separates more than 2 cells then
+        it merges them together so that each row splits into at most 2 rows
+        (plus a point row between them) and yields all possible ways of doing this."""
+        for row_order, col_order in self.separations(comb_class):
+            yield TrackedLessThanOrEqualRowColSeparationStrategy(
+                row_order=row_order, col_order=col_order
+            )

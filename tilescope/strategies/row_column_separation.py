@@ -562,10 +562,6 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
     separating cells in a row.
     """
 
-    def __init__(self, tiling: Tiling) -> None:
-        """Initialize the separation algorithm with a tiling."""
-        self.tiling = tiling
-
     def row_col_separation(self, row_order, col_order) -> Iterator[Tiling]:
         """
         Return the tiling with the row and column separated.
@@ -831,20 +827,20 @@ class LessThanOrEqualRowColSeparationStrategy(
         return tuple(algo.row_col_separation(self.row_order, self.col_order))
 
 
-class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
-    """A factory which returns LessThanOrEqualRowColSeparationStrategys with
+class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
+    """A factory which returns separation strategies with
     all different row column separation strategies
     for a given tiling."""
 
-    def __call__(
-        self, comb_class: Tiling
-    ) -> Iterator[LessThanOrEqualRowColSeparationStrategy]:
-        """Finds max expansion and if any row separates more than 2 cells then
-        it merges them together so that each row splits into at most 2 rows
-        (plus a point row between them) and yields all possible ways of doing this."""
-        max_col_order, max_row_order = LessThanOrEqualRowColSeparation(
-            comb_class
-        ).max_row_col_order
+    def algorithm(self) -> LessThanOrEqualRowColSeparation:
+        """The algorithm for finding the row and column separation."""
+        return LessThanOrEqualRowColSeparation
+
+    def separations(
+        self,
+        comb_class: Tiling,
+    ) -> Iterator[tuple[list[set[Cell]], list[set[Cell]]]]:
+        max_col_order, max_row_order = self.algorithm(comb_class).max_row_col_order
         row_separation_dict = defaultdict(list)
         for cells_set in max_row_order:
             row = list(cells_set)[0][1]
@@ -876,12 +872,21 @@ class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
                 new_row_order = (
                     new_row_order_left + [merge_left, merge_right] + new_row_order_right
                 )
-                yield LessThanOrEqualRowColSeparationStrategy(
-                    row_order=new_row_order, col_order=max_col_order
-                )
+                yield new_row_order, max_col_order
+
+    def __call__(
+        self, comb_class: TilingT
+    ) -> Iterator[AbstractLessThanOrEqualRowColSeparationStrategy[TilingT]]:
+        """Finds max expansion and if any row separates more than 2 cells then
+        it merges them together so that each row splits into at most 2 rows
+        (plus a point row between them) and yields all possible ways of doing this."""
+        for row_order, col_order in self.separations(comb_class):
+            yield LessThanOrEqualRowColSeparationStrategy(
+                row_order=row_order, col_order=col_order
+            )
 
     @classmethod
-    def from_dict(cls, d: dict) -> "LessThanOrEqualRowColSeparationFactory":
+    def from_dict(cls, d: dict) -> "AbstractLessThanOrEqualRowColSeparationFactory":
         return cls(**d)
 
     def __repr__(self) -> str:
@@ -892,3 +897,11 @@ class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
             "Separate rows and columns allowing interleaving in "
             "top/bottom rows in all different ways."
         )
+
+
+class LessThanOrEqualRowColSeparationFactory(
+    AbstractLessThanOrEqualRowColSeparationFactory
+):
+    """A factory which returns LessThanOrEqualRowColSeparationStrategys with
+    all different row column separation strategies
+    for a given tiling."""

@@ -1,15 +1,10 @@
 """For row and column separating a tiling and related strategies."""
 
 import heapq
+import abc
+from collections import defaultdict
 from itertools import combinations, product
-from typing import (
-    Iterator,
-    Optional,
-    Generic,
-    Tuple,
-    TypeVar,
-    Iterable,
-)
+from typing import Iterator, Optional, Generic, Tuple, TypeVar, Iterable
 from functools import cached_property
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
@@ -378,60 +373,16 @@ class RowColOrder:
         return self.max_col_order, self.max_row_order
 
 
-class LessThanRowColSeparation:
-    """
-    When separating, cells must be strictly above/below each other.
-    """
+class AbstractSeparation:
+    """Abstract class for row and column separation."""
 
-    def __init__(self, tiling: Tiling) -> None:
-        """Initialize the separation algorithm with a tiling."""
-        self.tiling = tiling
-
-    @property
-    def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
-        """Return the row and column order of the tiling."""
-        col_ineq, row_ineq = self.column_row_inequalities()
-        col_order, row_order = RowColOrder(
-            self.tiling.active_cells, col_ineq, row_ineq
-        ).max_column_row_order
-        return col_order, row_order
-
-    @property
-    def row_order(self) -> list[set[Cell]]:
-        """Return the row order of the tiling."""
-        return self.row_col_order[1]
-
-    @property
-    def col_order(self) -> list[set[Cell]]:
-        """Return the column order of the tiling."""
-        return self.row_col_order[0]
-
-    def row_col_separation(self) -> Iterator[Tiling]:
-        """
-        Return the tiling with the row and column separated.
-        """
-        if any(self.tiling.find_empty_rows_and_columns()):
-            yield self.tiling
-            return
-        row_col_map = self.row_col_map
-        if row_col_map.is_identity():
-            yield self.tiling
-            return
-        new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
-        new_dimensions = self.new_dimensions
-        new_obstructions += self.new_obstructions
-        for obs, reqs in self.point_row_obs_and_reqs():
-            yield Tiling(
-                new_obstructions + obs, new_requirements + reqs, new_dimensions
-            )
-
+    @abc.abstractmethod
     def point_row_obs_and_reqs(
         self,
     ) -> Iterator[tuple[Obstructions, Requirements]]:
         """
         Return the obstructions and requirements for the points in the rows.
         """
-        yield (), ()
 
     @property
     def new_obstructions(self) -> Obstructions:
@@ -456,25 +407,11 @@ class LessThanRowColSeparation:
         """Return the new dimensions of the tiling."""
         return (len(self.row_col_map.col_map), len(self.row_col_map.row_map))
 
-    @property
-    def row_col_map(self) -> RowColMap:
-        """Return the row and column map."""
-        pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
-        pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
-        row_map = dict(enumerate(pre_row_indices))
-        col_map = dict(enumerate(pre_col_indices))
-        return RowColMap(col_map, row_map)
-
+    @abc.abstractmethod
     def map_cell(self, cell: Cell) -> Cell:
         """
         Map the cell to its new position.
         """
-        for idx, col in enumerate(self.col_order):
-            if cell in col:
-                for idx2, row in enumerate(self.row_order):
-                    if cell in row:
-                        return (idx, idx2)
-        raise ValueError(f"Cell {cell} not found in the orders.")
 
     def inequalities_sets(
         self,
@@ -513,6 +450,179 @@ class LessThanRowColSeparation:
                         not_equal.add((cell2, cell1))
         return less_than_col, less_than_row, not_equal
 
+    @abc.abstractmethod
+    def column_row_inequalities(
+        self,
+    ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
+        """
+        Return the inequalities for the row and column
+        (this one checking that inequalities on the same row are strict).
+        """
+
+    # def __init__(self, tiling: Tiling) -> None:
+    #     """Initialize the separation algorithm with a tiling."""
+    #     self.tiling = tiling
+
+    # @property
+    # @abc.abstractmethod
+    # def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+    #     """Return the column and row order of the tiling."""
+
+
+class LessThanRowColSeparation(AbstractSeparation):
+    """
+    When separating, cells must be strictly above/below each other.
+    """
+
+    def __init__(self, tiling: Tiling) -> None:
+        """Initialize the separation algorithm with a tiling."""
+        self.tiling = tiling
+
+    def row_col_separation(self) -> Iterator[Tiling]:
+        """
+        Return the tiling with the row and column separated.
+        """
+        if any(self.tiling.find_empty_rows_and_columns()):
+            yield self.tiling
+            return
+        row_col_map = self.row_col_map
+        if row_col_map.is_identity():
+            yield self.tiling
+            return
+        new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
+        new_dimensions = self.new_dimensions
+        new_obstructions += self.new_obstructions
+        for obs, reqs in self.point_row_obs_and_reqs():
+            yield Tiling(
+                new_obstructions + obs, new_requirements + reqs, new_dimensions
+            )
+
+    @property
+    def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+        """Return the column and row order of the tiling."""
+        col_ineq, row_ineq = self.column_row_inequalities()
+        col_order, row_order = RowColOrder(
+            self.tiling.active_cells, col_ineq, row_ineq
+        ).max_column_row_order
+        return col_order, row_order
+
+    @property
+    def row_order(self) -> list[set[Cell]]:
+        """Return the row order of the tiling."""
+        return self.row_col_order[1]
+
+    @property
+    def col_order(self) -> list[set[Cell]]:
+        """Return the column order of the tiling."""
+        return self.row_col_order[0]
+
+    # def row_col_separation(self) -> Iterator[Tiling]:
+    #     """
+    #     Return the tiling with the row and column separated.
+    #     """
+    #     if any(self.tiling.find_empty_rows_and_columns()):
+    #         yield self.tiling
+    #         return
+    #     row_col_map = self.row_col_map
+    #     if row_col_map.is_identity():
+    #         yield self.tiling
+    #         return
+    #     new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
+    #     new_dimensions = self.new_dimensions
+    #     new_obstructions += self.new_obstructions
+    #     for obs, reqs in self.point_row_obs_and_reqs():
+    #         yield Tiling(
+    #             new_obstructions + obs, new_requirements + reqs, new_dimensions
+    #         )
+
+    def point_row_obs_and_reqs(
+        self,
+    ) -> Iterator[tuple[Obstructions, Requirements]]:
+        """
+        Return the obstructions and requirements for the points in the rows.
+        """
+        yield (), ()
+
+    # @property
+    # def new_obstructions(self) -> Obstructions:
+    #     """The new obstructions for the tiling"""
+    #     new_obstructions = []
+    #     for cell in product(
+    #         range(self.new_dimensions[0]), range(self.new_dimensions[1])
+    #     ):
+    #         if cell not in self.new_active_cells:
+    #             new_obstructions.append(
+    #                 GriddedCayleyPerm(CayleyPermutation([0]), (cell,))
+    #             )
+    #     return tuple(new_obstructions)
+
+    # @property
+    # def new_active_cells(self) -> set[Cell]:
+    #     """Return the new active cells of the tiling."""
+    #     return set(self.map_cell(cell) for cell in self.tiling.active_cells)
+
+    # @property
+    # def new_dimensions(self) -> tuple[int, int]:
+    #     """Return the new dimensions of the tiling."""
+    #     return (len(self.row_col_map.col_map), len(self.row_col_map.row_map))
+
+    @property
+    def row_col_map(self) -> RowColMap:
+        """Return the row and column map."""
+        pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
+        pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
+        row_map = dict(enumerate(pre_row_indices))
+        col_map = dict(enumerate(pre_col_indices))
+        return RowColMap(col_map, row_map)
+
+    def map_cell(self, cell: Cell) -> Cell:
+        """
+        Map the cell to its new position.
+        """
+        for idx, col in enumerate(self.col_order):
+            if cell in col:
+                for idx2, row in enumerate(self.row_order):
+                    if cell in row:
+                        return (idx, idx2)
+        raise ValueError(f"Cell {cell} not found in the orders.")
+
+    # def inequalities_sets(
+    #     self,
+    # ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
+    #     """Finds the length 2 obstructions in different cells.
+    #     If they are on the same column and are an increasing obstruction,
+    #     they are added to less_than_col to separate columns.
+    #     If they are on the same row and are an increasing obstruction,
+    #     they are added to less_than_row to separate rows.
+    #     If they are in the same row and a constant obstruction,
+    #     they are added to not_equal to help with strictly less than later.
+    #     """
+    #     not_equal = set()
+    #     less_than_row = set()
+    #     less_than_col = set()
+    #     for ob in self.tiling.obstructions:
+    #         if len(ob) == 2:
+    #             cell1, cell2 = ob.positions
+    #             if cell1 == cell2:
+    #                 continue
+    #             if cell1[0] == cell2[0]:
+    #                 if ob.pattern == CayleyPermutation([0, 1]):
+    #                     less_than_col.add((cell2, cell1))
+    #                 if ob.pattern == CayleyPermutation([1, 0]):
+    #                     less_than_col.add((cell2, cell1))
+    #             elif cell1[1] == cell2[1]:
+    #                 if ob.pattern == CayleyPermutation([0, 1]):
+    #                     less_than_row.add((cell2, cell1))
+    #                 if ob.pattern == CayleyPermutation([1, 0]):
+    #                     if (cell2, cell1) in less_than_row:
+    #                         less_than_row.remove((cell2, cell1))
+    #                     else:
+    #                         less_than_row.add((cell1, cell2))
+    #                 if ob.pattern == CayleyPermutation([0, 0]):
+    #                     not_equal.add((cell1, cell2))
+    #                     not_equal.add((cell2, cell1))
+    #     return less_than_col, less_than_row, not_equal
+
     def column_row_inequalities(
         self,
     ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:
@@ -524,36 +634,45 @@ class LessThanRowColSeparation:
         return less_than_col, less_than_row.intersection(not_equal)
 
 
-class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
+class LessThanOrEqualRowColSeparation(AbstractSeparation):
     """
     Allow cells to interleave in the top/bottom rows when
     separating cells in a row.
     """
 
-    # def __init__(
-    #     self,
-    #     tiling: Tiling,
-    #     row_order: Optional[list[set[Cell]]],
-    #     col_order: Optional[list[set[Cell]]],
-    # ) -> None:
-    #     super().__init__(tiling)
-    #     if row_order is None or col_order is None:
-    #         col_ineq, row_ineq = self.column_row_inequalities()
-    #         col_order, row_order = RowColOrder(
-    #             self.tiling.active_cells, col_ineq, row_ineq
-    #         ).max_column_row_order
-    #     print(f"Row order: {row_order}")
-    #     self.row_order = row_order
-    #     self.col_order = col_order
+    def __init__(self, tiling: Tiling) -> None:
+        """Initialize the separation algorithm with a tiling."""
+        self.tiling = tiling
 
-    # @property
-    # def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
-    #     """Return the row and column order of the tiling."""
-    #     # col_ineq, row_ineq = self.column_row_inequalities()
-    #     # col_order, row_order = RowColOrder(
-    #     #     self.tiling.active_cells, col_ineq, row_ineq
-    #     # ).max_column_row_order
-    #     return self.col_order, self.row_order
+    def row_col_separation(self, row_order, col_order) -> Iterator[Tiling]:
+        """
+        Return the tiling with the row and column separated.
+        """
+        self.row_order = row_order
+        self.col_order = col_order
+        if any(self.tiling.find_empty_rows_and_columns()):
+            yield self.tiling
+            return
+        row_col_map = self.row_col_map
+        if row_col_map.is_identity():
+            yield self.tiling
+            return
+        new_obstructions, new_requirements = row_col_map.preimage_of_tiling(self.tiling)
+        new_dimensions = self.new_dimensions
+        new_obstructions += self.new_obstructions
+        for obs, reqs in self.point_row_obs_and_reqs():
+            yield Tiling(
+                new_obstructions + obs, new_requirements + reqs, new_dimensions
+            )
+
+    @property
+    def max_row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+        """Return the column and row order of the tiling."""
+        col_ineq, row_ineq = self.column_row_inequalities()
+        col_order, row_order = RowColOrder(
+            self.tiling.active_cells, col_ineq, row_ineq
+        ).max_column_row_order
+        return col_order, row_order
 
     def point_row_obs_and_reqs(
         self,
@@ -627,10 +746,7 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
         return set(new_active_cells + point_row_active_cells)
 
     def point_row_cells(self, row: int) -> list[Cell]:
-        """TODO: find the active cells of point rows, currently just adding them all.
-
-        AO: this iterated over self.new_dimensions[0], but self.new_dimensions[0] is an
-        integer, I think this is still correct?"""
+        """TODO: find the active cells of point rows, currently just adding them all."""
         point_row_cells = []
         i = self.new_dimensions[0]
         point_row_cells.append((i, row))
@@ -790,7 +906,7 @@ class LessThanOrEqualRowColSeparationStrategy(
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
         algo = LessThanOrEqualRowColSeparation(comb_class)
-        return tuple(algo.row_col_separation())
+        return tuple(algo.row_col_separation(self.row_order, self.col_order))
 
 
 class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
@@ -801,16 +917,45 @@ class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
     def __call__(
         self, comb_class: Tiling
     ) -> Iterator[LessThanOrEqualRowColSeparationStrategy]:
-        col_ineq, row_ineq = LessThanOrEqualRowColSeparation(
+        """Finds max expansion and if any row separates more than 2 cells then
+        it merges them together so that each row splits into at most 2 rows
+        (plus a point row between them) and yields all possible ways of doing this."""
+        max_col_order, max_row_order = LessThanOrEqualRowColSeparation(
             comb_class
-        ).column_row_inequalities()
-        graph = RowColOrder(comb_class.active_cells, col_ineq, row_ineq)
-        for row_order in RowColOrder._all_order(graph.row_ineq_graph()):
-            for col_order in RowColOrder._all_order(graph.col_ineq_graph()):
-                print("row order:", row_order)
-                print("col order:", col_order)
+        ).max_row_col_order
+        row_separation_dict = defaultdict(list)
+        for cells_set in max_row_order:
+            row = list(cells_set)[0][1]
+            row_separation_dict[row].append(cells_set)
+        rows_exta_expanding = [
+            row for row in row_separation_dict if len(row_separation_dict[row]) > 2
+        ]
+        for row in rows_exta_expanding:
+            to_merge = row_separation_dict[row]
+            new_row_order_left = [
+                cells_set
+                for r in row_separation_dict.keys()
+                if r < row
+                for cells_set in row_separation_dict[r]
+            ]
+            new_row_order_right = [
+                cells_set
+                for r in row_separation_dict.keys()
+                if r > row
+                for cells_set in row_separation_dict[r]
+            ]
+            for n in range(1, len(to_merge)):
+                merge_left = set(
+                    cell for set_of_cells in to_merge[:n] for cell in set_of_cells
+                )
+                merge_right = set(
+                    cell for set_of_cells in to_merge[n:] for cell in set_of_cells
+                )
+                new_row_order = (
+                    new_row_order_left + [merge_left, merge_right] + new_row_order_right
+                )
                 yield LessThanOrEqualRowColSeparationStrategy(
-                    row_order=row_order, col_order=col_order
+                    row_order=new_row_order, col_order=max_col_order
                 )
 
     @classmethod

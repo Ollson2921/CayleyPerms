@@ -46,11 +46,6 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
     # pylint: disable=too-many-ancestors
     """A strategy for separating rows and columns with less than or equal constraints."""
 
-    def __init__(self, row_order: list[set[Cell]], col_order: list[set[Cell]]):
-        super().__init__()
-        self.row_order = row_order
-        self.col_order = col_order
-
     def algorithm(self, comb_class):
         return TrackedLessThanOrEqualRowColSeparation(comb_class)
 

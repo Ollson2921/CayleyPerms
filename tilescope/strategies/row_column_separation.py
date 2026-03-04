@@ -11,7 +11,7 @@ from typing import (
     Iterable,
 )
 from functools import cached_property
-from comb_spec_searcher import DisjointUnionStrategy
+from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
 
 from gridded_cayley_permutations.row_col_map import RowColMap
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
@@ -357,7 +357,7 @@ class RowColOrder:
 
     @staticmethod
     def _maximal_order(graph: Graph[Cell]) -> list[set[Cell]]:
-        """Returns a order that maximise separation."""
+        """Returns a order that maximises separation."""
         return next(RowColOrder._all_order(graph))
 
     @cached_property
@@ -529,6 +529,30 @@ class LessThanOrEqualRowColSeparation(LessThanRowColSeparation):
     Allow cells to interleave in the top/bottom rows when
     separating cells in a row.
     """
+
+    def __init__(
+        self,
+        tiling: Tiling,
+        row_order: Optional[list[set[Cell]]],
+        col_order: Optional[list[set[Cell]]],
+    ) -> None:
+        super().__init__(tiling)
+        if row_order is None or col_order is None:
+            col_ineq, row_ineq = self.column_row_inequalities()
+            col_order, row_order = RowColOrder(
+                self.tiling.active_cells, col_ineq, row_ineq
+            ).max_column_row_order
+        self.row_order = row_order
+        self.col_order = col_order
+
+    # @property
+    # def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+    #     """Return the row and column order of the tiling."""
+    #     # col_ineq, row_ineq = self.column_row_inequalities()
+    #     # col_order, row_order = RowColOrder(
+    #     #     self.tiling.active_cells, col_ineq, row_ineq
+    #     # ).max_column_row_order
+    #     return self.col_order, self.row_order
 
     def point_row_obs_and_reqs(
         self,
@@ -757,7 +781,48 @@ class LessThanOrEqualRowColSeparationStrategy(
 ):
     """A strategy that allows interleaving in the top/bottom rows when separating"""
 
+    def __init__(self, row_order: list[set[Cell]], col_order: list[set[Cell]]):
+        super().__init__()
+        self.row_order = row_order
+        self.col_order = col_order
+
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
-        algo = LessThanOrEqualRowColSeparation(comb_class)
+        algo = LessThanOrEqualRowColSeparation(
+            comb_class, row_order=self.row_order, col_order=self.col_order
+        )
         return tuple(algo.row_col_separation())
+
+
+class LessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
+    """A factory which returns LessThanOrEqualRowColSeparationStrategys with
+    all different row column separation strategies
+    for a given tiling."""
+
+    def __call__(
+        self, comb_class: Tiling
+    ) -> Iterator[LessThanOrEqualRowColSeparationStrategy]:
+        col_ineq, row_ineq = LessThanOrEqualRowColSeparation(
+            comb_class
+        ).column_row_inequalities()
+        graph = RowColOrder(comb_class.active_cells, col_ineq, row_ineq)
+        for row_order in RowColOrder._all_order(graph.row_ineq_graph()):
+            for col_order in RowColOrder._all_order(graph.col_ineq_graph()):
+                print("row order:", row_order)
+                print("col order:", col_order)
+                yield LessThanOrEqualRowColSeparationStrategy(
+                    row_order=row_order, col_order=col_order
+                )
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "LessThanOrEqualRowColSeparationFactory":
+        return cls(**d)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}()"
+
+    def __str__(self) -> str:
+        return (
+            "Separate rows and columns allowing interleaving in "
+            "top/bottom rows in all different ways."
+        )

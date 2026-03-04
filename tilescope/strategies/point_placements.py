@@ -64,9 +64,10 @@ class AbstractRequirementPlacementStrategy(
     def extra_parameters(
         self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
-        if self.decomposition_function(comb_class) is None:
+        out = self.decomposition_function(comb_class)
+        if out is None:
             raise StrategyDoesNotApply("Strategy does not apply")
-        return tuple({} for _ in self.decomposition_function(comb_class))
+        return tuple({} for _ in out)
 
     def formal_step(self):
         return (

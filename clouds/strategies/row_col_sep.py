@@ -68,6 +68,7 @@ class TrackedLessThanOrEqualRowColSeparationFactory(
     def algorithm(
         self, comb_class: TrackedTiling
     ) -> TrackedLessThanOrEqualRowColSeparation:
+        """Return the algorithm for row and column separation."""
         return TrackedLessThanOrEqualRowColSeparation(comb_class)
 
     def __call__(

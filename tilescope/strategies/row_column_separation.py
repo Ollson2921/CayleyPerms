@@ -566,10 +566,13 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
         """
         Return the tiling with the row and column separated.
         """
+        # pylint: disable=attribute-defined-outside-init
+        self.row_order = row_order
+        self.col_order = col_order
         if any(self.tiling.find_empty_rows_and_columns()):
             yield self.tiling
             return
-        row_col_map = self.row_col_map(row_order, col_order)
+        row_col_map = self.row_col_map
         if row_col_map.is_identity():
             yield self.tiling
             return
@@ -672,10 +675,11 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
         """Returns the cells in the row of the separated tiling that are active."""
         return [cell for cell in self.new_active_cells if cell[1] == row]
 
-    def row_col_map(self, row_order, col_order) -> RowColMap:
+    @property
+    def row_col_map(self) -> RowColMap:
         """Return the row and column map."""
-        pre_row_indices = [next(iter(row_cell))[1] for row_cell in row_order]
-        pre_col_indices = [next(iter(col_cell))[0] for col_cell in col_order]
+        pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
+        pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
         row_map = {}
         prev = None
         count = 0
@@ -832,6 +836,10 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
     """A factory which returns separation strategies with
     all different row column separation strategies
     for a given tiling."""
+
+    @abc.abstractmethod
+    def algorithm(self, comb_class: TilingT) -> LessThanOrEqualRowColSeparation:
+        """The algorithm for finding the row and column separation."""
 
     def separations(
         self,

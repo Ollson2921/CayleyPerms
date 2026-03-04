@@ -46,15 +46,13 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
     # pylint: disable=too-many-ancestors
     """A strategy for separating rows and columns with less than or equal constraints."""
 
+    def __init__(self, row_order: list[set[Cell]], col_order: list[set[Cell]]):
+        super().__init__()
+        self.row_order = row_order
+        self.col_order = col_order
+
     def algorithm(self, comb_class):
         return TrackedLessThanOrEqualRowColSeparation(comb_class)
-
-    def decomposition_function(
-        self, comb_class: TrackedTiling
-    ) -> tuple[TrackedTiling, ...]:
-        """Return the decomposition function."""
-        algo = self.algorithm(comb_class)
-        return tuple(algo.tracked_row_col_separation())
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
         rc_map = self.rc_map_for_cloud(
@@ -69,12 +67,17 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
 class TrackedLessThanOrEqualRowColSeparationFactory(
     AbstractLessThanOrEqualRowColSeparationFactory
 ):
-    def algorithm(self, comb_class):
+    """A factory for creating strategies for separating rows and columns
+    with less than or equal constraints."""
+
+    def algorithm(
+        self, comb_class: TrackedTiling
+    ) -> TrackedLessThanOrEqualRowColSeparation:
         return TrackedLessThanOrEqualRowColSeparation(comb_class)
 
     def __call__(
         self, comb_class: TrackedTiling
-    ) -> Iterator[AbstractLessThanOrEqualRowColSeparationStrategy[TrackedTiling]]:
+    ) -> Iterator[TrackedLessThanOrEqualRowColSeparationStrategy]:
         """Finds max expansion and if any row separates more than 2 cells then
         it merges them together so that each row splits into at most 2 rows
         (plus a point row between them) and yields all possible ways of doing this."""

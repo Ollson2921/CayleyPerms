@@ -9,10 +9,12 @@
 import abc
 from typing import Dict, Iterable, Iterator, Optional, Tuple
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
+from comb_spec_searcher.exception import StrategyDoesNotApply
 
 from gridded_cayley_permutations import Tiling
 from gridded_cayley_permutations.point_placements import (
     PointPlacement,
+    AbstractPointPlacement,
     DIRECTIONS,
     DIR_RIGHT,
     DIR_RIGHT_TOP,
@@ -20,11 +22,10 @@ from gridded_cayley_permutations.point_placements import (
     DIR_LEFT,
     DIR_LEFT_BOT,
     DIR_RIGHT_BOT,
+    TilingT,
 )
 from gridded_cayley_permutations import GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
-from .factor import TilingT
-
 
 Cell = Tuple[int, int]
 
@@ -57,12 +58,14 @@ class AbstractRequirementPlacementStrategy(
         super().__init__(ignore_parent=ignore_parent)
 
     @abc.abstractmethod
-    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
-        """Return the decomposition function for the strategy."""
+    def algorithm(self, tiling: TilingT) -> AbstractPointPlacement:
+        """Return the algorithm to be used for point placement."""
 
     def extra_parameters(
         self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[Dict[str, str], ...]:
+        if self.decomposition_function(comb_class) is None:
+            raise StrategyDoesNotApply("Strategy does not apply")
         return tuple({} for _ in self.decomposition_function(comb_class))
 
     def formal_step(self):

@@ -825,10 +825,16 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
+            f"row_order={self.row_order}, col_order={self.col_order}, "
             f"ignore_parent={self.ignore_parent}, "
-            f"possibly_empty={self.possibly_empty}),"
-            f"row_order={self.row_order}, col_order={self.col_order}"
+            f"possibly_empty={self.possibly_empty})"
         )
+
+    def to_jsonable(self) -> dict:
+        d: dict = super().to_jsonable()
+        d["row_order"] = self.row_order
+        d["col_order"] = self.col_order
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanRowColSeparationStrategy":

@@ -807,14 +807,37 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
 ):
     """A strategy that allows interleaving in the top/bottom rows when separating"""
 
-    def __init__(self, row_order: list[set[Cell]], col_order: list[set[Cell]]):
-        super().__init__()
+    def __init__(
+        self,
+        row_order: list[set[Cell]],
+        col_order: list[set[Cell]],
+        ignore_parent: bool = True,
+        possibly_empty: bool = True,
+    ):
+        super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
         self.row_order = row_order
         self.col_order = col_order
 
     def formal_step(self) -> str:
         """Return a string that describe the operation performed on the tiling."""
         return super().formal_step() + " allowing interleaving in top/bottom rows"
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"ignore_parent={self.ignore_parent}, "
+            f"possibly_empty={self.possibly_empty}),"
+            f"row_order={self.row_order}, col_order={self.col_order}"
+        )
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "AbstractLessThanRowColSeparationStrategy":
+        return cls(
+            row_order=d["row_order"],
+            col_order=d["col_order"],
+            ignore_parent=d["ignore_parent"],
+            possibly_empty=d["possibly_empty"],
+        )
 
 
 class LessThanOrEqualRowColSeparationStrategy(
@@ -857,18 +880,18 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
         if not rows_exta_expanding:
             yield max_row_order, max_col_order
             return
+        corrected_row_orders = [max_row_order]
         for row_order in self.correct_row_orders(
-            max_row_order, rows_exta_expanding, row_separation_dict
+            corrected_row_orders, rows_exta_expanding, row_separation_dict
         ):
             yield row_order, max_col_order
 
     def correct_row_orders(
-        self, max_row_order, rows_exta_expanding, row_separation_dict
+        self, corrected_row_orders, rows_exta_expanding, row_separation_dict
     ):
         """If any row separates into more than 2 rows then it merges them
         together in all possible ways so that they only separate into 2 rows.
         Returns all possible row orders obtained by doing this."""
-        corrected_row_orders = [max_row_order]
         for row in rows_exta_expanding:
             to_merge = row_separation_dict[row]
             merged_cells = []

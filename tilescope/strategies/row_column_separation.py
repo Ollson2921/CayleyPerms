@@ -857,6 +857,17 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
         if not rows_exta_expanding:
             yield max_row_order, max_col_order
             return
+        for row_order in self.correct_row_orders(
+            max_row_order, rows_exta_expanding, row_separation_dict
+        ):
+            yield row_order, max_col_order
+
+    def correct_row_orders(
+        self, max_row_order, rows_exta_expanding, row_separation_dict
+    ):
+        """If any row separates into more than 2 rows then it merges them
+        together in all possible ways so that they only separate into 2 rows.
+        Returns all possible row orders obtained by doing this."""
         corrected_row_orders = [max_row_order]
         for row in rows_exta_expanding:
             to_merge = row_separation_dict[row]
@@ -886,8 +897,7 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
                         left + [merge_left, merge_right] + right
                     )
             corrected_row_orders = new_corrected_row_orders
-        for row_order in corrected_row_orders:
-            yield row_order, max_col_order
+        return corrected_row_orders
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanOrEqualRowColSeparationFactory":

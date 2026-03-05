@@ -832,8 +832,8 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
 
     def to_jsonable(self) -> dict:
         d: dict = super().to_jsonable()
-        d["row_order"] = self.row_order
-        d["col_order"] = self.col_order
+        d["row_order"] = [sorted(row) for row in self.row_order]
+        d["col_order"] = [sorted(col) for col in self.col_order]
         return d
 
     @classmethod

@@ -909,24 +909,31 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
                     cell for set_of_cells in to_merge[n:] for cell in set_of_cells
                 )
                 merged_cells.append((merge_left, merge_right))
-            new_corrected_row_orders = []
-            for old_row_order in corrected_row_orders:
-                left = []
-                right = []
-                passed_middle = False
-                for cells_set in old_row_order:
-                    if cells_set in to_merge:
-                        passed_middle = True
-                    elif not passed_middle:
-                        left.append(cells_set)
-                    else:
-                        right.append(cells_set)
-                for merge_left, merge_right in merged_cells:
-                    new_corrected_row_orders.append(
-                        left + [merge_left, merge_right] + right
-                    )
-            corrected_row_orders = new_corrected_row_orders
+            corrected_row_orders = self.update_old_orders(
+                corrected_row_orders, to_merge, merged_cells
+            )
         return corrected_row_orders
+
+    def update_old_orders(self, old_corrected_row_orders, to_merge, merged_cells):
+        """Updates the old row orders by replacing the cells in to_merge with
+        the different merged cells in merged_cells."""
+        new_corrected_row_orders = []
+        for old_row_order in old_corrected_row_orders:
+            left = []
+            right = []
+            passed_middle = False
+            for cells_set in old_row_order:
+                if cells_set in to_merge:
+                    passed_middle = True
+                elif not passed_middle:
+                    left.append(cells_set)
+                else:
+                    right.append(cells_set)
+            for merge_left, merge_right in merged_cells:
+                new_corrected_row_orders.append(
+                    left + [merge_left, merge_right] + right
+                )
+        return new_corrected_row_orders
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanOrEqualRowColSeparationFactory":

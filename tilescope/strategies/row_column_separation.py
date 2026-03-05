@@ -839,8 +839,8 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanRowColSeparationStrategy":
         return cls(
-            row_order=d["row_order"],
-            col_order=d["col_order"],
+            row_order=[set(tuple(cell) for cell in row) for row in d["row_order"]],
+            col_order=[set(tuple(cell) for cell in col) for col in d["col_order"]],
             ignore_parent=d["ignore_parent"],
             possibly_empty=d["possibly_empty"],
         )

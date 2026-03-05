@@ -58,6 +58,13 @@ class TrackedLessThanOrEqualRowColSeparationStrategy(
             all_maps.append(rc_map)
         return tuple(all_maps)
 
+    def decomposition_function(
+        self, comb_class: TrackedTiling
+    ) -> tuple[TrackedTiling, ...]:
+        """Return the decomposition function."""
+        algo = self.algorithm(comb_class)
+        return (next(algo.tracked_row_col_separation(self.row_order, self.col_order)),)
+
 
 class TrackedLessThanOrEqualRowColSeparationFactory(
     AbstractLessThanOrEqualRowColSeparationFactory

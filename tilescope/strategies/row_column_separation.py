@@ -854,20 +854,13 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
         rows_exta_expanding = [
             row for row in row_separation_dict if len(row_separation_dict[row]) > 2
         ]
+        if not rows_exta_expanding:
+            yield max_row_order, max_col_order
+            return
+        corrected_row_orders = [max_row_order]
         for row in rows_exta_expanding:
             to_merge = row_separation_dict[row]
-            new_row_order_left = [
-                cells_set
-                for r in row_separation_dict.keys()
-                if r < row
-                for cells_set in row_separation_dict[r]
-            ]
-            new_row_order_right = [
-                cells_set
-                for r in row_separation_dict.keys()
-                if r > row
-                for cells_set in row_separation_dict[r]
-            ]
+            merged_cells = []
             for n in range(1, len(to_merge)):
                 merge_left = set(
                     cell for set_of_cells in to_merge[:n] for cell in set_of_cells
@@ -875,10 +868,26 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
                 merge_right = set(
                     cell for set_of_cells in to_merge[n:] for cell in set_of_cells
                 )
-                new_row_order = (
-                    new_row_order_left + [merge_left, merge_right] + new_row_order_right
-                )
-                yield new_row_order, max_col_order
+                merged_cells.append((merge_left, merge_right))
+            new_corrected_row_orders = []
+            for old_row_order in corrected_row_orders:
+                left = []
+                right = []
+                passed_middle = False
+                for cells_set in old_row_order:
+                    if cells_set in to_merge:
+                        passed_middle = True
+                    elif not passed_middle:
+                        left.append(cells_set)
+                    else:
+                        right.append(cells_set)
+                for merge_left, merge_right in merged_cells:
+                    new_corrected_row_orders.append(
+                        left + [merge_left, merge_right] + right
+                    )
+            corrected_row_orders = new_corrected_row_orders
+        for row_order in corrected_row_orders:
+            yield row_order, max_col_order
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanOrEqualRowColSeparationFactory":

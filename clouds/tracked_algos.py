@@ -105,10 +105,30 @@ class TrackedLessThanRowColSeparation(LessThanRowColSeparation):
 
 
 class TrackedLessThanOrEqualRowColSeparation(
-    TrackedLessThanRowColSeparation,
     LessThanOrEqualRowColSeparation,
 ):
     """Separates rows and columns with less than or equal constraints and tracks clouds."""
+
+    def __init__(self, tracked_tiling: TrackedTiling) -> None:
+        self.tracked_tiling = tracked_tiling
+        super().__init__(tracked_tiling.tiling)
+
+    def tracked_row_col_separation(
+        self, row_order, col_order
+    ) -> Iterable[TrackedTiling]:
+        """Yield the separated tilings with tracked clouds."""
+        for separated_tiling in self.row_col_separation(row_order, col_order):
+            (indices_clouds, value_clouds) = TrackedTiling.map_clouds(
+                indices_clouds=self.tracked_tiling.indices_clouds,
+                value_clouds=self.tracked_tiling.value_clouds,
+                tiling_map=self.row_col_map,
+            )
+            yield TrackedTiling(
+                separated_tiling,
+                value_clouds=value_clouds,
+                indices_clouds=indices_clouds,
+                intersect_clouds_with_active=True,
+            )
 
 
 class TrackedPointPlacement(PointPlacement):

@@ -20,7 +20,7 @@ from tilescope.strategies import (
     CellInsertionFactory,
     PointPlacementFactory,
     LessThanRowColSeparationStrategy,
-    LessThanOrEqualRowColSeparationStrategy,
+    LessThanOrEqualRowColSeparationFactory,
     RowInsertionFactory,
     ColInsertionFactory,
     VerticalInsertionEncodableVerificationStrategy,
@@ -146,7 +146,7 @@ class TileScopePack(StrategyPack):
             ],  # Iterable[Strategy]
             initial_strats=[
                 FactorStrategy(),
-                LessThanOrEqualRowColSeparationStrategy(),
+                LessThanOrEqualRowColSeparationFactory(),
             ],  # Iterable[Strategy]
             expansion_strats=[],  # Iterable[Iterable[Strategy]]
             ver_strats=[

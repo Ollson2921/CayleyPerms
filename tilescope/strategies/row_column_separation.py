@@ -832,7 +832,7 @@ class LessThanOrEqualRowColSeparationStrategy(
         return tuple(algo.row_col_separation(self.row_order, self.col_order))
 
 
-class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[Tiling]):
+class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
     """A factory which returns separation strategies with
     all different row column separation strategies
     for a given tiling."""

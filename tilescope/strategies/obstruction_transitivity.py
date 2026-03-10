@@ -6,13 +6,11 @@ from comb_spec_searcher.exception import StrategyDoesNotApply
 from gridded_cayley_permutations import (
     ObstructionTransitivity,
     GriddedCayleyPerm,
+    Tiling,
 )
-from .factor import TilingT
 
 
-class ObstructionTransitivityStrategy(
-    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
-):
+class ObstructionTransitivityStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
     """Removes all the empty rows and columns."""
 
     # pylint: disable=duplicate-code
@@ -23,14 +21,14 @@ class ObstructionTransitivityStrategy(
     ):
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
-    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
+    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
         new_obs = ObstructionTransitivity(comb_class).new_obs()
         if not new_obs:
             raise StrategyDoesNotApply("No new obstructions to add.")
         return (comb_class.add_obstructions(new_obs),)
 
     def extra_parameters(
-        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
+        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
     ) -> Tuple[dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
@@ -39,17 +37,17 @@ class ObstructionTransitivityStrategy(
 
     def backward_map(
         self,
-        comb_class: TilingT,
+        comb_class: Tiling,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[tuple[TilingT, ...]] = None,
+        children: Optional[tuple[Tiling, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: TilingT,
+        comb_class: Tiling,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[TilingT, ...]] = None,
+        children: Optional[Tuple[Tiling, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 

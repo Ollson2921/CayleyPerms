@@ -28,6 +28,7 @@ from tilescope.strategies import (
     SubclassVerificationStrategy,
     FusionPointRowFactory,
     FusionFactory,
+    ObstructionTransitivityStrategy,
 )
 
 
@@ -138,7 +139,7 @@ class TileScopePack(StrategyPack):
     @classmethod
     def basics(cls):
         """Minimum strategies for a pack.
-        NOTE: Has no expansion strategies!! Add them in."""
+        NOTE: Has no expansion strategies!! Add them in with make_pack."""
         return TileScopePack(
             inferral_strats=[
                 RemoveEmptyRowsAndColumnsStrategy(),
@@ -147,6 +148,7 @@ class TileScopePack(StrategyPack):
             initial_strats=[
                 FactorStrategy(),
                 LessThanOrEqualRowColSeparationStrategy(),
+                ObstructionTransitivityStrategy(),
             ],  # Iterable[Strategy]
             expansion_strats=[],  # Iterable[Iterable[Strategy]]
             ver_strats=[

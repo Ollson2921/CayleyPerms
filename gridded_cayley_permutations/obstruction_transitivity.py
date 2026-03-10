@@ -1,12 +1,18 @@
+"""This module contains the ObstructionTransitivity class, used for adding new obstructions
+to a tiling which are implied by the obstructions already there."""
+
+from functools import cached_property
 from itertools import product
+from collections import defaultdict
 
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
-from functools import cached_property
-from collections import defaultdict
 from cayley_permutations import CayleyPermutation
 
 
 class ObstructionTransitivity:
+    """This class contains the new_obs function used for adding new obstructions
+    to a tiling which are implied by the obstructions already there."""
+
     def __init__(self, tiling: Tiling):
         self.tiling = tiling
 
@@ -19,6 +25,10 @@ class ObstructionTransitivity:
         dict[int, set[tuple[int, int]]],
         dict[int, set[tuple[int, int]]],
     ]:
+        """Return the inequalities implied by the obstructions of the tiling. The first dict
+        contains the strict inequalities between columns, the second and third dicts contain
+        the strict and non strict inequalities between rows, and the last dict contains the
+        cells which are not equal on a row."""
         col_less_than: dict[int, set[tuple[int, int]]] = defaultdict(set)
         row_less_than: dict[int, set[tuple[int, int]]] = defaultdict(set)
         row_less_than_or_equal: dict[int, set[tuple[int, int]]] = defaultdict(set)
@@ -51,23 +61,31 @@ class ObstructionTransitivity:
         return col_less_than, row_less_than, row_less_than_or_equal, not_equal
 
     @cached_property
-    def col_less_than(self) -> dict[int, list[tuple[int, int]]]:
+    def col_less_than(self) -> dict[int, set[tuple[int, int]]]:
+        """Return the strict inequalities between columns implied by the obstructions
+        of the tiling."""
         return self.ineqs[0]
 
     @cached_property
-    def row_less_than(self) -> dict[int, list[tuple[int, int]]]:
+    def row_less_than(self) -> dict[int, set[tuple[int, int]]]:
+        """Return the strict inequalities between rows implied by the obstructions of the tiling."""
         return self.ineqs[1]
 
     @cached_property
-    def row_less_than_or_equal(self) -> dict[int, list[tuple[int, int]]]:
+    def row_less_than_or_equal(self) -> dict[int, set[tuple[int, int]]]:
+        """Return the non strict inequalities between rows implied by the obstructions
+        of the tiling."""
         return self.ineqs[2]
 
     @cached_property
-    def not_equal(self) -> dict[int, list[tuple[int, int]]]:
+    def not_equal(self) -> dict[int, set[tuple[int, int]]]:
+        """Return the cells which are not equal on a row implied by the obstructions
+        of the tiling."""
         return self.ineqs[3]
 
     @cached_property
-    def positive_cells(self) -> tuple[dict[int, list[int]], dict[int, list[int]]]:
+    def positive_cells(self) -> tuple[dict[int, set[int]], dict[int, set[int]]]:
+        """The positive cells in the rows, then columns, of the tiling."""
         rows, cols = defaultdict(set), defaultdict(set)
         for a, b in self.tiling.positive_cells():
             rows[b].add(a)
@@ -75,11 +93,13 @@ class ObstructionTransitivity:
         return rows, cols
 
     @cached_property
-    def positive_cols_in_row(self) -> tuple[dict[int, list[int]]]:
+    def positive_cols_in_row(self) -> dict[int, set[int]]:
+        """The positive columns in the row."""
         return self.positive_cells[0]
 
     @cached_property
-    def postive_rows_in_col(self) -> tuple[dict[int, list[int]]]:
+    def postive_rows_in_col(self) -> dict[int, set[int]]:
+        """The positive rows in the column."""
         return self.positive_cells[1]
 
     @staticmethod
@@ -88,7 +108,13 @@ class ObstructionTransitivity:
         less_than_or_equal: set[tuple[int, int]],
         not_equal: set[tuple[int, int]],
         positive_cells: set[int],  # the positive rows or cols
-    ) -> tuple[list[tuple[int, int]], list[tuple[int, int]]]:
+    ) -> tuple[set[tuple[int, int]], set[tuple[int, int]]]:
+        """Return the closure of the inequalities given by less_than and less_than_or_equal,
+        given the not_equal and positive_cells. The first set in the output is the new strict
+        inequalities, and the second set is the new non strict inequalities (without the
+        reflexive ones).
+        """
+        # pylint:disable=too-many-locals
         new_less_than: set[tuple[int, int]] = set()
         new_less_than_or_equal: set[tuple[int, int]] = set()
         lt, gt, lte, gte = (
@@ -107,7 +133,7 @@ class ObstructionTransitivity:
         to_analyse = positive_cells
         while to_analyse:
             cur = to_analyse.pop()
-            not_existing_lt = set()
+            not_existing_lt: set = set()
             not_existing_lt.update(
                 filter(lambda x: x not in less_than, product(gt[cur], lt[cur]))
             )
@@ -144,30 +170,34 @@ class ObstructionTransitivity:
     def less_than_or_equal_to_ob(
         cell1: tuple[int, int], cell2: tuple[int, int]
     ) -> GriddedCayleyPerm:
+        """Return the obstruction corresponding to the less than or equal to
+        inequality between cell1 and cell2."""
         (a, b), (c, d) = cell1, cell2
         if cell1 == cell2:
             return GriddedCayleyPerm((0,), (cell1,))
         if a == c:
             if b < d:
                 return GriddedCayleyPerm((1, 0), ((cell2, cell1)))
-            elif d < b:
+            if d < b:
                 return GriddedCayleyPerm((0, 1), ((cell2, cell1)))
-        else:
-            # b == d
-            if a < c:
-                return GriddedCayleyPerm((1, 0), (cell1, cell2))
-            elif c < a:
-                return GriddedCayleyPerm((0, 1), (cell2, cell1))
+            raise ValueError("Cells are the same, but should not be.")
+        # b == d
+        if a < c:
+            return GriddedCayleyPerm((1, 0), (cell1, cell2))
+        if c < a:
+            return GriddedCayleyPerm((0, 1), (cell2, cell1))
+        raise ValueError("Cells are the same, but should not be.")
 
     @staticmethod
     def less_than_to_ob(
         cell1: tuple[int, int], cell2: tuple[int, int]
     ) -> tuple[GriddedCayleyPerm, ...]:
+        """Return the obstructions corresponding to the less than inequality
+        between cell1 and cell2."""
         if cell1 == cell2:
             return (GriddedCayleyPerm((0,), (cell1,)),)
         if cell1[0] == cell2[0]:
             return (ObstructionTransitivity.less_than_or_equal_to_ob(cell1, cell2),)
-        # cell1[1] == cell2[1]
         if cell1[0] > cell2[0]:
             position = (cell2, cell1)
         else:
@@ -179,6 +209,8 @@ class ObstructionTransitivity:
         )
 
     def new_obs(self):
+        """Return the new obstructions implied by the obstructions of the tiling,
+        using the inequalities."""
         obs = set()
         for row in range(self.tiling.dimensions[1]):
             new_less_than, new_less_than_or_equal = self.closure(
@@ -193,7 +225,6 @@ class ObstructionTransitivity:
                 if col1 != col2:
                     obs.add(self.less_than_or_equal_to_ob((col1, row), (col2, row)))
         for col in range(self.tiling.dimensions[0]):
-            print(self.col_less_than[col])
             _, new_less_than_or_equal = self.closure(
                 set(), self.col_less_than[col], set(), self.postive_rows_in_col[col]
             )
@@ -219,14 +250,14 @@ if __name__ == "__main__":
 
     obstrans = ObstructionTransitivity(tiling)
 
-    less_than = obstrans.row_less_than[0]
-    less_than_or_equal = obstrans.row_less_than_or_equal[0]
-    not_equal = obstrans.not_equal[0]
-    positive_cells = obstrans.positive_cols_in_row[0]
+    # less_than = obstrans.row_less_than[0]
+    # less_than_or_equal = obstrans.row_less_than_or_equal[0]
+    # not_equal = obstrans.not_equal[0]
+    # positive_cells = obstrans.positive_cols_in_row[0]
 
-    # print(
-    #     obstrans.closure(less_than, less_than_or_equal, not_equal, positive_cells)
-    # )
-    # print(obstrans.less_than_to_ob((0, 0), (0, 0)))
+    # # print(
+    # #     obstrans.closure(less_than, less_than_or_equal, not_equal, positive_cells)
+    # # )
+    # # print(obstrans.less_than_to_ob((0, 0), (0, 0)))
 
     print(obstrans.new_obs())

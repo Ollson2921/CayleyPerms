@@ -231,33 +231,3 @@ class ObstructionTransitivity:
             for row1, row2 in new_less_than_or_equal:
                 obs.add(self.less_than_or_equal_to_ob((col, row1), (col, row2)))
         return obs
-
-
-if __name__ == "__main__":
-    tiling = Tiling(
-        [
-            # GriddedCayleyPerm((0, 1), ((0, 0), (1, 0))),
-            # GriddedCayleyPerm((1, 0), ((0, 0), (1, 0))),
-            # GriddedCayleyPerm((0, 1), ((1, 0), (2, 0))),
-            # GriddedCayleyPerm((0, 0), ((0, 0), (1, 0))),
-            GriddedCayleyPerm((0, 1), ((1, 0), (1, 1))),
-            GriddedCayleyPerm((0, 1), ((1, 1), (1, 2))),
-        ],
-        [[GriddedCayleyPerm((0,), ((1, 0),))], [GriddedCayleyPerm((0,), ((1, 1),))]],
-        (3, 3),
-    )
-    print(tiling)
-
-    obstrans = ObstructionTransitivity(tiling)
-
-    # less_than = obstrans.row_less_than[0]
-    # less_than_or_equal = obstrans.row_less_than_or_equal[0]
-    # not_equal = obstrans.not_equal[0]
-    # positive_cells = obstrans.positive_cols_in_row[0]
-
-    # # print(
-    # #     obstrans.closure(less_than, less_than_or_equal, not_equal, positive_cells)
-    # # )
-    # # print(obstrans.less_than_to_ob((0, 0), (0, 0)))
-
-    print(obstrans.new_obs())

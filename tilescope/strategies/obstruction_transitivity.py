@@ -5,7 +5,6 @@ from comb_spec_searcher import DisjointUnionStrategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from gridded_cayley_permutations import (
     ObstructionTransitivity,
-    Tiling,
     GriddedCayleyPerm,
 )
 from .factor import TilingT
@@ -24,7 +23,7 @@ class ObstructionTransitivityStrategy(
     ):
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+    def decomposition_function(self, comb_class: TilingT) -> Tuple[TilingT, ...]:
         new_obs = ObstructionTransitivity(comb_class).new_obs()
         if not new_obs:
             raise StrategyDoesNotApply("No new obstructions to add.")

@@ -5,8 +5,9 @@ from functools import cached_property
 from itertools import product
 from collections import defaultdict
 
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from cayley_permutations import CayleyPermutation
+from .tilings import Tiling
+from .gridded_cayley_perms import GriddedCayleyPerm
 
 
 class ObstructionTransitivity:

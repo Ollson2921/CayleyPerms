@@ -36,6 +36,10 @@ class CayleyPermutation(tuple[int, ...]):
         """Return True if input is correct"""
         return len(self) == 0 or all(val in self for val in range(max(self) + 1))
 
+    def is_perm(self) -> bool:
+        """Return True if the Cayley permutation is a permutation."""
+        return len(set(self)) == len(self)
+
     def as_one_based(self) -> "str":
         """Returns Cayley permutation as a one based string from zero based.
         Adds parentheses for values greater than 9.

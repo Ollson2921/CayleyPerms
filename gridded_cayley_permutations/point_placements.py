@@ -163,9 +163,6 @@ class PointPlacement(AbstractPointPlacement):
     def __init__(self, tiling: Tiling) -> None:
         super().__init__(tiling)
 
-    #     self.tiling = tiling
-    #     self.directionless_dict = dict[Cell, Tiling]()
-
     def point_obstructions_and_requirements(
         self, cell: tuple[int, int]
     ) -> tuple[OBSTRUCTIONS, REQUIREMENTS]:

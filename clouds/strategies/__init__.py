@@ -12,7 +12,7 @@ from .point_placement import (
     TrackedVerticalInsertionEncodingRequirementInsertionFactory,
 )
 from .row_col_sep import (
-    TrackedLessThanOrEqualRowColSeparationStrategy,
+    TrackedLessThanOrEqualRowColSeparationFactory,
     TrackedLessThanRowColSeparationStrategy,
 )
 from .remove_empty_row_cols import TrackedRemoveEmptyRowsAndColumnsStrategy
@@ -28,7 +28,7 @@ __all__ = [
     "TrackedShuffleFactorStrategy",
     "TrackedFusionFactory",
     "TrackedLessThanRowColSeparationStrategy",
-    "TrackedLessThanOrEqualRowColSeparationStrategy",
+    "TrackedLessThanOrEqualRowColSeparationFactory",
     "TrackedPointPlacementFactory",
     "TrackedColPlacementFactory",
     "TrackedRowPlacementFactory",

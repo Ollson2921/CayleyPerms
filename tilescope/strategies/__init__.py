@@ -32,9 +32,10 @@ from .factor import (
 )
 from .row_column_separation import (
     LessThanRowColSeparationStrategy,
-    LessThanOrEqualRowColSeparationStrategy,
+    LessThanOrEqualRowColSeparationFactory,
     AbstractLessThanRowColSeparationStrategy,
     AbstractLessThanOrEqualRowColSeparationStrategy,
+    AbstractLessThanOrEqualRowColSeparationFactory,
 )
 from .subclass_verification import SubclassVerificationStrategy
 from .fusion import (
@@ -75,7 +76,8 @@ __all__ = (
     "AbstractFactorStrategy",
     "ShuffleFactorStrategy",
     "AbstractShuffleFactorStrategy",
-    "LessThanOrEqualRowColSeparationStrategy",
+    "LessThanOrEqualRowColSeparationFactory",
+    "AbstractLessThanOrEqualRowColSeparationFactory",
     "LessThanRowColSeparationStrategy",
     "AbstractLessThanRowColSeparationStrategy",
     "AbstractLessThanOrEqualRowColSeparationStrategy",

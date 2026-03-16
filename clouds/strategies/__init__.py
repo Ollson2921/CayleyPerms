@@ -22,6 +22,7 @@ from .ins_enc_verification_strats import (
 )
 from .requirement_insertion import TrackedCellInsertionFactory
 from .add_cloud import AddCloudFactory
+from .obs_trans import TrackedObstructionTransitivityStrategy
 
 __all__ = [
     "TrackedFactorStrategy",
@@ -42,4 +43,5 @@ __all__ = [
     "TrackedHorizontalInsertionEncodableVerificationStrategy",
     "TrackedCellInsertionFactory",
     "AddCloudFactory",
+    "TrackedObstructionTransitivityStrategy",
 ]

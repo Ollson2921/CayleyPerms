@@ -7,7 +7,7 @@ from .extra_parameters import ExtraParametersForStrategies
 from ..tracked_tiling import TrackedTiling
 
 
-class ObstructionTransitivityStrategy(
+class TrackedObstructionTransitivityStrategy(
     ExtraParametersForStrategies, AbstractObstructionTransitivityStrategy
 ):
     """A strategy for adding new obstructions to the tiling based on the current obstructions."""

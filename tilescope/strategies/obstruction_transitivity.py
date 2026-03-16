@@ -8,9 +8,12 @@ from gridded_cayley_permutations import (
     GriddedCayleyPerm,
     Tiling,
 )
+from gridded_cayley_permutations.point_placements import TilingT
 
 
-class ObstructionTransitivityStrategy(DisjointUnionStrategy[Tiling, GriddedCayleyPerm]):
+class AbstractObstructionTransitivityStrategy(
+    DisjointUnionStrategy[TilingT, GriddedCayleyPerm]
+):
     """Removes all the empty rows and columns."""
 
     # pylint: disable=duplicate-code
@@ -21,14 +24,8 @@ class ObstructionTransitivityStrategy(DisjointUnionStrategy[Tiling, GriddedCayle
     ):
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
 
-    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
-        new_obs = ObstructionTransitivity(comb_class).new_obs()
-        if not new_obs:
-            raise StrategyDoesNotApply("No new obstructions to add.")
-        return (comb_class.add_obstructions(new_obs),)
-
     def extra_parameters(
-        self, comb_class: Tiling, children: Optional[Tuple[Tiling, ...]] = None
+        self, comb_class: TilingT, children: Optional[Tuple[TilingT, ...]] = None
     ) -> Tuple[dict[str, str], ...]:
         return tuple({} for _ in self.decomposition_function(comb_class))
 
@@ -37,17 +34,17 @@ class ObstructionTransitivityStrategy(DisjointUnionStrategy[Tiling, GriddedCayle
 
     def backward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
-        children: Optional[tuple[Tiling, ...]] = None,
+        children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         raise NotImplementedError
 
     def forward_map(
         self,
-        comb_class: Tiling,
+        comb_class: TilingT,
         obj: GriddedCayleyPerm,
-        children: Optional[Tuple[Tiling, ...]] = None,
+        children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
         raise NotImplementedError
 
@@ -66,5 +63,15 @@ class ObstructionTransitivityStrategy(DisjointUnionStrategy[Tiling, GriddedCayle
         return d
 
     @classmethod
-    def from_dict(cls, d: dict) -> "ObstructionTransitivityStrategy":
+    def from_dict(cls, d: dict) -> "AbstractObstructionTransitivityStrategy":
         return cls(**d)
+
+
+class ObstructionTransitivityStrategy(AbstractObstructionTransitivityStrategy):
+    """A strategy for adding new obstructions to the tiling based on the current obstructions."""
+
+    def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
+        new_obs = ObstructionTransitivity(comb_class).new_obs()
+        if not new_obs:
+            raise StrategyDoesNotApply("No new obstructions to add.")
+        return (comb_class.add_obstructions(new_obs),)

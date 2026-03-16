@@ -84,7 +84,8 @@ class TrackedLessThanOrEqualRowColSeparationFactory(
         """Finds max expansion and if any row separates more than 2 cells then
         it merges them together so that each row splits into at most 2 rows
         (plus a point row between them) and yields all possible ways of doing this."""
-        for row_order, col_order in self.separations(comb_class):
+        col_order, _ = self.algorithm(comb_class).max_row_col_order
+        for row_order in self.row_separations(comb_class):
             yield TrackedLessThanOrEqualRowColSeparationStrategy(
                 row_order=row_order, col_order=col_order
             )

@@ -586,7 +586,7 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
 
     @property
     def max_row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
-        """Return the column and row order of the tiling."""
+        """Return the column and row order of the tiling (columns first)."""
         col_ineq, row_ineq = self.column_row_inequalities()
         col_order, row_order = RowColOrder(
             self.tiling.active_cells, col_ineq, row_ineq
@@ -870,12 +870,12 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
     def algorithm(self, comb_class: TilingT) -> LessThanOrEqualRowColSeparation:
         """The algorithm for finding the row and column separation."""
 
-    def separations(
+    def row_separations(
         self,
         comb_class: TilingT,
-    ) -> Iterator[tuple[list[set[Cell]], list[set[Cell]]]]:
-        """The possible separations of the rows and columns of the tiling."""
-        max_col_order, max_row_order = self.algorithm(comb_class).max_row_col_order
+    ) -> list[list[set[Cell]]]:
+        """The possible separations of the rows of the tiling (for cols just use max_col_order)."""
+        _, max_row_order = self.algorithm(comb_class).max_row_col_order
         row_separation_dict = defaultdict(list)
         for cells_set in max_row_order:
             row = list(cells_set)[0][1]
@@ -884,17 +884,18 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
             row for row in row_separation_dict if len(row_separation_dict[row]) > 2
         ]
         if not rows_exta_expanding:
-            yield max_row_order, max_col_order
-            return
+            return [max_row_order]
         corrected_row_orders = [max_row_order]
-        for row_order in self.correct_row_orders(
+        return self.correct_row_orders(
             corrected_row_orders, rows_exta_expanding, row_separation_dict
-        ):
-            yield row_order, max_col_order
+        )
 
     def correct_row_orders(
-        self, corrected_row_orders, rows_exta_expanding, row_separation_dict
-    ):
+        self,
+        corrected_row_orders: list[list[set[Cell]]],
+        rows_exta_expanding: list[int],
+        row_separation_dict: dict[int, list[set[Cell]]],
+    ) -> list[list[set[Cell]]]:
         """If any row separates into more than 2 rows then it merges them
         together in all possible ways so that they only separate into 2 rows.
         Returns all possible row orders obtained by doing this."""
@@ -914,7 +915,12 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
             )
         return corrected_row_orders
 
-    def update_old_orders(self, old_corrected_row_orders, to_merge, merged_cells):
+    def update_old_orders(
+        self,
+        old_corrected_row_orders: list[list[set[Cell]]],
+        to_merge: list[set[Cell]],
+        merged_cells: list[tuple[set[Cell], set[Cell]]],
+    ) -> list[list[set[Cell]]]:
         """Updates the old row orders by replacing the cells in to_merge with
         the different merged cells in merged_cells."""
         new_corrected_row_orders = []
@@ -966,7 +972,8 @@ class LessThanOrEqualRowColSeparationFactory(
         """Finds max expansion and if any row separates more than 2 cells then
         it merges them together so that each row splits into at most 2 rows
         (plus a point row between them) and yields all possible ways of doing this."""
-        for row_order, col_order in self.separations(comb_class):
+        col_order, _ = self.algorithm(comb_class).max_row_col_order
+        for row_order in self.row_separations(comb_class):
             yield LessThanOrEqualRowColSeparationStrategy(
                 row_order=row_order, col_order=col_order
             )

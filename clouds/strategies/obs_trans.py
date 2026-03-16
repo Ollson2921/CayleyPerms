@@ -1,3 +1,5 @@
+"""OBstruction transitivity strategy for tracked tilings."""
+
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from tilescope.strategies.obstruction_transitivity import (
     AbstractObstructionTransitivityStrategy,

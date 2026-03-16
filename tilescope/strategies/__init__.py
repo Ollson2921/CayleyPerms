@@ -50,6 +50,7 @@ from .insertion_encodable_verification import (
     HorizontalInsertionEncodableVerificationStrategy,
     VerticalInsertionEncodableVerificationStrategy,
 )
+from .obstruction_transitivity import ObstructionTransitivityStrategy
 
 __all__ = (
     "RequirementInsertionStrategy",
@@ -89,4 +90,5 @@ __all__ = (
     "SubclassVerificationStrategy",
     "FusionPointRowFactory",
     "FusionPointRowStrategy",
+    "ObstructionTransitivityStrategy",
 )

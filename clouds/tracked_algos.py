@@ -1,7 +1,7 @@
 """The algorithms for tracked tilings."""
 
 from functools import cached_property
-from typing import Iterable
+from typing import Iterable, Optional
 from gridded_cayley_permutations import GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 from gridded_cayley_permutations.point_placements import PointPlacement
@@ -84,9 +84,11 @@ class TrackedShuffleFactors(ShuffleFactors, TrackedFactors):
 class TrackedLessThanRowColSeparation(LessThanRowColSeparation):
     """Separates rows and columns with less than constraints and tracks clouds."""
 
-    def __init__(self, tracked_tiling: TrackedTiling) -> None:
+    def __init__(
+        self, tracked_tiling: TrackedTiling, row_order: Optional[list[set[Cell]]] = None
+    ) -> None:
         self.tracked_tiling = tracked_tiling
-        super().__init__(tracked_tiling.tiling)
+        super().__init__(tracked_tiling.tiling, row_order=row_order)
 
     def tracked_row_col_separation(self) -> Iterable[TrackedTiling]:
         """Yield the separated tilings with tracked clouds."""
@@ -109,15 +111,17 @@ class TrackedLessThanOrEqualRowColSeparation(
 ):
     """Separates rows and columns with less than or equal constraints and tracks clouds."""
 
-    def __init__(self, tracked_tiling: TrackedTiling) -> None:
+    def __init__(
+        self, tracked_tiling: TrackedTiling, row_order: Optional[list[set[Cell]]] = None
+    ) -> None:
         self.tracked_tiling = tracked_tiling
-        super().__init__(tracked_tiling.tiling)
+        super().__init__(tracked_tiling.tiling, row_order=row_order)
 
     def tracked_row_col_separation(
-        self, row_order, col_order
+        self,
     ) -> Iterable[TrackedTiling]:
         """Yield the separated tilings with tracked clouds."""
-        for separated_tiling in self.row_col_separation(row_order, col_order):
+        for separated_tiling in self.row_col_separation():
             (indices_clouds, value_clouds) = TrackedTiling.map_clouds(
                 indices_clouds=self.tracked_tiling.indices_clouds,
                 value_clouds=self.tracked_tiling.value_clouds,

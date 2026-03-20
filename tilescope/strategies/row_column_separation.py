@@ -7,6 +7,7 @@ from itertools import combinations, product
 from typing import Iterator, Optional, Generic, Tuple, TypeVar, Iterable
 from functools import cached_property
 from comb_spec_searcher import DisjointUnionStrategy, StrategyFactory
+from comb_spec_searcher.exception import StrategyDoesNotApply
 
 from gridded_cayley_permutations.row_col_map import RowColMap
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
@@ -376,9 +377,26 @@ class RowColOrder:
 class AbstractSeparation:
     """Abstract class for row and column separation."""
 
-    def __init__(self, tiling: Tiling) -> None:
+    def __init__(
+        self,
+        tiling: Tiling,
+        row_order: Optional[list[set[Cell]]] = None,
+    ) -> None:
         """Initialize the separation algorithm with a tiling."""
         self.tiling = tiling
+        if not row_order:
+            row_order = self.max_row_col_order[1]
+        self.row_order = row_order
+        self.col_order = self.max_row_col_order[0]
+
+    @property
+    def max_row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
+        """Return the column and row order of the tiling (columns first)."""
+        col_ineq, row_ineq = self.column_row_inequalities()
+        col_order, row_order = RowColOrder(
+            self.tiling.active_cells, col_ineq, row_ineq
+        ).max_column_row_order
+        return col_order, row_order
 
     @abc.abstractmethod
     def point_row_obs_and_reqs(
@@ -494,25 +512,6 @@ class LessThanRowColSeparation(AbstractSeparation):
             )
 
     @property
-    def row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
-        """Return the column and row order of the tiling."""
-        col_ineq, row_ineq = self.column_row_inequalities()
-        col_order, row_order = RowColOrder(
-            self.tiling.active_cells, col_ineq, row_ineq
-        ).max_column_row_order
-        return col_order, row_order
-
-    @property
-    def row_order(self) -> list[set[Cell]]:
-        """Return the row order of the tiling."""
-        return self.row_col_order[1]
-
-    @property
-    def col_order(self) -> list[set[Cell]]:
-        """Return the column order of the tiling."""
-        return self.row_col_order[0]
-
-    @property
     def new_active_cells(self) -> set[Cell]:
         """Return the new active cells of the tiling."""
         return set(self.map_cell(cell) for cell in self.tiling.active_cells)
@@ -562,13 +561,10 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
     separating cells in a row.
     """
 
-    def row_col_separation(self, row_order, col_order) -> Iterator[Tiling]:
+    def row_col_separation(self) -> Iterator[Tiling]:
         """
         Return the tiling with the row and column separated.
         """
-        # pylint: disable=attribute-defined-outside-init
-        self.row_order = row_order
-        self.col_order = col_order
         if any(self.tiling.find_empty_rows_and_columns()):
             yield self.tiling
             return
@@ -583,15 +579,6 @@ class LessThanOrEqualRowColSeparation(AbstractSeparation):
             yield Tiling(
                 new_obstructions + obs, new_requirements + reqs, new_dimensions
             )
-
-    @property
-    def max_row_col_order(self) -> tuple[list[set[Cell]], list[set[Cell]]]:
-        """Return the column and row order of the tiling (columns first)."""
-        col_ineq, row_ineq = self.column_row_inequalities()
-        col_order, row_order = RowColOrder(
-            self.tiling.active_cells, col_ineq, row_ineq
-        ).max_column_row_order
-        return col_order, row_order
 
     def point_row_obs_and_reqs(
         self,
@@ -810,13 +797,11 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
     def __init__(
         self,
         row_order: list[set[Cell]],
-        col_order: list[set[Cell]],
         ignore_parent: bool = True,
         possibly_empty: bool = True,
     ):
         super().__init__(ignore_parent=ignore_parent, possibly_empty=possibly_empty)
         self.row_order = row_order
-        self.col_order = col_order
 
     def formal_step(self) -> str:
         """Return a string that describe the operation performed on the tiling."""
@@ -825,7 +810,7 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
-            f"row_order={self.row_order}, col_order={self.col_order}, "
+            f"row_order={self.row_order}, "
             f"ignore_parent={self.ignore_parent}, "
             f"possibly_empty={self.possibly_empty})"
         )
@@ -833,14 +818,12 @@ class AbstractLessThanOrEqualRowColSeparationStrategy(
     def to_jsonable(self) -> dict:
         d: dict = super().to_jsonable()
         d["row_order"] = [list(row) for row in self.row_order]
-        d["col_order"] = [list(col) for col in self.col_order]
         return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractLessThanRowColSeparationStrategy":
         return cls(
             row_order=[set(tuple(cell) for cell in row) for row in d["row_order"]],
-            col_order=[set(tuple(cell) for cell in col) for col in d["col_order"]],
             ignore_parent=d["ignore_parent"],
             possibly_empty=d["possibly_empty"],
         )
@@ -853,12 +836,14 @@ class LessThanOrEqualRowColSeparationStrategy(
 
     def algorithm(self, comb_class):
         """The algorithm for finding the row and column separation."""
-        return LessThanOrEqualRowColSeparation(comb_class)
+        return LessThanOrEqualRowColSeparation(comb_class, self.row_order)
 
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
         algo = self.algorithm(comb_class)
-        return tuple(algo.row_col_separation(self.row_order, self.col_order))
+        if algo.row_col_map.is_identity():
+            raise StrategyDoesNotApply
+        return tuple(algo.row_col_separation())
 
 
 class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
@@ -875,7 +860,7 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
         comb_class: TilingT,
     ) -> list[list[set[Cell]]]:
         """The possible separations of the rows of the tiling (for cols just use max_col_order)."""
-        _, max_row_order = self.algorithm(comb_class).max_row_col_order
+        max_row_order = self.algorithm(comb_class).row_order
         row_separation_dict = defaultdict(list)
         for cells_set in max_row_order:
             row = list(cells_set)[0][1]
@@ -972,8 +957,5 @@ class LessThanOrEqualRowColSeparationFactory(
         """Finds max expansion and if any row separates more than 2 cells then
         it merges them together so that each row splits into at most 2 rows
         (plus a point row between them) and yields all possible ways of doing this."""
-        col_order, _ = self.algorithm(comb_class).max_row_col_order
         for row_order in self.row_separations(comb_class):
-            yield LessThanOrEqualRowColSeparationStrategy(
-                row_order=row_order, col_order=col_order
-            )
+            yield LessThanOrEqualRowColSeparationStrategy(row_order=row_order)

@@ -861,7 +861,6 @@ class AbstractLessThanOrEqualRowColSeparationFactory(StrategyFactory[TilingT]):
     ) -> list[list[set[Cell]]]:
         """The possible separations of the rows of the tiling (for cols just use max_col_order)."""
         max_row_order = self.algorithm(comb_class).row_order
-        print(f"max row order: {max_row_order}")
         row_separation_dict = defaultdict(list)
         for cells_set in max_row_order:
             row = list(cells_set)[0][1]

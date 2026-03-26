@@ -1,12 +1,12 @@
-if [ -d .mapplings ]
+if [ -d .MapplePy ]
 then
-    cd .mapplings
+    cd .MapplePy
     git pull
     cd ..
 else
-    git clone --depth 1 https://github.com/Ollson2921/MapplePy.git .mapplings
+    git clone --depth 1 https://github.com/Ollson2921/MapplePy.git .MapplePy
 fi
 
-cd .mapplings
+cd .MapplePy
 pip install --force-reinstall --no-cache-dir .
 cd ..

@@ -202,6 +202,35 @@ class Tiling(CombinatorialClass):
             return set[Cell]()
         return set(chain(*(set(req.positions) for req in chain(*self.requirements))))
 
+    def obs_by_col_and_row(
+        self,
+    ) -> tuple[dict[int, set[GriddedCayleyPerm]], dict[int, set[GriddedCayleyPerm]]]:
+        """Returns a dict with obstructions sorted by intersecting columns
+        and a dict with obstructions sorted by intersecting rows"""
+        by_col = defaultdict[int, set[GriddedCayleyPerm]](set)
+        by_row = defaultdict[int, set[GriddedCayleyPerm]](set)
+        for ob in self.obstructions:
+            for pos in set(ob.positions):
+                by_col[pos[0]].add(ob)
+                by_row[pos[1]].add(ob)
+        return by_col, by_row
+
+    def reqs_by_col_and_row(
+        self,
+    ) -> tuple[
+        dict[int, set[tuple[GriddedCayleyPerm, ...]]],
+        dict[int, set[tuple[GriddedCayleyPerm, ...]]],
+    ]:
+        """Returns a dict with requirements sorted by intersecting columns
+        and a dict with requirements sorted by intersecting rows"""
+        by_col = defaultdict[int, set[tuple[GriddedCayleyPerm, ...]]](set)
+        by_row = defaultdict[int, set[tuple[GriddedCayleyPerm, ...]]](set)
+        for req_list in self.requirements:
+            for pos in set(chain.from_iterable(req.positions for req in req_list)):
+                by_col[pos[0]].add(req_list)
+                by_row[pos[1]].add(req_list)
+        return by_col, by_row
+
     def delete_columns(self, cols: Iterable[int]) -> "Tiling":
         """
         Deletes columns at indices specified

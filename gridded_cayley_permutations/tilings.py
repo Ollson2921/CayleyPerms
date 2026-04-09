@@ -549,8 +549,12 @@ class Tiling(CombinatorialClass):
         """Unfuses a point row at row 'row' either above or below that row."""
         unfused = self.split_row_or_col(True, row)
         point_row = row + int(above)
+        return unfused.add_point_row(point_row)
+
+    def add_point_row(self, point_row: int) -> "Tiling":
+        """Adds obstructions to make the specified row a point row."""
         row_obs: list[GriddedCayleyPerm] = []
-        for col in range(unfused.dimensions[0]):
+        for col in range(self.dimensions[0]):
             row_obs.append(
                 GriddedCayleyPerm(
                     CayleyPermutation([0, 1]), [(col, point_row), (col, point_row)]
@@ -561,7 +565,7 @@ class Tiling(CombinatorialClass):
                     CayleyPermutation([1, 0]), [(col, point_row), (col, point_row)]
                 )
             )
-        for col1, col2 in combinations(range(unfused.dimensions[0]), 2):
+        for col1, col2 in combinations(range(self.dimensions[0]), 2):
             row_obs.append(
                 GriddedCayleyPerm(
                     CayleyPermutation([0, 1]), [(col1, point_row), (col2, point_row)]
@@ -572,7 +576,7 @@ class Tiling(CombinatorialClass):
                     CayleyPermutation([1, 0]), [(col1, point_row), (col2, point_row)]
                 )
             )
-        return unfused.add_obstructions(row_obs)
+        return self.add_obstructions(row_obs)
 
     def is_point_row_fuseable(self, row: int) -> bool:
         """Returns true if row and row+1 are fuseable and either of them

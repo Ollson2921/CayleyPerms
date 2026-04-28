@@ -440,6 +440,12 @@ class AbstractSeparation:
         Map the cell to its new position.
         """
 
+    @abc.abstractmethod
+    def row_col_separation(self) -> Iterator[Tiling]:
+        """
+        Return the tiling with the row and column separated.
+        """
+
     def inequalities_sets(
         self,
     ) -> tuple[set[tuple[Cell, Cell]], set[tuple[Cell, Cell]], set[tuple[Cell, Cell]]]:

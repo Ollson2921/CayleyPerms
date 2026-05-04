@@ -107,13 +107,11 @@ def test_lte_rc_sep_clouds():
         indices_clouds=(),
         intersect_clouds_with_active=False,
     )
-    col_order, row_order = TrackedLessThanOrEqualRowColSeparation(
-        track_til
-    ).max_row_col_order
+    _, row_order = TrackedLessThanOrEqualRowColSeparation(track_til).max_row_col_order
     assert list(
-        TrackedLessThanOrEqualRowColSeparation(track_til).tracked_row_col_separation(
-            col_order=col_order, row_order=row_order
-        )
+        TrackedLessThanOrEqualRowColSeparation(
+            track_til, row_order
+        ).tracked_row_col_separation()
     ) == [
         TrackedTiling(
             tiling=Tiling(

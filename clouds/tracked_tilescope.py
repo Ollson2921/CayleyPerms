@@ -25,6 +25,7 @@ from .strategies import (
     TrackedHorizontalInsertionEncodableVerificationStrategy,
     TrackedCellInsertionFactory,
     AddCloudFactory,
+    TrackedObstructionTransitivityStrategy,
 )
 from .tracked_tiling import TrackedTiling
 
@@ -46,6 +47,7 @@ class TrackedTileScopePack(StrategyPack):
             initial_strats=[
                 TrackedFactorStrategy(),
                 TrackedVerticalInsertionEncodingRequirementInsertionFactory(),
+                TrackedObstructionTransitivityStrategy(),
             ],
             inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
             expansion_strats=[[TrackedVerticalInsertionEncodingPlacementFactory()]],
@@ -62,6 +64,7 @@ class TrackedTileScopePack(StrategyPack):
             initial_strats=[
                 TrackedFactorStrategy(),
                 TrackedHorizontalInsertionEncodingRequirementInsertionFactory(),
+                TrackedObstructionTransitivityStrategy(),
             ],
             inferral_strats=[TrackedRemoveEmptyRowsAndColumnsStrategy()],
             expansion_strats=[[TrackedHorizontalInsertionEncodingPlacementFactory()]],
@@ -106,6 +109,7 @@ class TrackedTileScopePack(StrategyPack):
                 TrackedLessThanOrEqualRowColSeparationFactory(),
                 TrackedFusionPointRowFactory(),
                 TrackedFusionFactory(),
+                TrackedObstructionTransitivityStrategy(),
             ],  # Iterable[Strategy]
             expansion_strats=[expansion_strats],  # Iterable[Iterable[Strategy]]
             ver_strats=[

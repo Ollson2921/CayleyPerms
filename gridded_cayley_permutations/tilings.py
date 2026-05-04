@@ -202,6 +202,35 @@ class Tiling(CombinatorialClass):
             return set[Cell]()
         return set(chain(*(set(req.positions) for req in chain(*self.requirements))))
 
+    def obs_by_col_and_row(
+        self,
+    ) -> tuple[dict[int, set[GriddedCayleyPerm]], dict[int, set[GriddedCayleyPerm]]]:
+        """Returns a dict with obstructions sorted by intersecting columns
+        and a dict with obstructions sorted by intersecting rows"""
+        by_col = defaultdict[int, set[GriddedCayleyPerm]](set)
+        by_row = defaultdict[int, set[GriddedCayleyPerm]](set)
+        for ob in self.obstructions:
+            for pos in set(ob.positions):
+                by_col[pos[0]].add(ob)
+                by_row[pos[1]].add(ob)
+        return by_col, by_row
+
+    def reqs_by_col_and_row(
+        self,
+    ) -> tuple[
+        dict[int, set[tuple[GriddedCayleyPerm, ...]]],
+        dict[int, set[tuple[GriddedCayleyPerm, ...]]],
+    ]:
+        """Returns a dict with requirements sorted by intersecting columns
+        and a dict with requirements sorted by intersecting rows"""
+        by_col = defaultdict[int, set[tuple[GriddedCayleyPerm, ...]]](set)
+        by_row = defaultdict[int, set[tuple[GriddedCayleyPerm, ...]]](set)
+        for req_list in self.requirements:
+            for pos in set(chain.from_iterable(req.positions for req in req_list)):
+                by_col[pos[0]].add(req_list)
+                by_row[pos[1]].add(req_list)
+        return by_col, by_row
+
     def delete_columns(self, cols: Iterable[int]) -> "Tiling":
         """
         Deletes columns at indices specified
@@ -520,8 +549,12 @@ class Tiling(CombinatorialClass):
         """Unfuses a point row at row 'row' either above or below that row."""
         unfused = self.split_row_or_col(True, row)
         point_row = row + int(above)
+        return unfused.add_point_row(point_row)
+
+    def add_point_row(self, point_row: int) -> "Tiling":
+        """Adds obstructions to make the specified row a point row."""
         row_obs: list[GriddedCayleyPerm] = []
-        for col in range(unfused.dimensions[0]):
+        for col in range(self.dimensions[0]):
             row_obs.append(
                 GriddedCayleyPerm(
                     CayleyPermutation([0, 1]), [(col, point_row), (col, point_row)]
@@ -532,7 +565,7 @@ class Tiling(CombinatorialClass):
                     CayleyPermutation([1, 0]), [(col, point_row), (col, point_row)]
                 )
             )
-        for col1, col2 in combinations(range(unfused.dimensions[0]), 2):
+        for col1, col2 in combinations(range(self.dimensions[0]), 2):
             row_obs.append(
                 GriddedCayleyPerm(
                     CayleyPermutation([0, 1]), [(col1, point_row), (col2, point_row)]
@@ -543,7 +576,7 @@ class Tiling(CombinatorialClass):
                     CayleyPermutation([1, 0]), [(col1, point_row), (col2, point_row)]
                 )
             )
-        return unfused.add_obstructions(row_obs)
+        return self.add_obstructions(row_obs)
 
     def is_point_row_fuseable(self, row: int) -> bool:
         """Returns true if row and row+1 are fuseable and either of them

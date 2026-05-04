@@ -12,15 +12,18 @@ authors = [
     { name = "Abigail Ollson" }
 ]
 dependencies = [
-    "comb_spec_searcher @ git+https://github.com/PermutaTriangle/comb_spec_searcher",
+    "comb-spec-searcher>=4.2.1",
     "tqdm",
 ]
 readme = "README.rst"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build.targets.wheel]
 packages = ["cayley_perms"]
 
-[tool.hatchling.build.targets.sdist]
+[tool.hatch.build.targets.sdist]
 include = [
     "cayley_permutations",
     "check_regular_ins_enc",
@@ -32,6 +35,7 @@ include = [
     "tests", 
     "README.rst",
     "setup_insenc_test.sh",
+    "setup_mapplings_test.sh",
 ]
 
 [tool.black]

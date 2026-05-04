@@ -21,7 +21,7 @@ readme = "README.rst"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["cayley_perms"]
+packages = ["."]
 
 [tool.hatch.build.targets.sdist]
 include = [

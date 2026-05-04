@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cayley_perms"
+version = "1.0"
+description = "A module for using Cayley permutations."
+authors = [
+    { name = "Reed Acton" },
+    { name = "Christian Bean", email = "c.n.bean@keele.ac.uk" },
+    { name = "Abigail Ollson" }
+]
+dependencies = [
+    "comb_spec_searcher @ git+https://github.com/PermutaTriangle/comb_spec_searcher",
+    "tqdm",
+]
+readme = "README.rst"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cayley_perms"]
+
+[tool.hatchling.build.targets.sdist]
+include = [
+    "cayley_permutations",
+    "check_regular_ins_enc",
+    "clouds",
+    "decorated_patterns",
+    "gridded_cayley_permutations",
+    "mesh_patterns",
+    "tilescope",
+    "tests", 
+    "README.rst",
+    "setup_insenc_test.sh",
+]
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+include = "\\.pyi?$"
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''

@@ -915,7 +915,7 @@ class Tiling(CombinatorialClass):
         """
         if not self.dimensions == other.dimensions:
             return False
-        return set(self.obstructions).issubset(set(other.obstructions)) and set(
+        return set(other.obstructions).issubset(set(self.obstructions)) and set(
             self.requirements
         ).issubset(set(other.requirements))
 

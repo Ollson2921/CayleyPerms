@@ -161,12 +161,12 @@ class PartialUnplacement:
         self.point_cols = {
             col
             for col in tiling.point_cols
-            if col in positive_cols and 0 < col < tiling.dimensions[0]
+            if col in positive_cols and 0 < col < tiling.dimensions[0] - 1
         }
         self.point_rows = {
             row
             for row in tiling.point_rows
-            if row in positive_rows and 0 < row < tiling.dimensions[1]
+            if row in positive_rows and 0 < row < tiling.dimensions[1] - 1
         }
         self.obs_by_direction = tiling.obs_by_col_and_row()
 

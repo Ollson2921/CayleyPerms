@@ -54,6 +54,15 @@ class GriddedCayleyPerm(CombinatorialObject):
         positions = tuple(cell for _ in range(len(cperm)))
         return GriddedCayleyPerm(cperm, positions)
 
+    def add_to_positions(self, add_to_len: int, add_to_val: int) -> "GriddedCayleyPerm":
+        """Returns a new gridded Cayley permutation with add_to_len added
+        to the first value of each cell and add_to_val added to the second
+        value of each cell."""
+        new_positions = tuple(
+            (cell[0] + add_to_len, cell[1] + add_to_val) for cell in self.positions
+        )
+        return GriddedCayleyPerm(self.pattern, new_positions)
+
     def increasing_are_above(self) -> bool:
         """Checks if a larger value is in a cell greater than or equal to the current one."""
         for j, val in enumerate(self.pattern):

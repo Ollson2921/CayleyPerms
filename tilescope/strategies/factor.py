@@ -1,5 +1,6 @@
 """Factors the tiling into sections that are independent of each other."""
 
+import abc
 from typing import Dict, Iterator, Optional, Tuple
 from comb_spec_searcher import CartesianProductStrategy, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
@@ -39,7 +40,19 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        # find preimages of objs mapping from factors in children to com_class, combine in all possible ways
+        preimage_objs = []
+        for gcps, factor in zip(objs, self.algorithm(comb_class).find_factors_as_cells):
+            add_to_len = min(cell[0] for cell in factor)
+            add_to_val = min(cell[1] for cell in factor)
+            preimage_gcps = []
+            for gcp in gcps:
+                preimage_gcp = gcp.add_to_positions(add_to_len, add_to_val)
+                preimage_gcps.append(preimage_gcp)
+            preimage_objs.append(tuple(preimage_gcps))
+        raise NotImplementedError("TODO: combine preimage_objs in all possible ways")
 
     def forward_map(
         self,
@@ -47,7 +60,16 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[GriddedCayleyPerm, ...]:
-        raise NotImplementedError
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        return tuple(
+            obj.sub_gridded_cayley_perm(factor)
+            for factor in self.algorithm(comb_class).find_factors_as_cells
+        )
+
+    @abc.abstractmethod
+    def algorithm(self, comb_class: TilingT) -> Factors:
+        """Return the factor algorithm for the tiling."""
 
     def __repr__(self) -> str:
         return (
@@ -73,10 +95,13 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
 class FactorStrategy(AbstractFactorStrategy[Tiling]):
     """Factors the tiling into sections that are independent of each other."""
 
+    def algorithm(self, comb_class: Tiling) -> Factors:
+        return Factors(comb_class)
+
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
-        factors = Factors(comb_class).find_factors()
+        factors = self.algorithm(comb_class).find_factors()
         if len(factors) == 1:
-            raise StrategyDoesNotApply
+            raise StrategyDoesNotApply("Strategy does not apply")
         return factors
 
 

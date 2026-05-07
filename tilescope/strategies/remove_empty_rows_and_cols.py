@@ -33,7 +33,20 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        obj = objs[0]
+        adjust = 0
+        empty_cols, empty_rows = comb_class.find_empty_rows_and_columns()
+        new_positions = []
+        for cell in obj.positions:
+            if cell[0] in empty_cols:
+                adjust += 1
+            new_positions.append((cell[0] + adjust, cell[1]))
+        adjust = 0
+        for cell in sorted(new_positions, key=lambda x: x[1]):
+            if cell[1] in empty_rows:
+                adjust += 1
+            new_positions.append((cell[0], cell[1] + adjust))
+        yield GriddedCayleyPerm(obj.pattern, tuple(new_positions))
 
     def forward_map(
         self,
@@ -41,7 +54,19 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        adjust = 0
+        empty_cols, empty_rows = comb_class.find_empty_rows_and_columns()
+        new_positions = []
+        for cell in obj.positions:
+            if cell[0] in empty_cols:
+                adjust += 1
+            new_positions.append((cell[0] - adjust, cell[1]))
+        adjust = 0
+        for cell in sorted(new_positions, key=lambda x: x[1]):
+            if cell[1] in empty_rows:
+                adjust += 1
+            new_positions.append((cell[0], cell[1] - adjust))
+        return (GriddedCayleyPerm(obj.pattern, tuple(new_positions)),)
 
     def __repr__(self) -> str:
         return (

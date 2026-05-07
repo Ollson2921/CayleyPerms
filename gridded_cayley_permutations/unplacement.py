@@ -340,11 +340,10 @@ class PartialUnplacement:
             cols_to_remove.update({col, col + 1})
         for row in unplace_rows:
             rows_to_remove.update({row, row + 1})
-        print(temp_tiling)
         temp_tiling = temp_tiling.delete_rows_and_columns(
             cols_to_remove, rows_to_remove
         )
-        print(temp_tiling)
+
         return temp_tiling.add_requirement_list(
             self.new_reqs(unplace_cols, unplace_rows)
         )

@@ -8,6 +8,7 @@ from comb_spec_searcher.strategies.constructor import Constructor
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 from gridded_cayley_permutations.point_placements import TilingT
+from cayley_permutations import CayleyPermutation
 
 
 class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm]):
@@ -42,17 +43,24 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
     ) -> Iterator[GriddedCayleyPerm]:
         if children is None:
             children = self.decomposition_function(comb_class)
-        # find preimages of objs mapping from factors in children to com_class, combine in all possible ways
         preimage_objs = []
-        for gcps, factor in zip(objs, self.algorithm(comb_class).find_factors_as_cells):
+        for gcp, factor in zip(objs, self.algorithm(comb_class).find_factors_as_cells):
+            if gcp is None:
+                continue
             add_to_len = min(cell[0] for cell in factor)
             add_to_val = min(cell[1] for cell in factor)
-            preimage_gcps = []
-            for gcp in gcps:
-                preimage_gcp = gcp.add_to_positions(add_to_len, add_to_val)
-                preimage_gcps.append(preimage_gcp)
-            preimage_objs.append(tuple(preimage_gcps))
-        raise NotImplementedError("TODO: combine preimage_objs in all possible ways")
+            preimage_gcp = gcp.add_to_positions(add_to_len, add_to_val)
+            preimage_objs.append(preimage_gcp)
+
+        temp = [
+            ((cell[0], idx), (cell[1], val))
+            for gp in preimage_objs
+            for (idx, val), cell in zip(enumerate(gp.pattern), gp.positions)
+        ]
+        temp.sort()
+        new_positions = [(idx[0], val[0]) for idx, val in temp]
+        new_pattern = CayleyPermutation.standardise([val for _, val in temp])
+        yield GriddedCayleyPerm(new_pattern, tuple(new_positions))
 
     def forward_map(
         self,

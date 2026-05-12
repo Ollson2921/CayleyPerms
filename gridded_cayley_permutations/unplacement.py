@@ -157,21 +157,16 @@ class PartialUnplacement:
 
     def __init__(self, tiling: Tiling):
         self.tiling = tiling
-        positive_cols, positive_rows = map(set[int], zip(*tiling.positive_cells()))
-        self.point_cols = {
-            col
-            for col in tiling.point_cols
-            if col in positive_cols and 0 < col < tiling.dimensions[0] - 1
-        }
-        self.point_rows = {
-            row
-            for row in tiling.point_rows
-            if row in positive_rows and 0 < row < tiling.dimensions[1] - 1
-        }
+        self.dimensions = tiling.dimensions
+        self.positive_cols, self.positive_rows = map(
+            set[int], zip(*tiling.positive_cells())
+        )
+        self.point_cols = tiling.point_cols
+        self.point_rows = tiling.point_rows
         self.obs_by_direction = tiling.obs_by_col_and_row()
 
     @cached_property
-    def point_col_and_row_obs(
+    def restricted_obs_by_direction(
         self,
     ) -> tuple[dict[int, set[GriddedCayleyPerm]], dict[int, set[GriddedCayleyPerm]]]:
         """Restricts obs by direction so that each key contains only obs fully contained
@@ -201,20 +196,18 @@ class PartialUnplacement:
     @cached_property
     def all_point_col_obs(self) -> set[GriddedCayleyPerm]:
         """Returns point obstructions in point cols"""
-        return set(
-            ob
-            for ob in chain.from_iterable(self.point_col_and_row_obs[0].values())
-            if len(ob) == 1
-        )
+        return set(chain.from_iterable(self.restricted_obs_by_direction[0].values()))
 
     @cached_property
-    def all_point_row_obs(self) -> set[GriddedCayleyPerm]:
-        """Returns point obstructions in point rows"""
-        return set(
-            ob
-            for ob in chain.from_iterable(self.point_col_and_row_obs[1].values())
-            if len(ob) == 1
+    def expected_obs(self) -> set[GriddedCayleyPerm]:
+        """Returns the set of all gcps implied by point rows/cols"""
+        from_point_rows = set(
+            chain.from_iterable(
+                Tiling([], [], self.dimensions).add_point_row(row).obstructions
+                for row in self.point_rows
+            )
         )
+        return from_point_rows | self.all_point_col_obs
 
     def find_cols_and_rows(self) -> tuple[set[int], set[int]]:
         """Uses the initialiser to find all valid rows and cols to unfuse"""
@@ -224,10 +217,19 @@ class PartialUnplacement:
         self, check_cols: set[int], check_rows: set[int]
     ) -> tuple[set[int], set[int]]:
         """Filters the input cols and rows to only include those which can be unplaced."""
-        valid_cols = check_cols & self.point_cols
-        valid_rows = check_rows & self.point_rows
+        valid_cols = {
+            col
+            for col in check_cols & self.positive_cols
+            if (0 < col < self.dimensions[0] - 1)
+        }
+        valid_rows = {
+            row
+            for row in check_rows & self.positive_rows
+            if (0 < row < self.dimensions[1] - 1)
+        }
         valid_cols = set(filter(self.col_fuse_check, valid_cols))
         valid_rows = set(filter(self.row_fuse_check, valid_rows))
+        valid_rows = set(filter(self.row_ob_check, valid_rows))
         return valid_cols, valid_rows
 
     def col_fuse_check(self, col: int) -> bool:
@@ -246,12 +248,22 @@ class PartialUnplacement:
         new_obs = set[GriddedCayleyPerm](
             unfusion_map.preimage_of_obstructions(left_obs)
         )
-        center_obs = self.point_col_and_row_obs[0][col]
+        center_obs = self.restricted_obs_by_direction[0][col]
         new_obs.update(center_obs)
 
-        old_tiling = Tiling(old_obs, [], self.tiling.dimensions)
-        new_tiling = Tiling(new_obs, [], self.tiling.dimensions)
+        old_tiling = Tiling(old_obs, [], self.dimensions)
+        new_tiling = Tiling(new_obs, [], self.dimensions)
         return old_tiling == new_tiling
+
+    def row_ob_check(self, row: int) -> bool:
+        """Returns False if there is an obstruction that can't be unplaced"""
+        positive_cells = (
+            cell for cell in self.tiling.positive_cells() if cell[1] == row
+        )
+        for ob in self.obs_by_direction[1][row] - self.expected_obs:
+            if any(ob.positions.count(cell) for cell in positive_cells):
+                return False
+        return True
 
     def row_fuse_check(self, row: int) -> bool:
         """Returns True if row can be unplaced."""
@@ -272,17 +284,17 @@ class PartialUnplacement:
         new_obs = set[GriddedCayleyPerm](
             unfusion_map.preimage_of_obstructions(lower_obs - recover_obs)
         )
-        center_obs = self.point_col_and_row_obs[1][row]
+        center_obs = self.restricted_obs_by_direction[1][row]
         new_obs.update(center_obs | recover_obs)
 
-        old_tiling = Tiling(old_obs, [], self.tiling.dimensions)
-        new_tiling = Tiling(new_obs, [], self.tiling.dimensions)
+        old_tiling = Tiling(old_obs, [], self.dimensions)
+        new_tiling = Tiling(new_obs, [], self.dimensions)
         return old_tiling == new_tiling
 
     def default_maps(self) -> list[dict[int, int]]:
         """Basic identity maps for convenience"""
-        col_map = dict(enumerate(range(self.tiling.dimensions[0])))
-        row_map = dict(enumerate(range(self.tiling.dimensions[1])))
+        col_map = dict(enumerate(range(self.dimensions[0])))
+        row_map = dict(enumerate(range(self.dimensions[1])))
         return [col_map, row_map]
 
     def pre_adjust_obs(
@@ -292,14 +304,9 @@ class PartialUnplacement:
         add_obs, remove_obs = set[GriddedCayleyPerm](), set[GriddedCayleyPerm]()
         for row in unplaced_rows:
             points = self.tiling.positive_cells() & self.tiling.cells_in_row(row)
-            default_obs = set(
-                Tiling([], [], self.tiling.dimensions).add_point_row(row).obstructions
-            )
             abnormal_cells = tuple(
                 ob.positions
-                for ob in self.point_col_and_row_obs[1][row]
-                - default_obs
-                - self.all_point_col_obs
+                for ob in self.restricted_obs_by_direction[1][row] - self.expected_obs
             )
             for point in points:
                 shift_cell = (point[0], point[1] - 1)
@@ -334,7 +341,7 @@ class PartialUnplacement:
             adjust.map_gridded_cperms, self.pre_adjust_obs(unplace_rows)
         )
         updated_obs = (set(self.tiling.obstructions) | set(add_obs)) - set(remove_obs)
-        temp_tiling = Tiling(updated_obs, [], self.tiling.dimensions)
+        temp_tiling = Tiling(updated_obs, [], self.dimensions)
 
         for col in unplace_cols:
             cols_to_remove.update({col, col + 1})
@@ -354,7 +361,7 @@ class PartialUnplacement:
         """Returns a RowColMap that tracks unplacement"""
         col_correction = dict[int, int]()
         col_adjust = 0
-        for col in range(self.tiling.dimensions[0]):
+        for col in range(self.dimensions[0]):
             if {col, col - 1} & unplaced_cols:
                 col_correction[col] = col_correction[col - 1]
                 col_adjust += 1
@@ -362,7 +369,7 @@ class PartialUnplacement:
                 col_correction[col] = col - col_adjust
         row_correction = dict[int, int]()
         row_adjust = 0
-        for row in range(self.tiling.dimensions[1]):
+        for row in range(self.dimensions[1]):
             if {row, row - 1} & unplaced_rows:
                 row_correction[row] = row_correction[row - 1]
                 row_adjust += 1

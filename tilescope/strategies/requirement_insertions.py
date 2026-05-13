@@ -8,7 +8,6 @@ from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.point_placements import TilingT
 from cayley_permutations import CayleyPermutation, Av
 
-
 Cell = Tuple[int, int]
 
 

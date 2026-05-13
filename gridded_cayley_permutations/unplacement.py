@@ -220,6 +220,7 @@ class PartialUnplacement:
         self, check_cols: set[int], check_rows: set[int]
     ) -> tuple[set[int], set[int]]:
         """Filters the input cols and rows to only include those which can be unplaced."""
+        # First, we make sure we're not on the border
         valid_cols = {
             col
             for col in check_cols & self.positive_cols
@@ -230,9 +231,14 @@ class PartialUnplacement:
             for row in check_rows & self.positive_rows
             if (0 < row < self.dimensions[1] - 1)
         }
+
+        # This makes sure every point row ob can be unplaced
+        valid_rows = set(filter(self.row_ob_check, valid_rows))
+
+        # Now we check that the fusion/unfusion is valid
         valid_cols = set(filter(self.col_fuse_check, valid_cols))
         valid_rows = set(filter(self.row_fuse_check, valid_rows))
-        valid_rows = set(filter(self.row_ob_check, valid_rows))
+
         return valid_cols, valid_rows
 
     def col_fuse_check(self, col: int) -> bool:
@@ -242,18 +248,22 @@ class PartialUnplacement:
         maps[0][col + 1] = col - 1
         unfusion_map = RowColMap(*maps)
 
+        # left_obs are the obs in the col to the left of the point
         left_obs = self.obs_by_direction[0][col - 1]
 
+        # Get the original obs to compare against fusion/unfusion
         old_obs = (
             left_obs | self.obs_by_direction[0][col] | self.obs_by_direction[0][col + 1]
         )
 
+        # Unfuse the obs in the left col, then add in obs we expect in a point col
         new_obs = set[GriddedCayleyPerm](
             unfusion_map.preimage_of_obstructions(left_obs)
         )
         center_obs = self.restricted_obs_by_direction[0][col]
         new_obs.update(center_obs)
 
+        # Simplify new obs to get rid of redundant obstructions, then compare
         old_tiling = Tiling(old_obs, [], self.dimensions)
         new_tiling = Tiling(new_obs, [], self.dimensions)
         return old_tiling == new_tiling
@@ -283,11 +293,14 @@ class PartialUnplacement:
             | self.obs_by_direction[1][row + 1]
         )
 
+        # Before unfusing lower_obs, remove obstructions from point cols
         recover_obs = self.all_point_col_obs & old_obs
         new_obs = set[GriddedCayleyPerm](
             unfusion_map.preimage_of_obstructions(lower_obs - recover_obs)
         )
         center_obs = self.restricted_obs_by_direction[1][row]
+
+        # Bring back the point col obstructions
         new_obs.update(center_obs | recover_obs)
 
         old_tiling = Tiling(old_obs, [], self.dimensions)
@@ -341,12 +354,13 @@ class PartialUnplacement:
             return self.tiling
 
         cols_to_remove, rows_to_remove = set[int](), set[int]()
-        adjust = self.adjustment_map(unplace_cols, unplace_rows)
 
-        add_obs, remove_obs = map(
-            adjust.map_gridded_cperms, self.pre_adjust_obs(unplace_rows)
-        )
+        # pre_adjust_obs makes sure our reqs don't end up on point obs
+        add_obs, remove_obs = self.pre_adjust_obs(unplace_rows)
+
         updated_obs = (set(self.tiling.obstructions) | set(add_obs)) - set(remove_obs)
+
+        # Make the req free tiling to prepare for fusion
         temp_tiling = Tiling(updated_obs, [], self.dimensions)
 
         for col in unplace_cols:
@@ -357,6 +371,7 @@ class PartialUnplacement:
             cols_to_remove, rows_to_remove
         )
 
+        # Bring the reqs back
         return temp_tiling.add_requirement_list(
             self.new_reqs(unplace_cols, unplace_rows)
         )

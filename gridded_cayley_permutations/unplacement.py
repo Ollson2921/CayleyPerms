@@ -337,6 +337,9 @@ class PartialUnplacement:
     def unplace(self, unplace_cols: set[int], unplace_rows: set[int]) -> Tiling:
         """Partially unplaces at all selected cols and rows"""
 
+        if not any((unplace_cols, unplace_rows)):
+            return self.tiling
+
         cols_to_remove, rows_to_remove = set[int](), set[int]()
         adjust = self.adjustment_map(unplace_cols, unplace_rows)
 

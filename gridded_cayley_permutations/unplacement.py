@@ -158,9 +158,12 @@ class PartialUnplacement:
     def __init__(self, tiling: Tiling):
         self.tiling = tiling
         self.dimensions = tiling.dimensions
-        self.positive_cols, self.positive_rows = map(
-            set[int], zip(*tiling.positive_cells())
-        )
+        try:
+            self.positive_cols, self.positive_rows = map(
+                set[int], zip(*tiling.positive_cells())
+            )
+        except ValueError:
+            self.positive_cols, self.positive_rows = set[int](), set[int]()
         self.point_cols = tiling.point_cols
         self.point_rows = tiling.point_rows
         self.obs_by_direction = tiling.obs_by_col_and_row()

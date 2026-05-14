@@ -274,7 +274,7 @@ class PartialUnplacement:
             cell for cell in self.tiling.positive_cells() if cell[1] == row
         )
         for ob in self.obs_by_direction[1][row] - self.expected_obs:
-            if any(ob.positions.count(cell) for cell in positive_cells):
+            if any(ob.positions.count(cell) > 1 for cell in positive_cells):
                 return False
         return True
 

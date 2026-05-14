@@ -314,7 +314,7 @@ class PartialUnplacement:
         return [col_map, row_map]
 
     def pre_adjust_obs(
-        self, unplaced_rows: Iterable[int]
+        self, unplaced_rows: Iterable[int], adjust: RowColMap
     ) -> tuple[set[GriddedCayleyPerm], set[GriddedCayleyPerm]]:
         """Adds neccecary 00... obstructions and shifts point cols as needed"""
         add_obs, remove_obs = set[GriddedCayleyPerm](), set[GriddedCayleyPerm]()
@@ -325,7 +325,7 @@ class PartialUnplacement:
                 for ob in self.restricted_obs_by_direction[1][row] - self.expected_obs
             )
             for point in points:
-                shift_cell = (point[0], point[1] - 1)
+                shift_cell = (point[0], adjust.row_map[row])
                 if point[0] in self.point_cols:
                     remove_obs.add(GriddedCayleyPerm((0,), (shift_cell,)))
                     add_obs.update(
@@ -337,7 +337,7 @@ class PartialUnplacement:
                     )
                 for grouping in abnormal_cells:
                     positions = sorted(grouping + (point,))
-                    positions = [(cell[0], cell[1] - 1) for cell in positions]
+                    positions = [(cell[0], adjust.row_map[row]) for cell in positions]
                     add_obs.add(GriddedCayleyPerm((0,) * len(positions), positions))
         return add_obs, remove_obs
 
@@ -354,26 +354,25 @@ class PartialUnplacement:
             return self.tiling
 
         cols_to_remove, rows_to_remove = set[int](), set[int]()
-
-        # pre_adjust_obs makes sure our reqs don't end up on point obs
-        add_obs, remove_obs = self.pre_adjust_obs(unplace_rows)
-
-        updated_obs = (set(self.tiling.obstructions) | set(add_obs)) - set(remove_obs)
-
-        # Make the req free tiling to prepare for fusion
-        temp_tiling = Tiling(updated_obs, [], self.dimensions)
-
         for col in unplace_cols:
             cols_to_remove.update({col, col + 1})
         for row in unplace_rows:
             rows_to_remove.update({row, row + 1})
-        temp_tiling = temp_tiling.delete_rows_and_columns(
+
+        temp_tiling = self.tiling.delete_rows_and_columns(
             cols_to_remove, rows_to_remove
         )
 
+        # pre_adjust_obs makes sure our reqs don't end up on point obs
+        adjust = self.adjustment_map(unplace_cols, unplace_rows)
+        add_obs, remove_obs = self.pre_adjust_obs(unplace_rows, adjust)
+        updated_obs = (set(temp_tiling.obstructions) | set(add_obs)) - set(remove_obs)
+
         # Bring the reqs back
-        return temp_tiling.add_requirement_list(
-            self.new_reqs(unplace_cols, unplace_rows)
+        return Tiling(
+            updated_obs,
+            [self.new_reqs(unplace_cols, unplace_rows)],
+            temp_tiling.dimensions,
         )
 
     def adjustment_map(

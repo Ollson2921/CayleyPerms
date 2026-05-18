@@ -13,9 +13,14 @@ from cayley_permutations import CayleyPermutation
 
 from .gridded_cayley_perms import GriddedCayleyPerm
 
+# Filters contradictory GCPS when True
 CHECK_VALID = True
 
-FORCE_CONTRADICTION_ERROR = False
+# Behavior when finding a contradictory GCP
+IGNORE = 0  # Do Nothing
+WARN = 1  # Print the contradiction
+ERROR = 2  # Raise an error
+HANDLE_CONTRADICTION_ERROR = IGNORE
 
 
 class ContradictionError(Exception):
@@ -55,8 +60,11 @@ class SimplifyObstructionsAndRequirements:
         for gcp in gcps:
             if not gcp.contradictory():
                 yield gcp
-            elif FORCE_CONTRADICTION_ERROR:
-                raise ContradictionError(gcp)
+            match HANDLE_CONTRADICTION_ERROR:
+                case 1:
+                    print(f"Found contradiction : {gcp}")
+                case 2:
+                    raise ContradictionError(gcp)
 
     def remove_contradictory_obstructions(self):
         """Remove obstructions that are contradictory."""

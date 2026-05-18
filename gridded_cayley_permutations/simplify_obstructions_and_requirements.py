@@ -13,6 +13,17 @@ from cayley_permutations import CayleyPermutation
 
 from .gridded_cayley_perms import GriddedCayleyPerm
 
+CHECK_VALID = True
+
+FORCE_CONTRADICTION_ERROR = False
+
+
+class ContradictionError(Exception):
+    """Exception for contradictory GCPS"""
+
+    def __init__(self, gcp: GriddedCayleyPerm):
+        super().__init__(f"{gcp} is invalid.")
+
 
 def binomial(x: int, y: int) -> int:
     """Returns the binomial coefficient x choose y."""
@@ -37,6 +48,26 @@ class SimplifyObstructionsAndRequirements:
         self.requirements = requirements
         self.dimensions = dimensions
         self.sort_obstructions()
+
+    @staticmethod
+    def remove_contradictions(gcps: Iterable[GriddedCayleyPerm]):
+        """Returns only gcps that aren't contradictory and raises an error if needed"""
+        for gcp in gcps:
+            if not gcp.contradictory():
+                yield gcp
+            elif FORCE_CONTRADICTION_ERROR:
+                raise ContradictionError(gcp)
+
+    def remove_contradictory_obstructions(self):
+        """Remove obstructions that are contradictory."""
+        self.obstructions = tuple(self.remove_contradictions(self.obstructions))
+
+    def remove_contradictory_requirements(self):
+        """Remove requirements that are contradictory."""
+        self.requirements = tuple(
+            tuple(self.remove_contradictions(req_list))
+            for req_list in self.requirements
+        )
 
     def remove_redundant_gridded_cperms(
         self, gridded_cperms: Iterable["GriddedCayleyPerm"]
@@ -84,6 +115,9 @@ class SimplifyObstructionsAndRequirements:
 
     def simplify(self) -> None:
         """Simplify the obstructions and requirements using all methods until there is no change."""
+        if CHECK_VALID:
+            self.remove_contradictory_obstructions()
+            self.remove_contradictory_requirements()
         curr_obs = None
         curr_reqs = None
         while curr_obs != self.obstructions or curr_reqs != self.requirements:

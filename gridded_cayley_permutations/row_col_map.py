@@ -29,8 +29,8 @@ class RowColMap:
     """
 
     def __init__(self, col_map: dict[int, int], row_map: dict[int, int]):
-        self.row_map = dict(sorted(row_map.items(), key=lambda item: item[1]))
-        self.col_map = dict(sorted(col_map.items(), key=lambda item: item[1]))
+        self.row_map = dict(sorted(row_map.items()))
+        self.col_map = dict(sorted(col_map.items()))
 
     def is_identity(self) -> bool:
         return all(x == y for x, y in self.row_map.items()) and all(

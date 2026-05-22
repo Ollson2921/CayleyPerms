@@ -306,8 +306,8 @@ class Tiling(CombinatorialClass):
         return new_til, rc_map
 
     def find_empty_rows_and_columns(self) -> tuple[tuple[int, ...], tuple[int, ...]]:
-        """Returns a list of the indices of empty rows and
-        a list of the indices of empty columns."""
+        """Returns a list of the indices of empty cols and
+        a list of the indices of empty rows."""
         if self.dimensions == (0, 0):
             return tuple(), tuple()
         col_count: dict[int, int] = defaultdict(int)

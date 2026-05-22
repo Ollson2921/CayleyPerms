@@ -535,8 +535,19 @@ class LessThanRowColSeparation(AbstractSeparation):
         """Return the row and column map."""
         pre_row_indices = [next(iter(row_cell))[1] for row_cell in self.row_order]
         pre_col_indices = [next(iter(col_cell))[0] for col_cell in self.col_order]
-        row_map = dict(enumerate(pre_row_indices))
-        col_map = dict(enumerate(pre_col_indices))
+        empty_cols, empty_rows = self.tiling.find_empty_rows_and_columns()
+        acive_rows = [
+            row for row in range(self.tiling.dimensions[1]) if row not in empty_rows
+        ]
+        active_cols = [
+            col for col in range(self.tiling.dimensions[0]) if col not in empty_cols
+        ]
+        row_map = {}
+        col_map = {}
+        for idx, row in enumerate(acive_rows):
+            row_map[row] = pre_row_indices[idx]
+        for idx, col in enumerate(active_cols):
+            col_map[col] = pre_col_indices[idx]
         return RowColMap(col_map, row_map)
 
     def map_cell(self, cell: Cell) -> Cell:

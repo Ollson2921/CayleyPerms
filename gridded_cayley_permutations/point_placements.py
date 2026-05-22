@@ -289,6 +289,16 @@ class PointPlacement(AbstractPointPlacement):
                 )
                 for req_list in self.tiling.requirements
             )
+            for req_list in self.tiling.requirements:
+                for req in req_list:
+                    if len(req) == 1 and req.positions[0] == cell:
+                        new_requirements += (
+                            (
+                                GriddedCayleyPerm(
+                                    req.pattern, [(cell[0] + 1, cell[1] + 1)]
+                                ),
+                            ),
+                        )
             self.directionless_dict[cell] = Tiling(
                 new_obstructions,
                 new_requirements,

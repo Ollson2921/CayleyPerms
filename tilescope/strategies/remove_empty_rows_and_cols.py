@@ -34,19 +34,11 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         obj = objs[0]
-        adjust = 0
-        empty_cols, empty_rows = comb_class.find_empty_rows_and_columns()
-        new_positions = []
-        for cell in obj.positions:
-            if cell[0] in empty_cols:
-                adjust += 1
-            new_positions.append((cell[0] + adjust, cell[1]))
-        adjust = 0
-        for cell in sorted(new_positions, key=lambda x: x[1]):
-            if cell[1] in empty_rows:
-                adjust += 1
-            new_positions.append((cell[0], cell[1] + adjust))
-        yield GriddedCayleyPerm(obj.pattern, tuple(new_positions))
+        empty_row_cols = comb_class.find_empty_rows_and_columns()
+        _, rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
+            *empty_row_cols
+        )
+        yield from rc_map.preimage_of_gridded_cperm(obj)
 
     def forward_map(
         self,

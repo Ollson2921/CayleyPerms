@@ -41,7 +41,10 @@ class AbstractObstructionTransitivityStrategy(
         objs: tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        obj = objs[0]
+        if obj is None:
+            return
+        yield obj
 
     def forward_map(
         self,
@@ -49,7 +52,7 @@ class AbstractObstructionTransitivityStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        return (obj,)
 
     def __repr__(self) -> str:
         return (

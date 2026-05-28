@@ -741,13 +741,21 @@ class AbstractLessThanRowColSeparationStrategy(
     def formal_step(self) -> str:
         return "Separate rows and columns"
 
+    @abc.abstractmethod
+    def algorithm(self, comb_class: TilingT) -> AbstractSeparation:
+        """The algorithm for finding the row and column separation."""
+
     def backward_map(
         self,
         comb_class: TilingT,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        rc_map = self.algorithm(comb_class).row_col_map
+
+        for obj in objs:
+            if obj is not None:
+                yield rc_map.map_gridded_cperm(obj)
 
     def forward_map(
         self,
@@ -755,7 +763,19 @@ class AbstractLessThanRowColSeparationStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        rc_map = self.algorithm(comb_class).row_col_map
+        print("Forward map")
+        print(comb_class)
+        print("mapping")
+        print(obj)
+        print(rc_map)
+        for child in self.decomposition_function(comb_class):
+            print(child)
+        for preimage in rc_map.preimage_of_gridded_cperm(obj):
+            print(preimage)
+        raise NotImplementedError("Forward map not implemented yet.")
 
     def __repr__(self) -> str:
         return (
@@ -783,10 +803,18 @@ class LessThanRowColSeparationStrategy(
 ):
     """A strategy that separates rows and columns."""
 
+    def algorithm(self, comb_class: Tiling) -> LessThanRowColSeparation:
+        """The algorithm for finding the row and column separation."""
+        return LessThanRowColSeparation(comb_class)
+
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
-        algo = LessThanRowColSeparation(comb_class)
-        return (next(algo.row_col_separation()),)
+        algo = self.algorithm(comb_class)
+        if algo.row_col_map.is_identity():
+            raise StrategyDoesNotApply
+        return tuple(
+            algo.row_col_separation(),
+        )
 
     def extra_parameters(
         self, comb_class: Tiling, children: Optional[tuple[Tiling, ...]] = None

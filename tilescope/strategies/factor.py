@@ -41,21 +41,10 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
-        preimage_objs = []
-        for gcp, factor in zip(objs, self.algorithm(comb_class).find_factors_as_cells):
-            if gcp is None:
-                continue
-            add_to_len = min(cell[0] for cell in factor)
-            add_to_val = min(cell[1] for cell in factor)
-            preimage_gcp = gcp.add_to_positions(add_to_len, add_to_val)
-            preimage_objs.append(preimage_gcp)
-
         temp = [
             ((cell[0], idx), (cell[1], val))
-            for gp in preimage_objs
-            for (idx, val), cell in zip(enumerate(gp.pattern), gp.positions)
+            for gcp in objs
+            for (idx, val), cell in zip(enumerate(gcp.pattern), gcp.positions)
         ]
         temp.sort()
         new_positions = [(idx[0], val[0]) for idx, val in temp]

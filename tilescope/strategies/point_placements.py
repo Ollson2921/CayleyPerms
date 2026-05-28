@@ -81,7 +81,36 @@ class AbstractRequirementPlacementStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        for obj in objs:
+            if obj is None:
+                continue
+            placed_cells = [gcp.positions[i] for gcp, i in zip(self.gcps, self.indices)]
+            placed_cells = [(x + 1, y + 1) for x, y in placed_cells]
+            new_positions = []
+            for cell in obj.positions:
+                placed_cells_below_x = sum(
+                    2 for placed_cell in placed_cells if placed_cell[0] < cell[0]
+                )
+                placed_cells_below_y = sum(
+                    2 for placed_cell in placed_cells if placed_cell[1] < cell[1]
+                )
+                new_cell = (
+                    cell[0]
+                    - placed_cells_below_x
+                    - 1
+                    * int(
+                        any(cell[0] == placed_cell[0] for placed_cell in placed_cells)
+                    ),
+                    cell[1]
+                    - placed_cells_below_y
+                    - 1
+                    * int(
+                        any(cell[1] == placed_cell[1] for placed_cell in placed_cells)
+                    ),
+                )
+                new_positions.append(new_cell)
+            yield GriddedCayleyPerm(obj.pattern, tuple(new_positions))
+        input()
 
     def forward_map(
         self,
@@ -89,7 +118,30 @@ class AbstractRequirementPlacementStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        if obj.avoids(self.gcps):
+            return (obj, None)
+        placed_cells = [gcp.positions[i] for gcp, i in zip(self.gcps, self.indices)]
+        new_positions = []
+        for cell in obj.positions:
+            placed_cells_below_x = sum(
+                2 for placed_cell in placed_cells if placed_cell[0] < cell[0]
+            )
+            placed_cells_below_y = sum(
+                2 for placed_cell in placed_cells if placed_cell[1] < cell[1]
+            )
+            new_cell = (
+                cell[0]
+                + placed_cells_below_x
+                + 1
+                * int(any(cell[0] == placed_cell[0] for placed_cell in placed_cells)),
+                cell[1]
+                + placed_cells_below_y
+                + 1
+                * int(any(cell[1] == placed_cell[1] for placed_cell in placed_cells)),
+            )
+            new_positions.append(new_cell)
+        placed_gcp = GriddedCayleyPerm(obj.pattern, tuple(new_positions))
+        return (None, placed_gcp)
 
     def __repr__(self) -> str:
         return (

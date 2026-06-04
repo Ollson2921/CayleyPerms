@@ -763,19 +763,20 @@ class AbstractLessThanRowColSeparationStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
-        if children is None:
-            children = self.decomposition_function(comb_class)
-        rc_map = self.algorithm(comb_class).row_col_map
-        print("Forward map")
-        print(comb_class)
-        print("mapping")
-        print(obj)
-        print(rc_map)
-        for child in self.decomposition_function(comb_class):
-            print(child)
-        for preimage in rc_map.preimage_of_gridded_cperm(obj):
-            print(preimage)
-        raise NotImplementedError("Forward map not implemented yet.")
+        algo = self.algorithm(comb_class)
+        rc_map = algo.row_col_map
+        children_gcps = []
+        for obs, reqs in algo.point_row_obs_and_reqs():
+            for preimage in rc_map.preimage_of_gridded_cperm(obj):
+                if (
+                    preimage.avoids(algo.new_obstructions)
+                    and preimage.avoids(obs)
+                    and all(preimage.contains(req) for req in reqs)
+                ):
+                    children_gcps.append(preimage)
+        if not len(children_gcps) == len(list(algo.point_row_obs_and_reqs())):
+            raise ValueError("More than one gcp mapped to the same child.")
+        return tuple(children_gcps)
 
     def __repr__(self) -> str:
         return (

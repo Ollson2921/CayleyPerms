@@ -17,10 +17,13 @@ class TrackedFactorStrategy(
     A strategy for finding factors in a tracked tiling.
     """
 
+    def algorithm(self, comb_class: TrackedTiling) -> TrackedFactors:
+        return TrackedFactors(comb_class)
+
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
-        factors = tuple(TrackedFactors(comb_class).find_tracked_factors())
+        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
@@ -50,6 +53,9 @@ class TrackedShuffleFactorStrategy(
     A strategy for finding factors in a tracked tiling.
     """
 
+    def algorithm(self, comb_class: TrackedTiling) -> TrackedShuffleFactors:
+        return TrackedShuffleFactors(comb_class)
+
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
@@ -57,7 +63,7 @@ class TrackedShuffleFactorStrategy(
             raise StrategyDoesNotApply(
                 "TrackedTiling is not a row or column shuffle of factors."
             )
-        factors = tuple(TrackedShuffleFactors(comb_class).find_tracked_factors())
+        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors

@@ -752,7 +752,6 @@ class AbstractLessThanRowColSeparationStrategy(
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         rc_map = self.algorithm(comb_class).row_col_map
-
         for obj in objs:
             if obj is not None:
                 yield rc_map.map_gridded_cperm(obj)
@@ -774,8 +773,9 @@ class AbstractLessThanRowColSeparationStrategy(
                     and all(preimage.contains(req) for req in reqs)
                 ):
                     children_gcps.append(preimage)
-        if not len(children_gcps) == len(list(algo.point_row_obs_and_reqs())):
-            raise ValueError("More than one gcp mapped to the same child.")
+        assert len(children_gcps) == len(
+            list(algo.point_row_obs_and_reqs())
+        ), "More than one gcp mapped to the same child."
         return tuple(children_gcps)
 
     def __repr__(self) -> str:

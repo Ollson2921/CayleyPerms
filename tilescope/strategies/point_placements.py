@@ -110,7 +110,6 @@ class AbstractRequirementPlacementStrategy(
                 )
                 new_positions.append(new_cell)
             yield GriddedCayleyPerm(obj.pattern, tuple(new_positions))
-        input()
 
     def forward_map(
         self,

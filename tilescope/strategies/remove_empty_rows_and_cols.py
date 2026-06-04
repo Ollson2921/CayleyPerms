@@ -34,6 +34,7 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         obj = objs[0]
+        assert obj is not None
         empty_row_cols = comb_class.find_empty_rows_and_columns()
         _, rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
             *empty_row_cols

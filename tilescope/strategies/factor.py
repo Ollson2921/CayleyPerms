@@ -44,11 +44,12 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         temp = [
             ((cell[0], idx), (cell[1], val))
             for gcp in objs
+            if gcp is not None
             for (idx, val), cell in zip(enumerate(gcp.pattern), gcp.positions)
         ]
         temp.sort()
         new_positions = [(idx[0], val[0]) for idx, val in temp]
-        new_pattern = CayleyPermutation.standardise([val for _, val in temp])
+        new_pattern = CayleyPermutation.standardise([val[1] for _, val in temp])
         yield GriddedCayleyPerm(new_pattern, tuple(new_positions))
 
     def forward_map(

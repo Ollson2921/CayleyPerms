@@ -42,8 +42,7 @@ class AbstractObstructionTransitivityStrategy(
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
         obj = objs[0]
-        if obj is None:
-            return
+        assert obj is not None
         yield obj
 
     def forward_map(

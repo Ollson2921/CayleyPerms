@@ -261,13 +261,12 @@ class PointPlacement(AbstractPointPlacement):
         Return the tiling which has placed the point in cell with respect to the given
         requirement_list and indices.
         """
-        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
         forced_obs = self.forced_obstructions(
             cell, requirement_list, indices, direction
         )
         directionless = self.directionless_point_placement(cell)
-        new_obs = directionless.obstructions + point_obs + forced_obs
-        new_reqs = directionless.requirements + point_reqs
+        new_obs = directionless.obstructions + forced_obs
+        new_reqs = directionless.requirements
         return Tiling(new_obs, new_reqs, directionless.dimensions)
 
     def directionless_point_placement(self, cell: Cell) -> Tiling:
@@ -275,12 +274,13 @@ class PointPlacement(AbstractPointPlacement):
         Return the tiling obtained by placing the point in the given cell.
         As this is directionless, the placed point is not necessarily unique.
         """
+        point_obs, point_reqs = self.point_obstructions_and_requirements(cell)
         if cell not in self.directionless_dict:
             new_obstructions = tuple(
                 chain.from_iterable(
                     (self.expand_gcp(ob, cell)) for ob in self.tiling.obstructions
                 )
-            )
+            ) + tuple(point_obs)
             new_requirements = tuple(
                 tuple(
                     chain.from_iterable(
@@ -288,7 +288,7 @@ class PointPlacement(AbstractPointPlacement):
                     )
                 )
                 for req_list in self.tiling.requirements
-            )
+            ) + tuple(point_reqs)
             self.directionless_dict[cell] = Tiling(
                 new_obstructions,
                 new_requirements,

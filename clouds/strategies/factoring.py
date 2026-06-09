@@ -18,12 +18,12 @@ class TrackedFactorStrategy(
     """
 
     def algorithm(self, comb_class: TrackedTiling) -> TrackedFactors:
-        return TrackedFactors(comb_class)
+        raise NotImplementedError("This strategy should not be tracked.")
 
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
-        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
+        factors = tuple(TrackedFactors(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
@@ -54,7 +54,7 @@ class TrackedShuffleFactorStrategy(
     """
 
     def algorithm(self, comb_class: TrackedTiling) -> TrackedShuffleFactors:
-        return TrackedShuffleFactors(comb_class)
+        raise ValueError("This strategy should not be tracked.")
 
     def decomposition_function(
         self, comb_class: TrackedTiling
@@ -63,7 +63,7 @@ class TrackedShuffleFactorStrategy(
             raise StrategyDoesNotApply(
                 "TrackedTiling is not a row or column shuffle of factors."
             )
-        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
+        factors = tuple(TrackedShuffleFactors(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors

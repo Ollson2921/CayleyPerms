@@ -148,6 +148,9 @@ class AbstractShuffleFactorStrategy(
 class ShuffleFactorStrategy(FactorStrategy, Strategy[Tiling, GriddedCayleyPerm]):
     """Strategy for finding shuffle factors."""
 
+    def algorithm(self, comb_class: Tiling) -> ShuffleFactors:
+        return ShuffleFactors(comb_class)
+
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
         if 1 not in comb_class.dimensions:
             raise StrategyDoesNotApply(

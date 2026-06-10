@@ -25,9 +25,9 @@ class TrackedRemoveEmptyRowsAndColumnsStrategy(
         return (comb_class.remove_empty_rows_and_columns(),)
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        empty_rows, empty_cols = comb_class.find_empty_rows_and_columns()
+        empty_cols, empty_rows = comb_class.find_empty_rows_and_columns()
         rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
-            empty_rows, empty_cols
+            empty_cols, empty_rows
         )[1]
         col_map = rc_map.col_map
         row_map = rc_map.row_map

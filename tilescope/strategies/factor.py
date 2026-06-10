@@ -41,7 +41,6 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
         temp = [
             ((cell[0], idx), (cell[1], val))
             for gcp in objs
@@ -50,8 +49,10 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         ]
         temp.sort()
         new_positions = [(idx[0], val[0]) for idx, val in temp]
-        # new_pattern = CayleyPermutation.standardise([val for _, val in temp])
-
+        point_rows = comb_class.point_rows
+        new_pattern = CayleyPermutation.standardise(
+            [(val[0], 0) if val[0] in point_rows else val for _, val in temp]
+        )
         yield GriddedCayleyPerm(new_pattern, tuple(new_positions))
 
     def forward_map(

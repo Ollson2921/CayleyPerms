@@ -110,30 +110,43 @@ class AbstractRequirementPlacementStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
+        cells = [gp.positions[idx] for gp, idx in zip(self.gcps, self.indices)]
         if obj.avoids(self.gcps):
-            return (obj, None)
-        placed_cells = [gcp.positions[i] for gcp, i in zip(self.gcps, self.indices)]
+            return (obj,) + (None for _ in cells)
+        # find the forced point, idx, val in obj
+        forced_idx, forced_val = self.forced_point(obj)
+        # determine which child place the cell obj.positions[idx]
+        cell = obj.positions[forced_idx]
+        child_idx = sorted(cells).index(cell)
         new_positions = []
-        for cell in obj.positions:
-            placed_cells_below_x = sum(
-                2 for placed_cell in placed_cells if placed_cell[0] < cell[0]
-            )
-            placed_cells_below_y = sum(
-                2 for placed_cell in placed_cells if placed_cell[1] < cell[1]
-            )
-            new_cell = (
-                cell[0]
-                + placed_cells_below_x
-                + 1
-                * int(any(cell[0] == placed_cell[0] for placed_cell in placed_cells)),
-                cell[1]
-                + placed_cells_below_y
-                + 1
-                * int(any(cell[1] == placed_cell[1] for placed_cell in placed_cells)),
-            )
-            new_positions.append(new_cell)
-        placed_gcp = GriddedCayleyPerm(obj.pattern, tuple(new_positions))
-        return (None, placed_gcp)
+        for (idx, val), (x, y) in zip(enumerate(obj.pattern), obj.positions):
+            if idx == forced_idx:
+                x += 1
+            if idx > forced_idx:
+                x += 2
+            if val == forced_val:
+                y += 1
+            if val > forced_val:
+                y += 2
+            new_positions.append((x, y))
+
+        res = (None,) + tuple(
+            GriddedCayleyPerm(obj.pattern, new_positions) if child_idx == idx else None
+            for idx in range(len(children))
+        )
+        return res
+
+    def forced_point(self, gcp: GriddedCayleyPerm) -> Tuple[int, int]:
+        """find the forced point"""
+        point = None
+        for idx, patt in zip(self.indices, self.gcps):
+            for occ in patt.occurrences_in(gcp):
+                new_point = occ[idx], gcp.pattern[occ[idx]]
+                if point is None or PointPlacement.farther(
+                    new_point, point, self.direction
+                ):
+                    point = new_point
+        return point
 
     def __repr__(self) -> str:
         return (

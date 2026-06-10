@@ -114,7 +114,10 @@ class AbstractRequirementPlacementStrategy(
         if obj.avoids(self.gcps):
             return (obj,) + (None for _ in cells)
         # find the forced point, idx, val in obj
-        forced_idx, forced_val = self.forced_point(obj)
+        forced_point = self.forced_point(obj)
+        if forced_point is None:
+            return (obj,) + (None for _ in cells)
+        forced_idx, forced_val = forced_point
         # determine which child place the cell obj.positions[idx]
         cell = obj.positions[forced_idx]
         child_idx = sorted(cells).index(cell)
@@ -132,11 +135,11 @@ class AbstractRequirementPlacementStrategy(
 
         res = (None,) + tuple(
             GriddedCayleyPerm(obj.pattern, new_positions) if child_idx == idx else None
-            for idx in range(len(children))
+            for idx in range(len(cells))
         )
         return res
 
-    def forced_point(self, gcp: GriddedCayleyPerm) -> Tuple[int, int]:
+    def forced_point(self, gcp: GriddedCayleyPerm) -> Tuple[int, int] | None:
         """find the forced point"""
         point = None
         for idx, patt in zip(self.indices, self.gcps):

@@ -14,7 +14,6 @@ from .fusion_constructor import (
     ReverseFusionConstructor,
 )
 
-
 Cell = tuple[int, int]
 
 
@@ -24,19 +23,14 @@ class AbstractTrackedFusionStrategy(
     """Abstract fusion strategy for tracked tilings."""
 
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        if self.fuse_rows:
-            col_map = {x: (x,) for x in range(comb_class.dimensions[0])}
-            row_map = {
-                x: (x,) if x <= self.index else (x - 1,)
-                for x in range(comb_class.dimensions[1])
-            }
-        else:
-            row_map = {x: (x,) for x in range(comb_class.dimensions[1])}
-            col_map = {
-                x: (x,) if x <= self.index else (x - 1,)
-                for x in range(comb_class.dimensions[0])
-            }
-        return ((col_map, row_map),)
+        rc_map = self.fusion_map(comb_class)
+        clouds_col_map = {
+            x: (rc_map.col_map[x],) for x in range(comb_class.dimensions[0])
+        }
+        clouds_row_map = {
+            x: (rc_map.row_map[x],) for x in range(comb_class.dimensions[1])
+        }
+        return ((clouds_col_map, clouds_row_map),)
 
     def sided_parameters(self, comb_class: TrackedTiling):
         """Determine which parameters are left-sided, right-sided, or both-sided."""

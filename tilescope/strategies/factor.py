@@ -1,5 +1,6 @@
 """Factors the tiling into sections that are independent of each other."""
 
+import abc
 from typing import Dict, Iterator, Optional, Tuple
 from comb_spec_searcher import CartesianProductStrategy, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
@@ -7,6 +8,7 @@ from comb_spec_searcher.strategies.constructor import Constructor
 from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
 from gridded_cayley_permutations.factors import Factors, ShuffleFactors
 from gridded_cayley_permutations.point_placements import TilingT
+from cayley_permutations import CayleyPermutation
 
 
 class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm]):
@@ -39,7 +41,19 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        temp = [
+            ((cell[0], idx), (cell[1], val))
+            for gcp in objs
+            if gcp is not None
+            for (idx, val), cell in zip(enumerate(gcp.pattern), gcp.positions)
+        ]
+        temp.sort()
+        new_positions = [(idx[0], val[0]) for idx, val in temp]
+        point_rows = comb_class.point_rows
+        new_pattern = CayleyPermutation.standardise(
+            [(val[0], 0) if val[0] in point_rows else val for _, val in temp]
+        )
+        yield GriddedCayleyPerm(new_pattern, tuple(new_positions))
 
     def forward_map(
         self,
@@ -47,7 +61,16 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[GriddedCayleyPerm, ...]:
-        raise NotImplementedError
+        if children is None:
+            children = self.decomposition_function(comb_class)
+        return tuple(
+            obj.sub_gridded_cayley_perm(factor)
+            for factor in self.algorithm(comb_class).find_factors_as_cells
+        )
+
+    @abc.abstractmethod
+    def algorithm(self, comb_class: TilingT) -> Factors:
+        """Return the factor algorithm for the tiling."""
 
     def __repr__(self) -> str:
         return (
@@ -73,10 +96,13 @@ class AbstractFactorStrategy(CartesianProductStrategy[TilingT, GriddedCayleyPerm
 class FactorStrategy(AbstractFactorStrategy[Tiling]):
     """Factors the tiling into sections that are independent of each other."""
 
+    def algorithm(self, comb_class: Tiling) -> Factors:
+        return Factors(comb_class)
+
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
-        factors = Factors(comb_class).find_factors()
+        factors = self.algorithm(comb_class).find_factors()
         if len(factors) == 1:
-            raise StrategyDoesNotApply
+            raise StrategyDoesNotApply("Strategy does not apply")
         return factors
 
 
@@ -124,6 +150,9 @@ class AbstractShuffleFactorStrategy(
 
 class ShuffleFactorStrategy(FactorStrategy, Strategy[Tiling, GriddedCayleyPerm]):
     """Strategy for finding shuffle factors."""
+
+    def algorithm(self, comb_class: Tiling) -> ShuffleFactors:
+        return ShuffleFactors(comb_class)
 
     def decomposition_function(self, comb_class: Tiling) -> Tuple[Tiling, ...]:
         if 1 not in comb_class.dimensions:

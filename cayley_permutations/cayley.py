@@ -342,7 +342,7 @@ class CayleyPermutation(tuple[int, ...]):
         return not self.contains_pattern(pattern)
 
     @classmethod
-    def standardise(cls, pattern: Iterable[int]) -> "CayleyPermutation":
+    def standardise(cls, pattern: Iterable) -> "CayleyPermutation":
         """Returns the standardised version of a pattern.
 
         Example:

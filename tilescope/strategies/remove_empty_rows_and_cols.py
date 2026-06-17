@@ -33,7 +33,13 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        obj = objs[0]
+        assert obj is not None
+        empty_row_cols = comb_class.find_empty_rows_and_columns()
+        _, rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
+            *empty_row_cols
+        )
+        yield from rc_map.preimage_of_gridded_cperm(obj)
 
     def forward_map(
         self,
@@ -41,7 +47,11 @@ class AbstractRemoveEmptyRowsAndColumnsStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        empty_cols, empty_rows = comb_class.find_empty_rows_and_columns()
+        rc_map = comb_class.tiling_and_rc_map_after_deleting_rows_and_columns(
+            empty_cols, empty_rows
+        )[1]
+        return (rc_map.map_gridded_cperm(obj),)
 
     def __repr__(self) -> str:
         return (

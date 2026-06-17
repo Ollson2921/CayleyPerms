@@ -4,7 +4,7 @@ from typing import Tuple, Optional, Dict, Set, Iterator
 from comb_spec_searcher import StrategyFactory, Strategy
 from comb_spec_searcher.exception import StrategyDoesNotApply
 from comb_spec_searcher.strategies.constructor import Constructor
-from gridded_cayley_permutations import Tiling, GriddedCayleyPerm
+from gridded_cayley_permutations import Tiling, GriddedCayleyPerm, RowColMap
 from gridded_cayley_permutations.point_placements import TilingT
 
 
@@ -63,7 +63,24 @@ class AbstractFusionStrategy(Strategy[TilingT, GriddedCayleyPerm]):
         The backward direction of the underlying bijection used for object
         generation and sampling.
         """
-        raise NotImplementedError
+        for obj in objs:
+            if obj is not None:
+                for preimage in self.fusion_map(comb_class).preimage_of_gridded_cperm(
+                    obj
+                ):
+                    if left_points is None:
+                        yield preimage
+                    else:
+                        if (
+                            self.fuse_rows
+                            and len(preimage.indices_in_row(self.index)) == left_points
+                        ):
+                            yield preimage
+                        elif (
+                            not self.fuse_rows
+                            and len(preimage.indices_in_col(self.index)) == left_points
+                        ):
+                            yield preimage
 
     def forward_map(
         self,
@@ -75,7 +92,23 @@ class AbstractFusionStrategy(Strategy[TilingT, GriddedCayleyPerm]):
         The forward direction of the underlying bijection used for object
         generation and sampling.
         """
-        raise NotImplementedError
+        return (self.fusion_map(comb_class).map_gridded_cperm(obj),)
+
+    def fusion_map(self, comb_class: TilingT):
+        """Returns the rc map from parent to child."""
+        if self.fuse_rows:
+            col_map = {x: x for x in range(comb_class.dimensions[0])}
+            row_map = {
+                x: x if x <= self.index else x - 1
+                for x in range(comb_class.dimensions[1])
+            }
+        else:
+            row_map = {x: x for x in range(comb_class.dimensions[1])}
+            col_map = {
+                x: x if x <= self.index else x - 1
+                for x in range(comb_class.dimensions[0])
+            }
+        return RowColMap(col_map, row_map)
 
     def to_jsonable(self) -> dict:
         d = super().to_jsonable()

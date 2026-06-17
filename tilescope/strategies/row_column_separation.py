@@ -741,13 +741,20 @@ class AbstractLessThanRowColSeparationStrategy(
     def formal_step(self) -> str:
         return "Separate rows and columns"
 
+    @abc.abstractmethod
+    def algorithm(self, comb_class: TilingT) -> AbstractSeparation:
+        """The algorithm for finding the row and column separation."""
+
     def backward_map(
         self,
         comb_class: TilingT,
         objs: tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        rc_map = self.algorithm(comb_class).row_col_map
+        for obj in objs:
+            if obj is not None:
+                yield rc_map.map_gridded_cperm(obj)
 
     def forward_map(
         self,
@@ -755,7 +762,21 @@ class AbstractLessThanRowColSeparationStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[tuple[TilingT, ...]] = None,
     ) -> tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        algo = self.algorithm(comb_class)
+        rc_map = algo.row_col_map
+        children_gcps = []
+        for obs, reqs in algo.point_row_obs_and_reqs():
+            for preimage in rc_map.preimage_of_gridded_cperm(obj):
+                if (
+                    preimage.avoids(algo.new_obstructions)
+                    and preimage.avoids(obs)
+                    and all(preimage.contains(req) for req in reqs)
+                ):
+                    children_gcps.append(preimage)
+        assert len(children_gcps) == len(
+            list(algo.point_row_obs_and_reqs())
+        ), "More than one gcp mapped to the same child."
+        return tuple(children_gcps)
 
     def __repr__(self) -> str:
         return (
@@ -783,10 +804,18 @@ class LessThanRowColSeparationStrategy(
 ):
     """A strategy that separates rows and columns."""
 
+    def algorithm(self, comb_class: Tiling) -> LessThanRowColSeparation:
+        """The algorithm for finding the row and column separation."""
+        return LessThanRowColSeparation(comb_class)
+
     def decomposition_function(self, comb_class: Tiling) -> tuple[Tiling, ...]:
         """Return the decomposition function."""
-        algo = LessThanRowColSeparation(comb_class)
-        return (next(algo.row_col_separation()),)
+        algo = self.algorithm(comb_class)
+        if algo.row_col_map.is_identity():
+            raise StrategyDoesNotApply
+        return tuple(
+            algo.row_col_separation(),
+        )
 
     def extra_parameters(
         self, comb_class: Tiling, children: Optional[tuple[Tiling, ...]] = None

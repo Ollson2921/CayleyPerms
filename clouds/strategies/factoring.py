@@ -1,6 +1,8 @@
 """Strategies for factoring tracked tilings."""
 
+from typing import Optional
 from comb_spec_searcher.strategies.strategy import StrategyDoesNotApply
+from gridded_cayley_permutations import GriddedCayleyPerm
 from tilescope.strategies import AbstractFactorStrategy, AbstractShuffleFactorStrategy
 from ..tracked_tiling import TrackedTiling
 from ..tracked_algos import TrackedFactors, TrackedShuffleFactors
@@ -17,16 +19,27 @@ class TrackedFactorStrategy(
     A strategy for finding factors in a tracked tiling.
     """
 
+    def algorithm(self, comb_class: TrackedTiling) -> TrackedFactors:
+        return TrackedFactors(comb_class)
+
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
-        factors = tuple(TrackedFactors(comb_class).find_tracked_factors())
+        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
 
+    def forward_map(
+        self,
+        comb_class: TrackedTiling,
+        obj: GriddedCayleyPerm,
+        children: Optional[tuple[TrackedTiling, ...]] = None,
+    ) -> tuple[GriddedCayleyPerm, ...]:
+        raise NotImplementedError("This strategy should not be tracked.")
+
     def maps_for_clouds(self, comb_class: TrackedTiling):
-        positive_point_rows, represantives = TrackedFactors(
+        positive_point_rows, represantives = self.algorithm(
             comb_class
         ).positive_point_rows_and_represantive
         res = []
@@ -50,6 +63,9 @@ class TrackedShuffleFactorStrategy(
     A strategy for finding factors in a tracked tiling.
     """
 
+    def algorithm(self, comb_class: TrackedTiling) -> TrackedShuffleFactors:
+        return TrackedShuffleFactors(comb_class)
+
     def decomposition_function(
         self, comb_class: TrackedTiling
     ) -> tuple[TrackedTiling, ...]:
@@ -57,7 +73,15 @@ class TrackedShuffleFactorStrategy(
             raise StrategyDoesNotApply(
                 "TrackedTiling is not a row or column shuffle of factors."
             )
-        factors = tuple(TrackedShuffleFactors(comb_class).find_tracked_factors())
+        factors = tuple(self.algorithm(comb_class).find_tracked_factors())
         if len(factors) == 1:
             raise StrategyDoesNotApply
         return factors
+
+    def forward_map(
+        self,
+        comb_class: TrackedTiling,
+        obj: GriddedCayleyPerm,
+        children: Optional[tuple[TrackedTiling, ...]] = None,
+    ) -> tuple[GriddedCayleyPerm, ...]:
+        raise NotImplementedError("This strategy should not be tracked.")

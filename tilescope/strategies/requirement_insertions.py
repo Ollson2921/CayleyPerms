@@ -29,7 +29,9 @@ class AbstractRequirementInsertionStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        raise NotImplementedError
+        for obj in objs:
+            if obj is not None:
+                yield obj
 
     def forward_map(
         self,
@@ -37,7 +39,9 @@ class AbstractRequirementInsertionStrategy(
         obj: GriddedCayleyPerm,
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Tuple[Optional[GriddedCayleyPerm], ...]:
-        raise NotImplementedError
+        if obj.avoids(self.gcps):
+            return (obj, None)
+        return (None, obj)
 
     @classmethod
     def from_dict(cls, d: dict) -> "AbstractRequirementInsertionStrategy":

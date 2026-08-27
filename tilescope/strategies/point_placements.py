@@ -81,7 +81,9 @@ class AbstractRequirementPlacementStrategy(
         objs: Tuple[Optional[GriddedCayleyPerm], ...],
         children: Optional[Tuple[TilingT, ...]] = None,
     ) -> Iterator[GriddedCayleyPerm]:
-        placed_cells = [gcp.positions[i] for gcp, i in zip(self.gcps, self.indices)]
+        placed_cells = sorted(
+            set([gcp.positions[i] for gcp, i in zip(self.gcps, self.indices)])
+        )
         placed_cells = [(x + 1, y + 1) for x, y in placed_cells]
         for placed_cell, obj in zip(placed_cells, objs[1:]):
             if obj is None:
